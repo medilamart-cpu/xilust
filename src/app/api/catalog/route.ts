@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     const offset = (page - 1) * limit;
 
-    const { items, total } = queryItems({
+    const { items, total } = await queryItems({
       section,
       limit,
       offset,

@@ -14,7 +14,7 @@ export default async function TitlePage({
 }) {
   const { type, id } = await params;
   const section = type === "jax" ? "jax" : "lust";
-  const item = getItemBySlug(section, id);
+  const item = await getItemBySlug(section, id);
 
   if (!item) {
     notFound();
@@ -22,7 +22,7 @@ export default async function TitlePage({
 
   // Get similar recommendations from the same category or studio
   const category = item.categories[0];
-  const { items: recs } = queryItems({
+  const { items: recs } = await queryItems({
     section,
     category: category || undefined,
     limit: 8,

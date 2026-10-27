@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const type = (searchParams.get("type") as "actor" | "studio" | "category" | "tag") || "actor";
     const limit = parseInt(searchParams.get("limit") || "40", 10);
 
-    const items = getTaxonomies(section, type, limit);
+    const items = await getTaxonomies(section, type, limit);
 
     return NextResponse.json({
       section,
