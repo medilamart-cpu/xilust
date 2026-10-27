@@ -6,6 +6,7 @@ import { TileCard } from "@/components/aethoplex/PosterCard";
 import { TitleWatchClient } from "./TitleWatchClient";
 
 export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 export default async function TitlePage({
   params,

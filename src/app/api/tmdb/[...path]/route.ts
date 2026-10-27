@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+export const runtime = "edge";
+
 /* Server-side TMDB proxy.
  * The API key lives ONLY in .env — the browser talks to /api/tmdb/*,
  * which forwards to api.themoviedb.org with the key injected. */

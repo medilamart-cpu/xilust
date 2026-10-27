@@ -41,6 +41,9 @@ let dbInstance: any = null;
 let localDbChecked = false;
 
 function getLocalDb() {
+  if (typeof process === "undefined" || process.env.NEXT_RUNTIME === "edge") {
+    return null;
+  }
   if (localDbChecked) return dbInstance;
   localDbChecked = true;
   try {
