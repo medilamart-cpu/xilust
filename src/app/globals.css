@@ -1,0 +1,183 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* =====================================================================
+ *  AETHOPLEX DESIGN TOKENS  (extracted from the reference design)
+ * ===================================================================== */
+
+:root {
+  --radius: 0.625rem;
+  /* page canvas — near-black with a blue cast */
+  --page: #080a0f;
+  --panel: #0b0e15;
+  --background: #080a0f;
+  --foreground: #f4f5f8;
+  --card: #0b0e15;
+  --card-foreground: #f4f5f8;
+  --popover: #10131b;
+  --popover-foreground: #f4f5f8;
+  --primary: #c9edff;
+  --primary-foreground: #071018;
+  --secondary: rgba(247, 249, 255, 0.1);
+  --secondary-foreground: #f1f4fa;
+  --muted: rgba(247, 249, 255, 0.06);
+  --muted-foreground: rgba(237, 240, 247, 0.68);
+  --accent: rgba(197, 224, 250, 0.14);
+  --accent-foreground: #f7faff;
+  --destructive: #b3423f;
+  --destructive-foreground: #fff5f5;
+  --border: rgba(255, 255, 255, 0.11);
+  --input: rgba(255, 255, 255, 0.11);
+  --ring: rgba(201, 237, 255, 0.4);
+  --chart-1: #c9edff;
+  --chart-2: #d5caff;
+  --chart-3: #b4d8f7;
+  --chart-4: #e5f8ff;
+  --chart-5: #8ea7c9;
+  --sidebar: #0b0e15;
+  --sidebar-foreground: #f4f5f8;
+  --sidebar-primary: #c9edff;
+  --sidebar-primary-foreground: #071018;
+  --sidebar-accent: rgba(247, 249, 255, 0.1);
+  --sidebar-accent-foreground: #f1f4fa;
+  --sidebar-border: rgba(255, 255, 255, 0.11);
+  --sidebar-ring: rgba(201, 237, 255, 0.4);
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-panel: var(--panel);
+  --color-hairline: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--page);
+  color: #f4f5f8;
+  font-family: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* glass surfaces */
+.glass {
+  background: rgba(20, 23, 31, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.glass-soft {
+  background: rgba(19, 22, 29, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* signature CTA gradient */
+.cta-gradient {
+  background: linear-gradient(115deg, #e5f8ff, #b4d8f7 52%, #d5caff);
+  color: #071018;
+}
+.cta-gradient:hover {
+  filter: brightness(1.06);
+}
+
+/* eyebrow letter-spaced label */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(237, 240, 247, 0.62);
+}
+
+/* film grain + vignette overlay for hero backdrops */
+.cine-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 18% 45%, rgba(4, 6, 10, 0.92) 0%, rgba(4, 6, 10, 0.55) 38%, rgba(4, 6, 10, 0) 68%),
+    linear-gradient(to top, #080a0f 2%, rgba(8, 10, 15, 0.55) 22%, rgba(8, 10, 15, 0) 55%),
+    linear-gradient(to bottom, rgba(8, 10, 15, 0.85) 0%, rgba(8, 10, 15, 0.15) 14%, rgba(8, 10, 15, 0) 26%);
+}
+
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* hidden scrollbars for carousels */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* soft focus rings */
+.focusable:focus-visible {
+  outline: 2px solid rgba(201, 237, 255, 0.55);
+  outline-offset: 2px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
