@@ -1,6 +1,3 @@
-import path from "path";
-import fs from "fs";
-
 export interface CatalogItem {
   id: number;
   section: "lust" | "jax";
@@ -47,6 +44,10 @@ function getLocalDb() {
   if (localDbChecked) return dbInstance;
   localDbChecked = true;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require("path");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require("fs");
     const dbPath = path.resolve(process.cwd(), "catalog.db");
     if (fs.existsSync(dbPath)) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
