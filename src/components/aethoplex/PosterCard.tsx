@@ -160,6 +160,8 @@ export function TileCard({ item }: { item: CardModel }) {
   const art = !imgError ? (item.backdropUrl ?? item.posterUrl) : null;
 
   const isJax = item.section === "jax";
+  const primaryStudio = item.studios?.[0] || "";
+  const studioLabel = primaryStudio.toLowerCase() === "teamskeet" ? "Team Skeet" : primaryStudio;
   const uploadDate = item.uploadedAt && !Number.isNaN(Date.parse(item.uploadedAt))
     ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(item.uploadedAt))
     : null;
@@ -220,12 +222,12 @@ export function TileCard({ item }: { item: CardModel }) {
           )}
 
           {/* Lust studio badge; JAX keeps its code badge in this position. */}
-          {!isJax && item.studios?.[0] && (
+          {!isJax && primaryStudio && (
             <span
-              title={item.studios[0]}
+              title={primaryStudio}
               className="absolute left-1.5 sm:left-2 top-1.5 sm:top-2 max-w-[48%] truncate rounded bg-purple-950/85 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wide text-white shadow-md ring-1 ring-white/15 backdrop-blur-md"
             >
-              {item.studios[0]}
+              {studioLabel}
             </span>
           )}
 
