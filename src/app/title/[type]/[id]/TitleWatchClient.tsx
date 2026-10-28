@@ -77,9 +77,12 @@ export function TitleWatchClient({
   }, [embedUrl, key]);
 
   const handleEmbedLoaded = () => {
-    // The iframe loading only confirms that the provider page opened. It does
-    // not confirm that the video itself started, so keep the playback watchdog.
+    if (playerTimeoutRef.current !== null) {
+      window.clearTimeout(playerTimeoutRef.current);
+      playerTimeoutRef.current = null;
+    }
     setPlayerLoading(false);
+    setPlayerError(false);
   };
 
   const handlePlayerError = () => {
@@ -138,7 +141,7 @@ export function TitleWatchClient({
       {playerError && targetUrl && (
         <div role="alert" className="flex flex-col gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <p className="text-xs leading-relaxed text-amber-100/90 sm:text-sm">
-            Still waiting for the video? This provider may have removed or blocked the stream. Try another mirror or reload it.
+            The selected player could not load. Try another mirror or retry this one.
           </p>
           <div className="flex shrink-0 flex-wrap gap-2">
             {sources.length > 1 && (
