@@ -4,6 +4,28 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles } from "lucide-react";
 import type { CatalogItem } from "@/lib/catalog-db";
 
+function toDirectEmbedUrl(url: string): string {
+  if (!url) return "";
+  const clean = url.trim();
+
+  // Streamtape: /v/ID -> /e/ID
+  if (/(?:streamtape\.(?:com|net)|streamta\.pe|strtape\.tech|strcloud\.link)\/v\/([A-Za-z0-9_-]+)/i.test(clean)) {
+    return clean.replace(/\/v\//i, "/e/");
+  }
+
+  // Mixdrop: /f/ID -> /e/ID
+  if (/(?:mixdrop|mxdrop|mixdrp|miiixdrop)\.[a-z0-9]+\/f\/([A-Za-z0-9_-]+)/i.test(clean)) {
+    return clean.replace(/\/f\//i, "/e/");
+  }
+
+  // Doodstream / Playmogo: /d/ID -> /e/ID
+  if (/(?:dood|playmogo|ds2play|d000d|do0od)\.[a-z0-9]+\/d\/([A-Za-z0-9_-]+)/i.test(clean)) {
+    return clean.replace(/\/d\//i, "/e/");
+  }
+
+  return clean;
+}
+
 export function TitleWatchClient({
   item,
   cleanstreamUrl,
@@ -48,11 +70,12 @@ export function TitleWatchClient({
   // Build embed URL
   const embedUrl = useMemo(() => {
     if (!targetUrl) return "";
+    const directEmbed = toDirectEmbedUrl(targetUrl);
     if (playerMode === "direct") {
-      return targetUrl;
+      return directEmbed;
     }
     // CleanStream ad-free player
-    return `${cleanstreamUrl}/embed?url=${encodeURIComponent(targetUrl)}&autoplay=1`;
+    return `${cleanstreamUrl}/embed?url=${encodeURIComponent(directEmbed)}&autoplay=1`;
   }, [cleanstreamUrl, targetUrl, playerMode]);
 
   useEffect(() => {
@@ -131,9 +154,24 @@ export function TitleWatchClient({
       {playerError && targetUrl && (
         <div role="alert" className="flex flex-col gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <p className="text-xs leading-relaxed text-amber-100/90 sm:text-sm">
-            The selected player could not load. Try another mirror or retry this one.
+            {playerMode === "clean"
+              ? "CleanStream could not stream this video directly. Try switching to Direct Embed or another mirror."
+              : "The selected player could not load. Try another mirror or retry this one."}
           </p>
           <div className="flex shrink-0 flex-wrap gap-2">
+            {playerMode === "clean" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPlayerMode("direct");
+                  setPlayerError(false);
+                  setKey((k) => k + 1);
+                }}
+                className="min-h-11 rounded-lg bg-purple-500 px-4 text-xs font-bold text-white transition hover:bg-purple-400 sm:text-sm"
+              >
+                🌐 Try Direct Embed
+              </button>
+            )}
             {sources.length > 1 && (
               <button
                 type="button"
@@ -239,7 +277,7 @@ export function TitleWatchClient({
 
             {targetUrl && (
               <a
-                href={targetUrl}
+                href={toDirectEmbedUrl(targetUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
