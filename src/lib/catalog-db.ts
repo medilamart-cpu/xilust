@@ -20,6 +20,7 @@ export interface CatalogItem {
     gateway_url?: string;
   }>;
   published_at: string;
+  duration_seconds?: number | null;
 }
 
 export interface TaxonomyItem {
@@ -67,6 +68,7 @@ function getLocalDb() {
 }
 
 export function parseItem(row: any): CatalogItem {
+  const durationSeconds = Number(row.duration_seconds);
   return {
     id: row.id,
     section: row.section,
@@ -83,6 +85,7 @@ export function parseItem(row: any): CatalogItem {
     tags: typeof row.tags === "string" ? JSON.parse(row.tags) : (row.tags || []),
     video_sources: typeof row.video_sources === "string" ? JSON.parse(row.video_sources) : (row.video_sources || []),
     published_at: row.published_at || "",
+    duration_seconds: Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : null,
   };
 }
 

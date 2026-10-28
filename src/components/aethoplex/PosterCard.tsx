@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Plus, Check, Play, Film } from "lucide-react";
+import { Star, Plus, Check, Play, Film, Clock } from "lucide-react";
 import { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
 import { GeneratedArt } from "./GeneratedArt";
@@ -28,6 +28,15 @@ export interface CardModel {
   categories?: string[];
   sourcesCount?: number;
   uploadedAt?: string;
+  durationSeconds?: number | null;
+}
+
+function formatVideoDuration(seconds?: number | null) {
+  if (!seconds || !Number.isFinite(seconds) || seconds < 60) return null;
+  const totalMinutes = Math.floor(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
 export function cardOfItem(item: any): CardModel {
@@ -184,6 +193,7 @@ export function TileCard({ item }: { item: CardModel }) {
   const uploadDate = item.uploadedAt && !Number.isNaN(Date.parse(item.uploadedAt))
     ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(item.uploadedAt))
     : null;
+  const durationLabel = formatVideoDuration(item.durationSeconds);
 
   return (
     <div className="group block shrink-0 rounded-xl text-left">
@@ -240,6 +250,13 @@ export function TileCard({ item }: { item: CardModel }) {
           <span className="absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded bg-black/75 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] text-cyan-300 border border-cyan-500/30 backdrop-blur-md">
             HD
           </span>
+
+          {durationLabel && (
+            <span className="absolute right-1.5 sm:right-2 top-7 sm:top-8 inline-flex items-center gap-1 rounded bg-black/75 px-1.5 py-1 text-[9px] font-semibold text-white/90 border border-white/10 backdrop-blur-md">
+              <Clock aria-hidden="true" className="h-3 w-3 text-cyan-300" />
+              {durationLabel}
+            </span>
+          )}
 
           {/* Code badge if present on top left */}
           {item.code && art && (

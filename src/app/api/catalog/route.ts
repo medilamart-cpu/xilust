@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const section = (searchParams.get("section") as "lust" | "jax") || "lust";
     const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "24", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
     const category = searchParams.get("category") || undefined;
     const studio = searchParams.get("studio") || undefined;
     const actor = searchParams.get("actor") || undefined;
@@ -109,6 +109,7 @@ export async function GET(req: NextRequest) {
         categories: item.categories,
         tags: item.tags,
         sourcesCount: item.video_sources.length,
+        durationSeconds: item.duration_seconds ?? null,
       };
     });
 

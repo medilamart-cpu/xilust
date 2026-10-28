@@ -53,7 +53,6 @@ export function BrowseView({
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(9999);
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
 
   const { data: genreData } = useTmdb<{ genres: Genre[] }>(`genre/${cfg.base}/list`);
 
@@ -74,14 +73,11 @@ export function BrowseView({
           },
         );
         setTotal(Math.min(data.total_pages, 500));
-        setItems((prev) => {
-          const fresh = data.results
-            .filter((r) => r.poster_path && r.media_type !== "person")
-            .map((r) => cardOfItem(r));
-          if (p === 1) return fresh;
-          const seen = new Set(prev.map((x) => x.key));
-          return [...prev, ...fresh.filter((f) => !seen.has(f.key))];
-        });
+        const fresh = data.results
+          .filter((r) => r.poster_path && r.media_type !== "person")
+          .slice(0, 20)
+          .map((r) => cardOfItem(r));
+        setItems(fresh);
         setPage(p);
       } catch {
         /* keep prior items on error */
@@ -99,31 +95,16 @@ export function BrowseView({
     currentKey.current = resetKey;
     const t = setTimeout(() => {
       setItems([]);
-      setDone(false);
+      setPage(1);
       fetchPage(1);
     }, 0);
     return () => clearTimeout(t);
   }, [resetKey, fetchPage]);
 
-  /* page 2+ — triggered by load-more (event) or sentinel (subscription) */
-  const loadMore = useCallback(() => {
-    if (busy || page >= total || items.length === 0) return;
-    fetchPage(page + 1);
-  }, [busy, page, total, items.length, fetchPage]);
-
-  const sentinel = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = sentinel.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) loadMore();
-      },
-      { rootMargin: "600px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [loadMore]);
+  const goToPage = (nextPage: number) => {
+    if (busy || nextPage < 1 || nextPage > total || nextPage === page) return;
+    void fetchPage(nextPage);
+  };
 
   const firstLoad = items.length === 0 && busy;
 
@@ -220,23 +201,35 @@ export function BrowseView({
         </div>
       )}
 
-      {/* load more */}
-      <div ref={sentinel} className="mt-10 flex justify-center">
-        {busy && items.length > 0 && (
-          <Loader2 className="h-5 w-5 animate-spin text-white/50" />
-        )}
-        {!busy && page >= total && items.length > 0 && (
-          <p className="text-[12px] text-white/40">You've reached the end.</p>
-        )}
-        {!busy && page < total && items.length > 0 && (
+      {items.length > 0 && total > 1 && (
+        <nav aria-label="Browse pagination" className="mt-8 flex items-center justify-center gap-3 sm:gap-5">
           <button
-            onClick={loadMore}
-            className="glass-soft focusable flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-medium text-white/85 transition hover:bg-white/15"
+            type="button"
+            onClick={() => goToPage(page - 1)}
+            disabled={busy || page <= 1}
+            className="min-h-11 min-w-24 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Load more
+            Previous
           </button>
-        )}
-      </div>
+          <span aria-live="polite" className="min-w-16 text-center text-sm font-medium text-white/60">
+            Page {page}
+          </span>
+          <button
+            type="button"
+            onClick={() => goToPage(page + 1)}
+            disabled={busy || page >= total}
+            className="min-h-11 min-w-24 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next
+          </button>
+        </nav>
+      )}
+
+      {busy && items.length > 0 && (
+        <div className="mt-6 flex justify-center" aria-live="polite">
+          <Loader2 className="h-5 w-5 animate-spin text-white/50" />
+        </div>
+      )}
     </div>
   );
 }

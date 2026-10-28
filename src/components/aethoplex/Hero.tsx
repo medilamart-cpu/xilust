@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Play, Pause, ChevronLeft, ChevronRight, Star, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Star, Sparkles } from "lucide-react";
 import type { CardModel } from "./PosterCard";
 import { GeneratedArt } from "./GeneratedArt";
 
@@ -114,6 +115,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   const uploadDate = cur?.uploadedAt && !Number.isNaN(Date.parse(cur.uploadedAt))
     ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(cur.uploadedAt))
     : null;
+  const titleHref = `/title/${cur.section || section}/${encodeURIComponent(cur.slug || String(cur.id || cur.key))}`;
 
   // Mobile touch swipe support
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -141,34 +143,40 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
         onTouchEnd={handleTouchEnd}
         className={`relative min-h-[340px] sm:min-h-[460px] ${isJax ? "h-[360px] sm:h-[480px]" : "h-auto"} overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl`}
       >
-        {/* Background Artwork - mobile optimized object-top and vivid brightness */}
-        {imgSrc && !imgError ? (
-          <>
-            {!imageLoaded && (
-              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0a0d14] animate-pulse motion-reduce:animate-none">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
-              </div>
-            )}
-            <img
-              src={imgSrc}
-              alt={cur.name}
-              onLoad={() => setImageLoaded(true)}
-              onError={handleHeroImgError}
-              className={`absolute inset-0 h-full w-full object-cover object-top sm:object-center transition-[opacity,transform,filter] duration-700 brightness-100 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-            />
-          </>
-        ) : (
-          <div className="absolute inset-0 h-full w-full">
-            <GeneratedArt name={cur.name} kind={cur.kind} wide />
-          </div>
-        )}
+        {/* The whole featured artwork opens its title; controls stay above this link. */}
+        <Link
+          href={titleHref}
+          aria-label={`Open ${cur.name}`}
+          className="absolute inset-0 z-0 rounded-2xl sm:rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300"
+        >
+          {imgSrc && !imgError ? (
+            <>
+              {!imageLoaded && (
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0a0d14] animate-pulse motion-reduce:animate-none">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                </div>
+              )}
+              <img
+                src={imgSrc}
+                alt=""
+                onLoad={() => setImageLoaded(true)}
+                onError={handleHeroImgError}
+                className={`absolute inset-0 h-full w-full rounded-2xl object-cover object-top sm:rounded-3xl sm:object-center transition-[opacity,transform,filter] duration-700 brightness-100 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+              />
+            </>
+          ) : (
+            <div className="absolute inset-0 h-full w-full">
+              <GeneratedArt name={cur.name} kind={cur.kind} wide />
+            </div>
+          )}
+        </Link>
 
         {/* Cinematic Gradient Overlays: lightened on mobile so cover thumbnail is clearly visible */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f]/95 via-[#080a0f]/25 sm:via-[#080a0f]/40 to-transparent" />
-        <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-[#080a0f]/50 via-[#080a0f]/35 to-transparent" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#080a0f]/95 via-[#080a0f]/25 sm:via-[#080a0f]/40 to-transparent" />
+        <div aria-hidden="true" className="pointer-events-none hidden sm:block absolute inset-0 bg-gradient-to-r from-[#080a0f]/50 via-[#080a0f]/35 to-transparent" />
 
         {/* Content Box */}
-        <div className="relative flex min-h-[340px] sm:min-h-[460px] flex-col justify-end p-4 sm:p-8 md:p-10 max-w-2xl">
+        <div className="pointer-events-none relative z-[1] flex min-h-[340px] sm:min-h-[460px] max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
           {/* Eyebrow badge */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
             <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md">
@@ -210,18 +218,10 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
 
         </div>
 
-        {/* Carousel controls: Top Right on mobile, Bottom Right on desktop */}
+        {/* Simple, touch-friendly slide dots; swiping remains available on touch screens. */}
         {slides.length > 1 && (
-          <div className="absolute top-4 right-4 sm:top-auto sm:bottom-10 sm:right-10 flex items-center gap-1.5 sm:gap-2 z-10">
-            <button
-              type="button"
-              onClick={() => go(idx - 1)}
-              aria-label="Previous slide"
-              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white/85 shadow-lg backdrop-blur-md transition-colors hover:bg-black/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"
-            >
-              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
-            <div className="hidden items-center gap-1 rounded-full border border-white/10 bg-black/45 px-2 py-1 sm:flex sm:gap-1.5 sm:px-2.5 sm:py-1.5" role="group" aria-label="Featured slides">
+          <div className="absolute bottom-1.5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-2">
+            <div className="flex items-center" role="group" aria-label="Featured slides">
               {slides.map((_, i) => (
                 <button
                   key={i}
@@ -229,30 +229,12 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
                   onClick={() => go(i)}
                   aria-label={`Show featured slide ${i + 1}`}
                   aria-current={idx === i ? "true" : undefined}
-                  className="group flex h-8 w-5 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 sm:w-6"
+                  className="group flex h-11 w-8 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                 >
-                  <span className={`h-1.5 rounded-full transition-all ${idx === i ? "w-5 bg-gradient-to-r from-cyan-300 to-violet-300 shadow-[0_0_10px_rgba(103,232,249,0.55)]" : "w-2.5 bg-white/30 group-hover:bg-white/65"}`} />
+                  <span aria-hidden="true" className={`h-1.5 rounded-full transition-all ${idx === i ? "w-4 bg-gradient-to-r from-cyan-300 to-violet-300 shadow-[0_0_10px_rgba(103,232,249,0.55)]" : "w-1.5 bg-white/45 group-hover:bg-white/75"}`} />
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() => setCarouselPaused((paused) => !paused)}
-              aria-label={carouselPaused ? "Resume featured carousel" : "Pause featured carousel"}
-              aria-pressed={carouselPaused}
-              title={carouselPaused ? "Resume featured carousel" : "Pause featured carousel"}
-              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white/85 shadow-lg backdrop-blur-md transition-colors hover:bg-black/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"
-            >
-              {carouselPaused ? <Play className="h-4 w-4 fill-current" /> : <Pause className="h-4 w-4 fill-current" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => go(idx + 1)}
-              aria-label="Next slide"
-              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white/85 shadow-lg backdrop-blur-md transition-colors hover:bg-black/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"
-            >
-              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
           </div>
         )}
       </div>

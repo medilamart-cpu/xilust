@@ -6,6 +6,8 @@ import { TileCard, type CardModel } from "./PosterCard";
 import type { TaxonomyItem } from "@/lib/catalog-db";
 import { formatStudioLabel } from "@/lib/studio-label";
 
+const PAGE_SIZE = 20;
+
 type TabId = "trending" | "new" | "top" | "random";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
 type FilterType = TaxonomyType | "code" | "premium";
@@ -155,16 +157,16 @@ export function HomeFeed({
       try {
         if (activeFilter?.type === "premium" && premiumPoolRef.current) {
           const pool = premiumPoolRef.current;
-          setTotalPages(Math.max(1, Math.ceil(pool.length / 24)));
-          const pageItems = pool.slice((p - 1) * 24, p * 24);
-          setItems((previous) => p === 1 ? pageItems : [...previous, ...pageItems]);
+          setTotalPages(Math.max(1, Math.ceil(pool.length / PAGE_SIZE)));
+          const pageItems = pool.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE);
+          setItems(pageItems);
           return;
         }
 
         const params = new URLSearchParams({
           section,
           page: String(p),
-          limit: "24",
+          limit: String(PAGE_SIZE),
           tab,
         });
 
@@ -205,15 +207,10 @@ export function HomeFeed({
         let pageItems = data.items || [];
         if (activeFilter?.type === "premium") {
           premiumPoolRef.current = pageItems;
-          pageItems = pageItems.slice(0, 24);
+          setTotalPages(Math.max(1, Math.ceil(pageItems.length / PAGE_SIZE)));
+          pageItems = pageItems.slice(0, PAGE_SIZE);
         }
-
-        setItems((prev) => {
-          if (p === 1) return pageItems;
-          const seen = new Set(prev.map((x) => x.key));
-          const newItems = pageItems.filter((x: CardModel) => !seen.has(x.key));
-          return [...prev, ...newItems];
-        });
+        setItems(pageItems);
       } catch (err: any) {
         if (err.name === "AbortError") return;
         console.error("Error fetching feed:", err);
@@ -239,29 +236,12 @@ export function HomeFeed({
     fetchPage(1);
   }, [section, query, tab, activeFilter, fetchPage]);
 
-  // Handle subsequent pagination
-  useEffect(() => {
-    if (page > 1) {
-      fetchPage(page);
-    }
-  }, [page]);
-
-  // Infinite scroll trigger
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !busy && page < totalPages) {
-          setPage((p) => p + 1);
-        }
-      },
-      { rootMargin: "400px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [busy, page, totalPages]);
+  const goToPage = (nextPage: number) => {
+    if (busy || nextPage < 1 || nextPage > totalPages || nextPage === page) return;
+    setItems([]);
+    setPage(nextPage);
+    void fetchPage(nextPage);
+  };
 
   const actorLabel = section === "jax" ? "Actresses" : "Pornstars";
   const showTeamSkeetSuggestion = section === "jax" && taxType === "studio";
@@ -619,12 +599,35 @@ export function HomeFeed({
         </div>
       ) : null}
 
-      {/* Loading Indicator / Intersection Sentinel */}
-      <div ref={sentinelRef} className="mt-12 flex justify-center py-6">
+      {items.length > 0 && totalPages > 1 && (
+        <nav aria-label="Catalog pagination" className="mt-8 flex items-center justify-center gap-3 sm:gap-5">
+          <button
+            type="button"
+            onClick={() => goToPage(page - 1)}
+            disabled={busy || page <= 1}
+            className="min-h-11 min-w-24 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Previous
+          </button>
+          <span aria-live="polite" className="min-w-16 text-center text-sm font-medium text-white/60">
+            Page {page}
+          </span>
+          <button
+            type="button"
+            onClick={() => goToPage(page + 1)}
+            disabled={busy || page >= totalPages}
+            className="min-h-11 min-w-24 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next
+          </button>
+        </nav>
+      )}
+
+      <div className="mt-8 flex min-h-11 justify-center py-2" aria-live="polite">
         {busy && (
           <div className="flex items-center gap-3 rounded-full bg-white/5 border border-white/10 px-5 py-2.5 backdrop-blur-md">
             <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
-            <span className="text-xs font-semibold text-white/80">Loading more titles...</span>
+            <span className="text-xs font-semibold text-white/80">Loading titles...</span>
           </div>
         )}
       </div>

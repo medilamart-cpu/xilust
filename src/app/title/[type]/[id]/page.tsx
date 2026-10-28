@@ -247,6 +247,7 @@ export default async function TitlePage({
                       actors: rec.actors,
                       categories: rec.categories,
                       sourcesCount: rec.video_sources.length,
+                      durationSeconds: rec.duration_seconds ?? null,
                     }}
                   />
                 );
