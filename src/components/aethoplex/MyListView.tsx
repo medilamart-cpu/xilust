@@ -23,10 +23,21 @@ export function MyListView({
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-28 md:px-6 lg:px-8">
-      <span className="eyebrow">Your library</span>
-      <h1 className="mt-3 text-4xl font-black tracking-tight text-[#f5f6fb] md:text-5xl">
-        My list
-      </h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <span className="eyebrow">Your library</span>
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-[#f5f6fb] md:text-5xl">
+            My list
+          </h1>
+        </div>
+        <button
+          type="button"
+          onClick={onBrowse}
+          className="min-h-11 rounded-xl border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+        >
+          Browse titles
+        </button>
+      </div>
       <p className="mt-2 text-[13.5px] text-white/60">
         {list.length > 0
           ? `${list.length} ${list.length === 1 ? "title" : "titles"} saved — synced to this browser.`
@@ -42,12 +53,6 @@ export function MyListView({
           <p className="mt-2 max-w-sm text-xs sm:text-[13px] text-white/55">
             Tap the + button on any title card to keep it here for later.
           </p>
-          <button
-            onClick={onBrowse}
-            className="cta-gradient focusable mt-6 rounded-xl px-5 py-2.5 text-xs sm:text-[13px] font-semibold active:scale-95 transition-all"
-          >
-            Browse films & series
-          </button>
         </div>
       ) : (
         <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

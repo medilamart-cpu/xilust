@@ -51,6 +51,7 @@ export function HomeFeed({
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [feedError, setFeedError] = useState<string | null>(null);
 
   // Load taxonomy list whenever section or taxType changes
   useEffect(() => {
@@ -89,6 +90,7 @@ export function HomeFeed({
       abortRef.current = controller;
 
       setBusy(true);
+      setFeedError(null);
       try {
         const params = new URLSearchParams({
           section,
@@ -111,6 +113,10 @@ export function HomeFeed({
         });
         const data = await res.json();
 
+        if (!res.ok) {
+          throw new Error(data.error || `Catalog request failed (${res.status})`);
+        }
+
         // Discard if aborted or if section switched while fetching
         if (controller.signal.aborted || activeSectionRef.current !== section) {
           return;
@@ -131,8 +137,9 @@ export function HomeFeed({
       } catch (err: any) {
         if (err.name === "AbortError") return;
         console.error("Error fetching feed:", err);
+        setFeedError("The catalog could not be reached. Check the connection and try again.");
       } finally {
-        if (activeSectionRef.current === section) {
+        if (abortRef.current === controller) {
           setBusy(false);
         }
       }
@@ -382,8 +389,22 @@ export function HomeFeed({
         </div>
       </div>
 
+      {feedError && (
+        <div role="alert" className="mt-6 flex flex-col gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-amber-100/90">{feedError}</p>
+          <button
+            type="button"
+            onClick={() => fetchPage(1)}
+            disabled={busy}
+            className="min-h-11 shrink-0 rounded-lg border border-amber-200/20 bg-white/[0.06] px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
       {/* Grid of Movie Cards: 1 col on mobile (less distraction), 2 on tablet, 3-4 on desktop */}
-      {items.length === 0 && !busy ? (
+      {items.length === 0 && !busy && !feedError ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl mb-3">
             {section === "jax" ? "🌸" : "🔥"}
@@ -401,13 +422,13 @@ export function HomeFeed({
             </button>
           )}
         </div>
-      ) : (
-        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      ) : items.length > 0 ? (
+        <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => (
             <TileCard key={item.key} item={item} />
           ))}
         </div>
-      )}
+      ) : null}
 
       {/* Loading Indicator / Intersection Sentinel */}
       <div ref={sentinelRef} className="mt-12 flex justify-center py-6">

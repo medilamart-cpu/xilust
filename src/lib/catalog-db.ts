@@ -196,7 +196,7 @@ export async function queryItems(options: {
     };
   } catch (err) {
     console.error("Failed to fetch from remote catalog API:", err);
-    return { items: [], total: 0 };
+    throw new Error("Remote catalog API is unavailable", { cause: err });
   }
 }
 

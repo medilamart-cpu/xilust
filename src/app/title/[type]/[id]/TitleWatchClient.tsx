@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles } from "lucide-react";
 import type { CatalogItem } from "@/lib/catalog-db";
 
@@ -38,6 +38,9 @@ export function TitleWatchClient({
   const [activeIdx, setActiveIdx] = useState(0);
   const [playerMode, setPlayerMode] = useState<"clean" | "direct">("direct");
   const [key, setKey] = useState(0);
+  const [playerError, setPlayerError] = useState(false);
+  const [playerLoading, setPlayerLoading] = useState(false);
+  const playerTimeoutRef = useRef<number | null>(null);
 
   const activeSource = sources[activeIdx];
   const targetUrl = activeSource?.url || activeSource?.embed_url || "";
@@ -52,7 +55,47 @@ export function TitleWatchClient({
     return `${cleanstreamUrl}/embed?url=${encodeURIComponent(targetUrl)}&autoplay=1`;
   }, [cleanstreamUrl, targetUrl, playerMode]);
 
+  useEffect(() => {
+    if (!embedUrl) {
+      setPlayerLoading(false);
+      return;
+    }
+
+    setPlayerError(false);
+    setPlayerLoading(true);
+    playerTimeoutRef.current = window.setTimeout(() => {
+      setPlayerLoading(false);
+      setPlayerError(true);
+    }, 15000);
+
+    return () => {
+      if (playerTimeoutRef.current !== null) {
+        window.clearTimeout(playerTimeoutRef.current);
+        playerTimeoutRef.current = null;
+      }
+    };
+  }, [embedUrl, key]);
+
+  const handlePlayerLoaded = () => {
+    if (playerTimeoutRef.current !== null) {
+      window.clearTimeout(playerTimeoutRef.current);
+      playerTimeoutRef.current = null;
+    }
+    setPlayerLoading(false);
+    setPlayerError(false);
+  };
+
+  const handlePlayerError = () => {
+    if (playerTimeoutRef.current !== null) {
+      window.clearTimeout(playerTimeoutRef.current);
+      playerTimeoutRef.current = null;
+    }
+    setPlayerLoading(false);
+    setPlayerError(true);
+  };
+
   const handleRefresh = () => {
+    setPlayerError(false);
     setKey((k) => k + 1);
   };
 
@@ -68,6 +111,8 @@ export function TitleWatchClient({
             className="absolute inset-0 h-full w-full border-0 object-contain"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
+            onLoad={handlePlayerLoaded}
+            onError={handlePlayerError}
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
@@ -78,7 +123,29 @@ export function TitleWatchClient({
             </p>
           </div>
         )}
+        {playerLoading && targetUrl && (
+          <div className="absolute inset-x-0 bottom-0 flex justify-center p-3 pointer-events-none">
+            <span className="rounded-full border border-white/10 bg-black/75 px-3 py-1.5 text-xs text-white/80 backdrop-blur">
+              Connecting to {activeSource?.label || activeSource?.host || "video source"}…
+            </span>
+          </div>
+        )}
       </div>
+
+      {playerError && targetUrl && (
+        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <p className="text-xs leading-relaxed text-amber-100/90 sm:text-sm">
+            This source did not respond. Try another mirror, reload the player, or open the source directly.
+          </p>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="min-h-11 shrink-0 rounded-lg border border-amber-200/20 bg-white/[0.06] px-4 text-xs font-semibold text-white transition hover:bg-white/10 sm:text-sm"
+          >
+            Retry player
+          </button>
+        </div>
+      )}
 
       {/* Player Controls & Mirror Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
@@ -108,6 +175,7 @@ export function TitleWatchClient({
                 type="button"
                 onClick={() => {
                   setActiveIdx(idx);
+                  setPlayerError(false);
                   setKey((k) => k + 1);
                 }}
                 className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold shrink-0 transition-all active:scale-95 ${

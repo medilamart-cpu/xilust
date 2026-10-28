@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { Navbar, type Section } from "@/components/aethoplex/Navbar";
 import { Hero } from "@/components/aethoplex/Hero";
 import { HomeFeed } from "@/components/aethoplex/HomeFeed";
+import { MyListView } from "@/components/aethoplex/MyListView";
 import { MyListProvider } from "@/components/aethoplex/PosterCard";
 import { Footer, LivePill } from "@/components/aethoplex/Chrome";
 
 export default function Home() {
+  const [showMyList, setShowMyList] = useState(false);
   // Synchronously initialize section from URL params or localStorage to avoid race conditions
   const [section, setSection] = useState<Section>(() => {
     if (typeof window !== "undefined") {
@@ -63,8 +65,22 @@ export default function Home() {
   useEffect(() => {
     syncFromUrl();
     window.addEventListener("popstate", syncFromUrl);
-    return () => window.removeEventListener("popstate", syncFromUrl);
+    const syncHash = () => setShowMyList(window.location.hash === "#mylist");
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => {
+      window.removeEventListener("popstate", syncFromUrl);
+      window.removeEventListener("hashchange", syncHash);
+    };
   }, []);
+
+  const handleBrowseFromList = () => {
+    setShowMyList(false);
+    if (window.location.hash === "#mylist") {
+      window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}`);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleSectionChange = (s: Section) => {
     setSection(s);
@@ -126,17 +142,23 @@ export default function Home() {
 
         {/* Main Content */}
         <main className="flex-1 pt-16 sm:pt-20">
-          {!query && !filter && <Hero section={section} />}
-          <HomeFeed
-            section={section}
-            query={query}
-            filter={filter}
-            onFilterChange={handleFilterChange}
-          />
+          {showMyList ? (
+            <MyListView onBrowse={handleBrowseFromList} />
+          ) : (
+            <>
+              {!query && !filter && <Hero section={section} />}
+              <HomeFeed
+                section={section}
+                query={query}
+                filter={filter}
+                onFilterChange={handleFilterChange}
+              />
+            </>
+          )}
         </main>
 
         {/* Global Footer */}
-        <Footer onNavigate={() => {}} />
+        <Footer />
         <LivePill />
       </div>
     </MyListProvider>
