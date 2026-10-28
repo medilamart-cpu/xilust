@@ -26,7 +26,7 @@ export default function Home() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<{
-    type: "category" | "actor" | "studio" | "tag";
+    type: "category" | "actor" | "studio" | "tag" | "code";
     name: string;
   } | null>(null);
 
@@ -40,6 +40,7 @@ export default function Home() {
     const studio = sp.get("studio");
     const category = sp.get("category");
     const tag = sp.get("tag");
+    const code = sp.get("code");
 
     if (s === "lust" || s === "jax") {
       setSection(s);
@@ -57,6 +58,8 @@ export default function Home() {
       setFilter({ type: "category", name: category });
     } else if (tag) {
       setFilter({ type: "tag", name: tag });
+    } else if (code) {
+      setFilter({ type: "code", name: code.toUpperCase() });
     } else {
       setFilter(null);
     }
@@ -95,6 +98,7 @@ export default function Home() {
       url.searchParams.delete("studio");
       url.searchParams.delete("category");
       url.searchParams.delete("tag");
+      url.searchParams.delete("code");
       window.history.pushState({}, "", url.toString());
     }
   };
@@ -103,6 +107,10 @@ export default function Home() {
     setQuery(q);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
+      if (q && filter?.type === "code") {
+        setFilter(null);
+        url.searchParams.delete("code");
+      }
       if (q) {
         url.searchParams.set("q", q);
       } else {
@@ -113,7 +121,7 @@ export default function Home() {
   };
 
   const handleFilterChange = (
-    newFilter: { type: "category" | "actor" | "studio" | "tag"; name: string } | null
+    newFilter: { type: "category" | "actor" | "studio" | "tag" | "code"; name: string } | null
   ) => {
     setFilter(newFilter);
     if (typeof window !== "undefined") {
@@ -122,6 +130,7 @@ export default function Home() {
       url.searchParams.delete("studio");
       url.searchParams.delete("category");
       url.searchParams.delete("tag");
+      url.searchParams.delete("code");
       if (newFilter) {
         url.searchParams.set(newFilter.type, newFilter.name);
       }
@@ -152,6 +161,7 @@ export default function Home() {
                 query={query}
                 filter={filter}
                 onFilterChange={handleFilterChange}
+                onQueryChange={handleQueryChange}
               />
             </>
           )}

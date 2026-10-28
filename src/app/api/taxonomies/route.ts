@@ -10,8 +10,9 @@ export async function GET(req: NextRequest) {
     const section = (searchParams.get("section") as "lust" | "jax") || "lust";
     const type = (searchParams.get("type") as "actor" | "studio" | "category" | "tag") || "actor";
     const limit = parseInt(searchParams.get("limit") || "40", 10);
+    const search = searchParams.get("q") || searchParams.get("search") || "";
 
-    const items = await getTaxonomies(section, type, limit);
+    const items = await getTaxonomies(section, type, limit, search);
 
     return NextResponse.json({
       section,

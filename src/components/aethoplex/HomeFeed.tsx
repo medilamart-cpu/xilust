@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
 import type { TaxonomyItem } from "@/lib/catalog-db";
 
 type TabId = "trending" | "new" | "top" | "random";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
+type FilterType = TaxonomyType | "code";
 
 const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
   { id: "new", label: "Newest Releases", icon: Sparkles },
@@ -20,18 +21,25 @@ export function HomeFeed({
   query,
   filter,
   onFilterChange,
+  onQueryChange,
 }: {
   section: "lust" | "jax";
   query: string;
-  filter?: { type: TaxonomyType; name: string } | null;
-  onFilterChange?: (f: { type: TaxonomyType; name: string } | null) => void;
+  filter?: { type: FilterType; name: string } | null;
+  onFilterChange?: (f: { type: FilterType; name: string } | null) => void;
+  onQueryChange?: (query: string) => void;
 }) {
   const [tab, setTab] = useState<TabId>("new");
 
   // Taxonomy navigation
   const [taxType, setTaxType] = useState<TaxonomyType>("category");
   const [taxItems, setTaxItems] = useState<TaxonomyItem[]>([]);
-  const [activeFilter, setActiveFilter] = useState<{ type: TaxonomyType; name: string } | null>(
+  const [taxSearch, setTaxSearch] = useState("");
+  const [taxLoading, setTaxLoading] = useState(false);
+  const [taxError, setTaxError] = useState(false);
+  const [taxReload, setTaxReload] = useState(0);
+  const [codeInput, setCodeInput] = useState("");
+  const [activeFilter, setActiveFilter] = useState<{ type: FilterType; name: string } | null>(
     filter || null
   );
 
@@ -39,8 +47,13 @@ export function HomeFeed({
   useEffect(() => {
     if (filter !== undefined) {
       setActiveFilter(filter);
-      if (filter) {
+      if (filter?.type === "code") {
+        setCodeInput(filter.name);
+      } else if (filter) {
         setTaxType(filter.type);
+        setCodeInput("");
+      } else {
+        setCodeInput("");
       }
     }
   }, [filter]);
@@ -56,27 +69,66 @@ export function HomeFeed({
   // Load taxonomy list whenever section or taxType changes
   useEffect(() => {
     let alive = true;
-    fetch(`/api/taxonomies?section=${section}&type=${taxType}&limit=40`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (!alive) return;
-        setTaxItems(d.items || []);
-      })
-      .catch((e) => console.error(e));
+    const controller = new AbortController();
+    setTaxLoading(true);
+    setTaxError(false);
+    setTaxItems([]);
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams({ section, type: taxType, limit: "40" });
+      if (taxSearch.trim()) params.set("q", taxSearch.trim());
+      fetch(`/api/taxonomies?${params.toString()}`, { signal: controller.signal })
+        .then(async (r) => {
+          const data = await r.json();
+          if (!r.ok) throw new Error(data.error || `Taxonomy request failed (${r.status})`);
+          return data;
+        })
+        .then((d) => {
+          if (alive) {
+            setTaxItems(d.items || []);
+            setTaxLoading(false);
+          }
+        })
+        .catch((e) => {
+          if (e.name !== "AbortError") {
+            console.error(e);
+            if (alive) {
+              setTaxLoading(false);
+              setTaxError(true);
+            }
+          }
+        });
+    }, 180);
 
     return () => {
       alive = false;
+      window.clearTimeout(timer);
+      controller.abort();
     };
-  }, [section, taxType]);
+  }, [section, taxType, taxSearch, taxReload]);
 
   // Keep track of active section & abort controller to avoid race conditions
   const abortRef = useRef<AbortController | null>(null);
   const activeSectionRef = useRef(section);
   activeSectionRef.current = section;
 
-  const handleSetFilter = (newFilter: { type: TaxonomyType; name: string } | null) => {
+  const handleSetFilter = (newFilter: { type: FilterType; name: string } | null) => {
     setActiveFilter(newFilter);
+    if (newFilter?.type === "code") setCodeInput(newFilter.name);
+    else setCodeInput("");
     onFilterChange?.(newFilter);
+  };
+
+  const applyCodeFilter = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const code = codeInput.trim().replace(/\s+/g, "").toUpperCase();
+    if (!code) return;
+    onQueryChange?.("");
+    handleSetFilter({ type: "code", name: code });
+  };
+
+  const changeTaxType = (type: TaxonomyType) => {
+    setTaxType(type);
+    setTaxSearch("");
   };
 
   // Fetch items
@@ -104,6 +156,7 @@ export function HomeFeed({
           else if (activeFilter.type === "actor") params.set("actor", activeFilter.name);
           else if (activeFilter.type === "studio") params.set("studio", activeFilter.name);
           else if (activeFilter.type === "tag") params.set("tag", activeFilter.name);
+          else if (activeFilter.type === "code") params.set("code", activeFilter.name);
         }
 
         if (query) params.set("query", query);
@@ -228,7 +281,7 @@ export function HomeFeed({
             <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar scrollbar-none touch-scroll max-w-full">
               <button
                 type="button"
-                onClick={() => setTaxType("category")}
+                onClick={() => changeTaxType("category")}
                 className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
                   taxType === "category" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
                 }`}
@@ -239,7 +292,7 @@ export function HomeFeed({
 
               <button
                 type="button"
-                onClick={() => setTaxType("actor")}
+                onClick={() => changeTaxType("actor")}
                 className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
                   taxType === "actor" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
                 }`}
@@ -250,7 +303,7 @@ export function HomeFeed({
 
               <button
                 type="button"
-                onClick={() => setTaxType("studio")}
+                onClick={() => changeTaxType("studio")}
                 className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
                   taxType === "studio" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
                 }`}
@@ -261,7 +314,7 @@ export function HomeFeed({
 
               <button
                 type="button"
-                onClick={() => setTaxType("tag")}
+                onClick={() => changeTaxType("tag")}
                 className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
                   taxType === "tag" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
                 }`}
@@ -275,9 +328,9 @@ export function HomeFeed({
             {activeFilter && (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/50">Viewing {activeFilter.type}:</span>
+                  <span className="text-xs text-white/50">Viewing {activeFilter.type === "code" ? "JAV code" : activeFilter.type}:</span>
                   <span className="font-bold text-sm text-cyan-300 flex items-center gap-1.5">
-                    <span>{activeFilter.type === "actor" ? "🌸" : activeFilter.type === "studio" ? "🎬" : "🏷️"}</span>
+                    <span>{activeFilter.type === "actor" ? "🌸" : activeFilter.type === "studio" ? "🎬" : activeFilter.type === "code" ? "🔎" : "🏷️"}</span>
                     <span>{activeFilter.name}</span>
                   </span>
                   <button
@@ -345,6 +398,50 @@ export function HomeFeed({
               </div>
             )}
           </div>
+
+          {section === "jax" && (
+            <form onSubmit={applyCodeFilter} className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+              <label htmlFor="jax-code-filter" className="sr-only">Filter by JAV code</label>
+              <input
+                id="jax-code-filter"
+                type="search"
+                value={codeInput}
+                onChange={(event) => setCodeInput(event.target.value)}
+                placeholder="JAV code, e.g. KNMB-134"
+                className="min-h-11 min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.05] px-3 text-sm text-white placeholder:text-white/40 focus:border-cyan-400/50 focus:outline-none sm:max-w-xs"
+              />
+              <button type="submit" className="min-h-11 rounded-lg bg-cyan-400 px-4 text-sm font-bold text-slate-950 transition hover:bg-cyan-300">
+                Find code
+              </button>
+            </form>
+          )}
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label htmlFor="taxonomy-search" className="shrink-0 text-xs font-semibold text-white/55">
+              Find {taxType === "actor" ? actorLabel.toLowerCase() : `${taxType}s`}
+            </label>
+            <input
+              id="taxonomy-search"
+              type="search"
+              value={taxSearch}
+              onChange={(event) => setTaxSearch(event.target.value)}
+              placeholder={taxType === "studio" ? "Search a studio, e.g. Team Skeet" : `Search ${taxType}...`}
+              className="min-h-11 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white placeholder:text-white/40 focus:border-cyan-400/50 focus:outline-none sm:max-w-sm"
+            />
+          </div>
+
+          {taxLoading && <p role="status" className="text-xs text-white/45">Loading filters…</p>}
+          {taxError && (
+            <div role="alert" className="flex flex-wrap items-center gap-3 text-xs text-amber-100/80">
+              <span>Filters could not be loaded.</span>
+              <button type="button" onClick={() => setTaxReload((value) => value + 1)} className="min-h-11 rounded-lg border border-white/10 px-3 font-semibold text-white hover:bg-white/10">
+                Retry filters
+              </button>
+            </div>
+          )}
+          {!taxLoading && !taxError && taxSearch.trim() && taxItems.length === 0 && (
+            <p role="status" className="text-xs text-white/45">No matching {taxType}s found.</p>
+          )}
 
           {/* Interactive Taxonomy Pills Slider */}
           {taxItems.length > 0 && (

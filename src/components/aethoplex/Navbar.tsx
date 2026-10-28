@@ -74,7 +74,7 @@ export function Navbar({
                   type="text"
                   value={query}
                   onChange={(e) => onQueryChange(e.target.value)}
-                  placeholder={section === "jax" ? "Search JAV (e.g. SSIS), star..." : "Search title, star, studio..."}
+                  placeholder={section === "jax" ? "Search JAV code (e.g. KNMB-134), title, actress..." : "Search title, pornstar, studio (e.g. Team Skeet)..."}
                   className="w-full bg-transparent text-xs text-white placeholder-white/40 focus:outline-none"
                 />
                 {query && (
@@ -171,7 +171,7 @@ export function Navbar({
                       onChange={(e) => onQueryChange(e.target.value)}
                       onFocus={() => setFocus(true)}
                       onBlur={() => setFocus(false)}
-                      placeholder={section === "jax" ? "Search JAV code, actress..." : "Search title, model, studio..."}
+                      placeholder={section === "jax" ? "Search JAV code (e.g. KNMB-134), title, actress..." : "Search title, pornstar, studio (e.g. Team Skeet)..."}
                       className="w-full bg-transparent text-xs text-white placeholder-white/40 focus:outline-none"
                     />
                     {query && (

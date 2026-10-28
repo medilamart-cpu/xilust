@@ -71,6 +71,10 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
 
   const cur = slides[idx];
   const href = `/title/${cur.section || section}/${encodeURIComponent(cur.slug || String(cur.id))}`;
+  const isJax = (cur.section || section) === "jax";
+  const uploadDate = cur.uploadedAt && !Number.isNaN(Date.parse(cur.uploadedAt))
+    ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(cur.uploadedAt))
+    : null;
 
   // Mobile touch swipe support
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -94,7 +98,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="relative min-h-[340px] sm:min-h-[460px] h-[360px] sm:h-[480px] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl"
+        className={`relative min-h-[340px] sm:min-h-[460px] ${isJax ? "h-[360px] sm:h-[480px]" : "h-auto"} overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl`}
       >
         {/* Background Artwork - mobile optimized object-top and vivid brightness */}
         {cur.backdropUrl && !imgError ? (
@@ -115,7 +119,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
         <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/70 to-transparent" />
 
         {/* Content Box */}
-        <div className="relative flex h-full flex-col justify-end p-4 sm:p-10 md:p-14 max-w-3xl">
+        <div className="relative flex min-h-[340px] sm:min-h-[460px] flex-col justify-end p-4 sm:p-10 md:p-14 max-w-3xl">
           {/* Eyebrow badge */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
             <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md">
@@ -131,7 +135,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
           </div>
 
           {/* Title */}
-          <h1 className="text-xl sm:text-4xl md:text-5xl font-black text-white leading-tight line-clamp-2 drop-shadow-md">
+          <h1 className={`${isJax ? "line-clamp-2" : "break-words"} text-xl sm:text-4xl md:text-5xl font-black text-white leading-tight drop-shadow-md`}>
             {cur.name}
           </h1>
 
@@ -142,6 +146,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
               {cur.rating.toFixed(1)}
             </span>
             <span>{cur.year || "2026"}</span>
+            {uploadDate && <span>Uploaded {uploadDate}</span>}
             <span className="text-white/30">•</span>
             <span className="rounded bg-white/10 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase">1080p HD</span>
             {cur.actors && cur.actors.length > 0 && (

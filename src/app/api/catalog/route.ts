@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     const studio = searchParams.get("studio") || undefined;
     const actor = searchParams.get("actor") || undefined;
     const tag = searchParams.get("tag") || undefined;
+    const code = searchParams.get("code") || undefined;
     const year = searchParams.get("year") ? parseInt(searchParams.get("year")!, 10) : undefined;
     const query = searchParams.get("query") || searchParams.get("q") || undefined;
     const tab = (searchParams.get("tab") as any) || "trending";
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
       studio,
       actor,
       tag,
+      code,
       year,
       query,
       tab,
@@ -61,6 +63,7 @@ export async function GET(req: NextRequest) {
         section: item.section,
         slug: item.slug,
         code: item.code,
+        uploadedAt: item.published_at,
         name: item.title,
         kind: "FILM" as const,
         year: item.year || 2026,

@@ -65,6 +65,7 @@ export function MyListView({
                 section: li.section,
                 slug: li.slug,
                 code: li.code,
+                uploadedAt: li.uploadedAt,
                 name: li.name,
                 kind: li.kind,
                 year: li.year,

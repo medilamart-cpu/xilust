@@ -36,7 +36,7 @@ export function TitleWatchClient({
   }, [rawSources]);
 
   const [activeIdx, setActiveIdx] = useState(0);
-  const [playerMode, setPlayerMode] = useState<"clean" | "direct">("direct");
+  const [playerMode, setPlayerMode] = useState<"clean" | "direct">("clean");
   const [key, setKey] = useState(0);
   const [playerError, setPlayerError] = useState(false);
   const [playerLoading, setPlayerLoading] = useState(false);

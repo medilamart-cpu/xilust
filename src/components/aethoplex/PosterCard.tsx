@@ -25,6 +25,7 @@ export interface CardModel {
   actors?: string[];
   categories?: string[];
   sourcesCount?: number;
+  uploadedAt?: string;
 }
 
 export function cardOfItem(item: any): CardModel {
@@ -53,6 +54,7 @@ export interface ListItem {
   rating: number;
   kind: "FILM" | "SERIES";
   code?: string;
+  uploadedAt?: string;
   key?: string;
 }
 
@@ -126,6 +128,7 @@ export function MyListProvider({ children }: { children: React.ReactNode }) {
         rating: c.rating,
         kind: c.kind,
         code: c.code,
+        uploadedAt: c.uploadedAt,
         key: c.key,
       };
       localStorage.setItem("xilust-mylist-keys", JSON.stringify([c.key, ...current]));
@@ -157,6 +160,9 @@ export function TileCard({ item }: { item: CardModel }) {
   const art = !imgError ? (item.backdropUrl ?? item.posterUrl) : null;
 
   const isJax = item.section === "jax";
+  const uploadDate = item.uploadedAt && !Number.isNaN(Date.parse(item.uploadedAt))
+    ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(item.uploadedAt))
+    : null;
 
   return (
     <div className="group block shrink-0 rounded-xl text-left">
@@ -184,7 +190,7 @@ export function TileCard({ item }: { item: CardModel }) {
                     {item.code}
                   </span>
                   <div className="space-y-1">
-                    <p className="line-clamp-2 text-xs font-semibold text-white/95">{item.name}</p>
+                    <p className={`${isJax ? "line-clamp-2" : "break-words"} text-xs font-semibold text-white/95`}>{item.name}</p>
                     {item.actors && item.actors.length > 0 && (
                       <p className="text-[10px] text-pink-300 font-medium">🌸 {item.actors[0]}</p>
                     )}
@@ -231,7 +237,7 @@ export function TileCard({ item }: { item: CardModel }) {
       {/* Info footer */}
       <div className="mt-2 sm:mt-2.5 flex items-start justify-between gap-1.5 sm:gap-2">
         <Link href={href} className="flex-1 min-w-0">
-          <p className="line-clamp-1 sm:truncate text-xs sm:text-[13.5px] font-semibold text-white/90 transition-colors group-hover:text-cyan-300">
+          <p className={`${isJax ? "line-clamp-1 sm:truncate" : "break-words"} text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300`}>
             {item.name}
           </p>
           <p className="mt-0.5 flex flex-wrap items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-white/50">
@@ -247,6 +253,11 @@ export function TileCard({ item }: { item: CardModel }) {
                 <span className="text-white/20 hidden xs:inline">·</span>
                 <span className="text-cyan-400 font-medium hidden xs:inline">{item.sourcesCount} Mirrors</span>
               </>
+            )}
+            {uploadDate && (
+              <span className="basis-full text-[10px] text-white/40 sm:text-[11px]">
+                Uploaded {uploadDate}
+              </span>
             )}
           </p>
         </Link>

@@ -94,6 +94,7 @@ export async function queryItems(options: {
   studio?: string;
   actor?: string;
   tag?: string;
+  code?: string;
   year?: number;
   query?: string;
   tab?: "trending" | "top" | "new" | "random";
@@ -120,30 +121,35 @@ export async function queryItems(options: {
     }
 
     if (options.category && options.category !== "All") {
-      whereParts.push("(categories LIKE ? OR categories LIKE ?)");
-      params.push(`%"${options.category}"%`, `%${options.category}%`);
+      whereParts.push("EXISTS (SELECT 1 FROM json_each(items.categories) AS taxonomy WHERE taxonomy.value = ?)");
+      params.push(options.category);
     }
 
     if (options.studio) {
-      whereParts.push("(studios LIKE ? OR studios LIKE ?)");
-      params.push(`%"${options.studio}"%`, `%${options.studio}%`);
+      whereParts.push("EXISTS (SELECT 1 FROM json_each(items.studios) AS taxonomy WHERE taxonomy.value = ?)");
+      params.push(options.studio);
     }
 
     if (options.actor) {
-      whereParts.push("(actors LIKE ? OR actors LIKE ?)");
-      params.push(`%"${options.actor}"%`, `%${options.actor}%`);
+      whereParts.push("EXISTS (SELECT 1 FROM json_each(items.actors) AS taxonomy WHERE taxonomy.value = ?)");
+      params.push(options.actor);
     }
 
     if (options.tag) {
-      whereParts.push("(tags LIKE ? OR tags LIKE ?)");
-      params.push(`%"${options.tag}"%`, `%${options.tag}%`);
+      whereParts.push("EXISTS (SELECT 1 FROM json_each(items.tags) AS taxonomy WHERE taxonomy.value = ?)");
+      params.push(options.tag);
+    }
+
+    if (options.code) {
+      whereParts.push("UPPER(code) = UPPER(?)");
+      params.push(options.code.trim());
     }
 
     if (options.query) {
       const q = options.query.trim();
       if (q) {
-        whereParts.push("(title LIKE ? OR code LIKE ? OR actors LIKE ? OR studios LIKE ? OR tags LIKE ?)");
-        params.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
+        whereParts.push("(title LIKE ? OR code LIKE ? OR actors LIKE ? OR studios LIKE ? OR categories LIKE ? OR tags LIKE ?)");
+        params.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
       }
     }
 
@@ -181,6 +187,7 @@ export async function queryItems(options: {
     if (options.studio) params.set("studio", options.studio);
     if (options.actor) params.set("actor", options.actor);
     if (options.tag) params.set("tag", options.tag);
+    if (options.code) params.set("code", options.code);
     if (options.query) params.set("search", options.query);
     if (options.tab) params.set("tab", options.tab);
     if (options.sort) params.set("sort", options.sort);
@@ -244,7 +251,8 @@ export async function getItemBySlug(section: "lust" | "jax", slug: string): Prom
 export async function getTaxonomies(
   section: "lust" | "jax",
   type: "actor" | "studio" | "category" | "tag",
-  limit: number = 40
+  limit: number = 40,
+  search: string = ""
 ): Promise<TaxonomyItem[]> {
   const db = getLocalDb();
 
@@ -253,11 +261,12 @@ export async function getTaxonomies(
       const sql = `
         SELECT id, section, type, name, slug, count
         FROM taxonomies
-        WHERE section = ? AND type = ?
+        WHERE section = ? AND type = ? AND (? = '' OR LOWER(REPLACE(name, ' ', '')) LIKE '%' || LOWER(REPLACE(?, ' ', '')) || '%')
         ORDER BY count DESC
         LIMIT ?
       `;
-      const rows = db.prepare(sql).all(section, type, limit);
+      const q = search.trim();
+      const rows = db.prepare(sql).all(section, type, q, `%${q}%`, Math.min(Math.max(limit, 1), 100));
       return rows as unknown as TaxonomyItem[];
     } catch (err) {
       console.error("Taxonomy query error:", err);
@@ -268,10 +277,10 @@ export async function getTaxonomies(
   // Remote Catalog API
   try {
     const res = await fetch(
-      `${CATALOG_API_URL}/api/taxonomies?section=${encodeURIComponent(section)}&type=${encodeURIComponent(type)}&limit=${limit}`,
-      { next: { revalidate: 600 } }
+      `${CATALOG_API_URL}/api/taxonomies?section=${encodeURIComponent(section)}&type=${encodeURIComponent(type)}&limit=${Math.min(Math.max(limit, 1), 100)}&q=${encodeURIComponent(search.trim())}`,
+      search.trim() ? { cache: "no-store" } : { next: { revalidate: 600 } }
     );
-    if (!res.ok) return [];
+    if (!res.ok) throw new Error(`Taxonomy API responded with ${res.status}`);
     const data = await res.json();
     return (data.items || []).map((item: any, idx: number) => ({
       id: idx + 1,
@@ -283,6 +292,6 @@ export async function getTaxonomies(
     }));
   } catch (err) {
     console.error("Failed to fetch taxonomies from remote catalog API:", err);
-    return [];
+    throw new Error("Remote taxonomy API is unavailable", { cause: err });
   }
 }

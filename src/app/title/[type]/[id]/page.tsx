@@ -31,6 +31,9 @@ export default async function TitlePage({
 
   const cleanstreamUrl =
     process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
+  const uploadedAt = item.published_at && !Number.isNaN(Date.parse(item.published_at))
+    ? new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" }).format(new Date(item.published_at))
+    : null;
 
   return (
     <div className="min-h-screen bg-[#080a0f] text-[#f4f5f8]">
@@ -162,7 +165,9 @@ export default async function TitlePage({
               {item.code && (
                 <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
                   <span className="text-white/50">JAV Code</span>
-                  <span className="font-mono font-bold text-pink-300">{item.code}</span>
+                  <Link href={`/?section=jax&code=${encodeURIComponent(item.code)}`} className="font-mono font-bold text-pink-300 hover:text-pink-100 hover:underline">
+                    {item.code}
+                  </Link>
                 </div>
               )}
 
@@ -187,6 +192,13 @@ export default async function TitlePage({
                 <span className="text-white/50">Release Year</span>
                 <span className="font-medium text-white/90">{item.year || "—"}</span>
               </div>
+
+              {uploadedAt && (
+                <div className="flex items-center justify-between gap-3 text-xs border-b border-white/5 pb-2.5">
+                  <span className="shrink-0 text-white/50">Uploaded</span>
+                  <time dateTime={item.published_at} className="text-right font-medium text-white/90">{uploadedAt}</time>
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
                 <span className="text-white/50">Streaming Mirrors</span>
@@ -226,6 +238,7 @@ export default async function TitlePage({
                       section: rec.section,
                       slug: rec.slug,
                       code: rec.code,
+                      uploadedAt: rec.published_at,
                       name: rec.title,
                       kind: "FILM",
                       year: rec.year || 2026,
