@@ -71,7 +71,6 @@ export function HomeFeed({
   const [items, setItems] = useState<CardModel[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
   const [busy, setBusy] = useState(false);
   const [feedError, setFeedError] = useState<string | null>(null);
 
@@ -188,7 +187,6 @@ export function HomeFeed({
         }
 
         setTotalPages(data.totalPages || 1);
-        setTotalItems(data.total || 0);
 
         setItems((prev) => {
           if (p === 1) return data.items || [];
@@ -215,7 +213,6 @@ export function HomeFeed({
   useEffect(() => {
     if (abortRef.current) abortRef.current.abort();
     setItems([]);
-    setTotalItems(0);
     setTotalPages(1);
     setPage(1);
     fetchPage(1);
@@ -274,14 +271,6 @@ export function HomeFeed({
             })}
           </div>
 
-          {/* Result count & current section indicator */}
-          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-white/50">
-            <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span>
-              {totalItems.toLocaleString()} {section === "jax" ? "JAV Titles" : "Western Titles"}
-              {query ? ` matching "${query}"` : ""}
-            </span>
-          </div>
         </div>
 
         {/* Categorization Mode Selector */}
@@ -515,9 +504,6 @@ export function HomeFeed({
                     }`}
                   >
                     <span>{itemLabel}</span>
-                    <span className="rounded-full bg-white/10 px-1.5 py-0.2 text-[9px] sm:text-[10px] text-white/50">
-                      {item.count.toLocaleString()}
-                    </span>
                   </button>
                 );
               })}
