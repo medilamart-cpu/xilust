@@ -17,6 +17,14 @@ const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
   { id: "random", label: "Discover Random", icon: Shuffle },
 ];
 
+const JAV_FORMAT_FILTERS: { label: string; type: "category" | "tag"; name: string }[] = [
+  { label: "Uncensored", type: "category", name: "UNCENSORED" },
+  { label: "English Subbed", type: "category", name: "English subbed JAV" },
+  { label: "Decensored", type: "category", name: "Decensored" },
+  { label: "Censored · Mosaic", type: "tag", name: "Digital Mosaic" },
+  { label: "4K", type: "category", name: "4K" },
+];
+
 export function HomeFeed({
   section,
   query,
@@ -401,20 +409,52 @@ export function HomeFeed({
           </div>
 
           {section === "jax" && (
-            <form onSubmit={applyCodeFilter} className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
-              <label htmlFor="jax-code-filter" className="sr-only">Filter by JAV code</label>
-              <input
-                id="jax-code-filter"
-                type="search"
-                value={codeInput}
-                onChange={(event) => setCodeInput(event.target.value)}
-                placeholder="JAV code, e.g. KNMB-134"
-                className="min-h-11 min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.05] px-3 text-sm text-white placeholder:text-white/40 focus:border-cyan-400/50 focus:outline-none sm:max-w-xs"
-              />
-              <button type="submit" className="min-h-11 rounded-lg bg-cyan-400 px-4 text-sm font-bold text-slate-950 transition hover:bg-cyan-300">
-                Find code
-              </button>
-            </form>
+            <div className="flex flex-col gap-3">
+              <form onSubmit={applyCodeFilter} className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+                <label htmlFor="jax-code-filter" className="sr-only">Filter by JAV code</label>
+                <input
+                  id="jax-code-filter"
+                  type="search"
+                  value={codeInput}
+                  onChange={(event) => setCodeInput(event.target.value)}
+                  placeholder="JAV code, e.g. KNMB-134"
+                  className="min-h-11 min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.05] px-3 text-sm text-white placeholder:text-white/40 focus:border-cyan-400/50 focus:outline-none sm:max-w-xs"
+                />
+                <button type="submit" className="min-h-11 rounded-lg bg-cyan-400 px-4 text-sm font-bold text-slate-950 transition hover:bg-cyan-300">
+                  Find code
+                </button>
+              </form>
+
+              <div className="flex min-w-0 flex-col gap-2" aria-label="Quick JAV format filters">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">Quick JAV filters</p>
+                <div className="flex max-w-full flex-wrap gap-2">
+                  {JAV_FORMAT_FILTERS.map((preset) => {
+                    const active = activeFilter?.type === preset.type && activeFilter.name === preset.name;
+                    return (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => {
+                          const nextFilter = active ? null : { type: preset.type, name: preset.name };
+                          onQueryChange?.("");
+                          setTaxType(nextFilter?.type === "tag" ? "tag" : "category");
+                          setTaxSearch("");
+                          handleSetFilter(nextFilter);
+                        }}
+                        className={`min-h-11 rounded-full border px-3.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 ${
+                          active
+                            ? "border-pink-300/60 bg-pink-400/20 text-pink-100 shadow-sm shadow-pink-500/10"
+                            : "border-white/10 bg-white/[0.04] text-white/75 hover:border-pink-300/30 hover:bg-white/[0.08] hover:text-white"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           )}
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
