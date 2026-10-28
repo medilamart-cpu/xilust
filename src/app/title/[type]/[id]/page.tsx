@@ -205,7 +205,7 @@ export default async function TitlePage({
         {recs.length > 0 && (
           <div className="mt-12 sm:mt-16 border-t border-white/10 pt-8 sm:pt-10">
             <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">More Like This</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {recs.slice(0, 4).map((rec) => {
                 const vpsBase =
                   process.env.NEXT_PUBLIC_THUMBS_CDN ||

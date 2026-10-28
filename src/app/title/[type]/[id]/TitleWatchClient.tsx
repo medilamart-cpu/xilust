@@ -36,7 +36,7 @@ export function TitleWatchClient({
   }, [rawSources]);
 
   const [activeIdx, setActiveIdx] = useState(0);
-  const [playerMode, setPlayerMode] = useState<"clean" | "direct">("clean");
+  const [playerMode, setPlayerMode] = useState<"clean" | "direct">("direct");
   const [key, setKey] = useState(0);
 
   const activeSource = sources[activeIdx];
@@ -57,15 +57,15 @@ export function TitleWatchClient({
   };
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {/* Player Screen Frame - Edge to Edge on Mobile, Rounded Card on Desktop */}
-      <div className="-mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full relative aspect-video bg-black overflow-hidden sm:rounded-2xl border-y sm:border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]">
+    <div className="space-y-3 sm:space-y-4 max-w-full">
+      {/* Centered Cinema Video Player Container */}
+      <div className="w-full max-w-full mx-auto relative aspect-video bg-black overflow-hidden rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]">
         {targetUrl ? (
           <iframe
             key={`${key}-${playerMode}-${activeIdx}`}
             src={embedUrl}
             title={item.title}
-            className="absolute inset-0 h-full w-full border-0"
+            className="absolute inset-0 h-full w-full border-0 object-contain"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
           />

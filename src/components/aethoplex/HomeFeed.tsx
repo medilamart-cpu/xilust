@@ -8,10 +8,10 @@ import type { TaxonomyItem } from "@/lib/catalog-db";
 type TabId = "trending" | "new" | "top" | "random";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
 
-const TABS: { id: TabId; label: string; icon: typeof Flame }[] = [
+const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
+  { id: "new", label: "Newest Releases", icon: Sparkles },
+  { id: "top", label: "Most Popular / Views", icon: Trophy },
   { id: "trending", label: "Trending", icon: Flame },
-  { id: "new", label: "New releases", icon: Sparkles },
-  { id: "top", label: "Top rated", icon: Trophy },
   { id: "random", label: "Discover Random", icon: Shuffle },
 ];
 
@@ -26,7 +26,7 @@ export function HomeFeed({
   filter?: { type: TaxonomyType; name: string } | null;
   onFilterChange?: (f: { type: TaxonomyType; name: string } | null) => void;
 }) {
-  const [tab, setTab] = useState<TabId>("trending");
+  const [tab, setTab] = useState<TabId>("new");
 
   // Taxonomy navigation
   const [taxType, setTaxType] = useState<TaxonomyType>("category");
@@ -266,21 +266,77 @@ export function HomeFeed({
               </button>
             </div>
 
-            {/* Clear active filter badge */}
+            {/* Active filter banner with instant sorting selector */}
             {activeFilter && (
-              <div className="flex items-center gap-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 px-3 py-1.5 text-xs">
-                <span className="text-white/70">Filtered by:</span>
-                <span className="font-bold text-cyan-300">
-                  {activeFilter.type === "actor" ? "⭐ " : activeFilter.type === "studio" ? "🎬 " : "🏷️ "}
-                  {activeFilter.name}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleSetFilter(null)}
-                  className="ml-1 rounded-full p-0.5 hover:bg-white/10 text-white/70 hover:text-white"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/50">Viewing {activeFilter.type}:</span>
+                  <span className="font-bold text-sm text-cyan-300 flex items-center gap-1.5">
+                    <span>{activeFilter.type === "actor" ? "🌸" : activeFilter.type === "studio" ? "🎬" : "🏷️"}</span>
+                    <span>{activeFilter.name}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleSetFilter(null)}
+                    className="ml-1 rounded-full p-1 bg-white/5 hover:bg-white/15 text-white/60 hover:text-white transition-colors"
+                    title="Clear filter"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                {/* Sort Options for filtered page */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5">
+                  <span className="text-[11px] font-semibold text-white/40 mr-1 shrink-0">Sort:</span>
+                  <button
+                    type="button"
+                    onClick={() => setTab("new")}
+                    className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                      tab === "new"
+                        ? "bg-cyan-400 text-black font-bold shadow-md shadow-cyan-500/20"
+                        : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    <span>Newest</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab("top")}
+                    className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                      tab === "top"
+                        ? "bg-cyan-400 text-black font-bold shadow-md shadow-cyan-500/20"
+                        : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Trophy className="h-3 w-3" />
+                    <span>Popular / Views</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab("trending")}
+                    className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                      tab === "trending"
+                        ? "bg-cyan-400 text-black font-bold shadow-md shadow-cyan-500/20"
+                        : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Flame className="h-3 w-3" />
+                    <span>Trending</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab("random")}
+                    className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                      tab === "random"
+                        ? "bg-cyan-400 text-black font-bold shadow-md shadow-cyan-500/20"
+                        : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Shuffle className="h-3 w-3" />
+                    <span>Random</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -326,7 +382,7 @@ export function HomeFeed({
         </div>
       </div>
 
-      {/* Grid of Movie Cards: 2 cols on mobile, 3 on tablet, 4 on desktop */}
+      {/* Grid of Movie Cards: 1 col on mobile (less distraction), 2 on tablet, 3-4 on desktop */}
       {items.length === 0 && !busy ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl mb-3">
@@ -346,7 +402,7 @@ export function HomeFeed({
           )}
         </div>
       ) : (
-        <div className="mt-6 sm:mt-8 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {items.map((item) => (
             <TileCard key={item.key} item={item} />
           ))}

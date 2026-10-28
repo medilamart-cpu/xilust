@@ -97,6 +97,7 @@ export async function queryItems(options: {
   year?: number;
   query?: string;
   tab?: "trending" | "top" | "new" | "random";
+  sort?: "newest" | "popular" | "views";
 }): Promise<{ items: CatalogItem[]; total: number }> {
   const db = getLocalDb();
 
@@ -105,7 +106,7 @@ export async function queryItems(options: {
     const limit = Math.min(Math.max(options.limit || 24, 1), 100);
     const offset = Math.max(options.offset || 0, 0);
 
-    const whereParts: string[] = [];
+    const whereParts: string[] = ["slug != 'live'"];
     const params: any[] = [];
 
     if (options.section) {
@@ -148,11 +149,11 @@ export async function queryItems(options: {
 
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
-    let orderBy = "ORDER BY year DESC, id DESC";
-    if (options.tab === "top") {
-      orderBy = "ORDER BY views DESC, id DESC";
-    } else if (options.tab === "new") {
-      orderBy = "ORDER BY id DESC";
+    let orderBy = "ORDER BY COALESCE(year, 0) DESC, COALESCE(published_at, '') DESC, id DESC";
+    if (options.tab === "top" || options.sort === "popular" || options.sort === "views") {
+      orderBy = "ORDER BY COALESCE(views, 0) DESC, COALESCE(year, 0) DESC, id DESC";
+    } else if (options.tab === "new" || options.sort === "newest") {
+      orderBy = "ORDER BY COALESCE(year, 0) DESC, COALESCE(published_at, '') DESC, id DESC";
     } else if (options.tab === "random") {
       orderBy = "ORDER BY RANDOM()";
     }
@@ -181,6 +182,8 @@ export async function queryItems(options: {
     if (options.actor) params.set("actor", options.actor);
     if (options.tag) params.set("tag", options.tag);
     if (options.query) params.set("search", options.query);
+    if (options.tab) params.set("tab", options.tab);
+    if (options.sort) params.set("sort", options.sort);
 
     const res = await fetch(`${CATALOG_API_URL}/api/catalog?${params.toString()}`, {
       cache: "no-store",

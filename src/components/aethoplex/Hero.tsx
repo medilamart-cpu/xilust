@@ -11,12 +11,14 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   const [idx, setIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     let alive = true;
     const controller = new AbortController();
     setLoading(true);
     setSlides([]); // Reset immediately on section switch so previous section slides don't flash
+    setImgError(false);
 
     fetch(`/api/catalog?section=${section}&tab=top&limit=6`, {
       signal: controller.signal,
@@ -28,6 +30,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
         if (data.section && data.section !== section) return;
         setSlides(data.items || []);
         setIdx(0);
+        setImgError(false);
         setLoading(false);
       })
       .catch((err) => {
@@ -44,19 +47,25 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   const count = Math.max(slides.length, 1);
 
   const go = useCallback(
-    (n: number) => setIdx(((n % count) + count) % count),
+    (n: number) => {
+      setImgError(false);
+      setIdx(((n % count) + count) % count);
+    },
     [count],
   );
 
   useEffect(() => {
     if (slides.length <= 1) return;
-    const t = setInterval(() => setIdx((v) => (v + 1) % count), 6500);
+    const t = setInterval(() => {
+      setImgError(false);
+      setIdx((v) => (v + 1) % count);
+    }, 6500);
     return () => clearInterval(t);
   }, [count, slides.length]);
 
   if (loading || slides.length === 0) {
     return (
-      <div className="relative mx-auto mt-2 h-[420px] max-w-7xl animate-pulse rounded-3xl bg-white/[0.03] border border-white/5" />
+      <div className="relative mx-auto mt-2 h-[360px] sm:h-[420px] max-w-7xl animate-pulse rounded-3xl bg-white/[0.03] border border-white/5" />
     );
   }
 
@@ -85,14 +94,15 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="relative min-h-[380px] h-[400px] sm:h-[480px] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl"
+        className="relative min-h-[340px] sm:min-h-[460px] h-[360px] sm:h-[480px] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl"
       >
-        {/* Background Artwork */}
-        {cur.backdropUrl ? (
+        {/* Background Artwork - mobile optimized object-top and vivid brightness */}
+        {cur.backdropUrl && !imgError ? (
           <img
             src={cur.backdropUrl}
             alt={cur.name}
-            className="absolute inset-0 h-full w-full object-cover transition-all duration-700 brightness-[0.7] filter"
+            onError={() => setImgError(true)}
+            className="absolute inset-0 h-full w-full object-cover object-top sm:object-center transition-all duration-700 brightness-95 sm:brightness-[0.75] filter"
           />
         ) : (
           <div className="absolute inset-0 h-full w-full">
@@ -100,9 +110,9 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
           </div>
         )}
 
-        {/* Cinematic Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/70 to-transparent" />
+        {/* Cinematic Gradient Overlays: lightened on mobile so cover thumbnail is clearly visible */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/45 sm:via-[#080a0f]/60 to-transparent" />
+        <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/70 to-transparent" />
 
         {/* Content Box */}
         <div className="relative flex h-full flex-col justify-end p-4 sm:p-10 md:p-14 max-w-3xl">

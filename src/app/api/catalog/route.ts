@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     const year = searchParams.get("year") ? parseInt(searchParams.get("year")!, 10) : undefined;
     const query = searchParams.get("query") || searchParams.get("q") || undefined;
     const tab = (searchParams.get("tab") as any) || "trending";
+    const sort = (searchParams.get("sort") as any) || undefined;
 
     const offset = (page - 1) * limit;
 
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
       year,
       query,
       tab,
+      sort,
     });
 
     // Map to CardModel format
