@@ -10,6 +10,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   const [slides, setSlides] = useState<CardModel[]>([]);
   const [idx, setIdx] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -52,7 +53,6 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   const href = `/title/${cur.section || section}/${encodeURIComponent(cur.slug || String(cur.id))}`;
 
   // Mobile touch swipe support
-  const [touchStart, setTouchStart] = useState<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
