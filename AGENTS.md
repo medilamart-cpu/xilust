@@ -97,21 +97,17 @@ The repository is linked to **Cloudflare Pages** via GitHub integration:
 * **Remote Repository:** `https://github.com/medilamart-cpu/xilust.git`
 * **Production Branch:** `main`
 
-### How to Deploy Changes Live:
-To push code modifications, mobile UI updates, or taxonomy improvements to GitHub and trigger automatic deployment on Cloudflare Pages:
-
-```powershell
-# 1. Stage all project modifications
-git add -A
-
-# 2. Commit with descriptive summary
-git commit -m "feat: mobile responsive UI, studio filters, and VPS thumbnail sync"
-
-# 3. Push to main branch
-git push origin main
-```
-
-Cloudflare Pages automatically detects commits to `main`, triggers a Next.js build, and updates the live site edge distribution within 60–90 seconds.
+### Mandatory AI Agent Rule: Push to GitHub & Verify Live Deployment
+> [!IMPORTANT]
+> **ANY AI AGENT WORKING ON THIS REPOSITORY MUST ALWAYS COMMIT AND PUSH CHANGES TO GITHUB `main` BEFORE CONCLUDING WORK.**
+> Local file changes alone DO NOT update the live site. You MUST:
+> 1. Run `git add -A` and `git commit -m "..."`
+> 2. Run `git push origin main`
+> 3. Trigger or verify Cloudflare Pages deployment via the API:
+>    ```powershell
+>    curl.exe -s -X POST -H "Authorization: Bearer cfoat_2dqtQEnKRjl95gA2AnPYUF7m-iEhFKPuJ89lbByQD5Q.Apd1T94AWMOkd-wlWECXMsCRL5mmEPMfZy26RGgL12c" -H "Content-Type: application/json" -d "{\"branch\":\"main\"}" "https://api.cloudflare.com/client/v4/accounts/87e42b045dc2182ef8f54bd33ea8ee30/pages/projects/xilust/deployments"
+>    ```
+> 4. Verify live deployment at `https://xilust.pages.dev/` using the browser subagent. Never declare a task complete without visually checking the live site!
 
 ### Required Environment Variables (Cloudflare Pages Dashboard):
 Set these in **Cloudflare Pages -> Project Settings -> Environment Variables**:

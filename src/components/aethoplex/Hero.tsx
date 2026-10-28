@@ -14,19 +14,30 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
 
   useEffect(() => {
     let alive = true;
+    const controller = new AbortController();
     setLoading(true);
-    fetch(`/api/catalog?section=${section}&tab=top&limit=6`)
+    setSlides([]); // Reset immediately on section switch so previous section slides don't flash
+
+    fetch(`/api/catalog?section=${section}&tab=top&limit=6`, {
+      signal: controller.signal,
+    })
       .then((r) => r.json())
       .then((data) => {
-        if (!alive) return;
+        if (!alive || controller.signal.aborted) return;
+        // Verify response matches current section
+        if (data.section && data.section !== section) return;
         setSlides(data.items || []);
         setIdx(0);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setLoading(false);
+      });
 
     return () => {
       alive = false;
+      controller.abort();
     };
   }, [section]);
 

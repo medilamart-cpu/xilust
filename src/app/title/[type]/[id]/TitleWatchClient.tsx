@@ -57,15 +57,15 @@ export function TitleWatchClient({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Player Screen Frame */}
-      <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[0_12px_45px_rgba(0,0,0,0.85)]">
+    <div className="space-y-3 sm:space-y-4">
+      {/* Player Screen Frame - Edge to Edge on Mobile, Rounded Card on Desktop */}
+      <div className="-mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full relative aspect-video bg-black overflow-hidden sm:rounded-2xl border-y sm:border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]">
         {targetUrl ? (
           <iframe
             key={`${key}-${playerMode}-${activeIdx}`}
             src={embedUrl}
             title={item.title}
-            className="h-full w-full border-0"
+            className="absolute inset-0 h-full w-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
           />
@@ -81,7 +81,7 @@ export function TitleWatchClient({
       </div>
 
       {/* Player Controls & Mirror Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
         {/* Mirrors list */}
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scrollbar-none touch-scroll py-1 max-w-full">
           <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white/60 mr-1 sm:mr-2 shrink-0">

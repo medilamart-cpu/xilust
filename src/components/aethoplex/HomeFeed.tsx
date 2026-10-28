@@ -68,11 +68,10 @@ export function HomeFeed({
     };
   }, [section, taxType]);
 
-  // Reset page & list when section, query, tab, or activeFilter changes
-  useEffect(() => {
-    setPage(1);
-    setItems([]);
-  }, [section, query, tab, activeFilter]);
+  // Keep track of active section & abort controller to avoid race conditions
+  const abortRef = useRef<AbortController | null>(null);
+  const activeSectionRef = useRef(section);
+  activeSectionRef.current = section;
 
   const handleSetFilter = (newFilter: { type: TaxonomyType; name: string } | null) => {
     setActiveFilter(newFilter);
@@ -82,6 +81,13 @@ export function HomeFeed({
   // Fetch items
   const fetchPage = useCallback(
     async (p: number) => {
+      // Abort any prior in-flight request
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       setBusy(true);
       try {
         const params = new URLSearchParams({
@@ -100,8 +106,18 @@ export function HomeFeed({
 
         if (query) params.set("query", query);
 
-        const res = await fetch(`/api/catalog?${params.toString()}`);
+        const res = await fetch(`/api/catalog?${params.toString()}`, {
+          signal: controller.signal,
+        });
         const data = await res.json();
+
+        // Discard if aborted or if section switched while fetching
+        if (controller.signal.aborted || activeSectionRef.current !== section) {
+          return;
+        }
+        if (data.section && data.section !== activeSectionRef.current) {
+          return;
+        }
 
         setTotalPages(data.totalPages || 1);
         setTotalItems(data.total || 0);
@@ -112,18 +128,38 @@ export function HomeFeed({
           const newItems = (data.items || []).filter((x: CardModel) => !seen.has(x.key));
           return [...prev, ...newItems];
         });
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
         console.error("Error fetching feed:", err);
       } finally {
-        setBusy(false);
+        if (activeSectionRef.current === section) {
+          setBusy(false);
+        }
       }
     },
     [section, query, tab, activeFilter],
   );
 
+  // Reset page & list when section, query, tab, or activeFilter changes
   useEffect(() => {
-    fetchPage(page);
-  }, [fetchPage, page]);
+    if (abortRef.current) abortRef.current.abort();
+    setItems([]);
+    setTotalItems(0);
+    setTotalPages(1);
+
+    if (page === 1) {
+      fetchPage(1);
+    } else {
+      setPage(1);
+    }
+  }, [section, query, tab, activeFilter]);
+
+  // Handle subsequent pagination
+  useEffect(() => {
+    if (page > 1) {
+      fetchPage(page);
+    }
+  }, [page]);
 
   // Infinite scroll trigger
   const sentinelRef = useRef<HTMLDivElement>(null);

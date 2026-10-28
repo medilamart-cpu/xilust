@@ -56,16 +56,16 @@ export default async function TitlePage({
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-20 sm:pb-8">
+      <main className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-2 sm:py-6 pb-24 sm:pb-8 overflow-x-hidden">
         {/* Interactive Video Player & Mirror Picker (Client Component) */}
         <TitleWatchClient item={item} cleanstreamUrl={cleanstreamUrl} />
 
         {/* Title Details & Meta */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="mt-5 sm:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
           {/* Main Info (Left 2 cols) */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <div>
-              <div className="flex items-center gap-2.5 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="flex items-center gap-1 rounded bg-black/50 px-2 py-0.5 text-xs font-semibold text-cyan-300 border border-white/10">
                   <Star className="h-3 w-3 fill-cyan-400 text-cyan-400" />
                   8.5 / 10
@@ -78,7 +78,7 @@ export default async function TitlePage({
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-black text-white leading-snug">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white leading-snug">
                 {item.title}
               </h1>
             </div>

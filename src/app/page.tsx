@@ -8,14 +8,27 @@ import { MyListProvider } from "@/components/aethoplex/PosterCard";
 import { Footer, LivePill } from "@/components/aethoplex/Chrome";
 
 export default function Home() {
-  const [section, setSection] = useState<Section>("lust");
+  // Synchronously initialize section from URL params or localStorage to avoid race conditions
+  const [section, setSection] = useState<Section>(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const s = sp.get("section") as Section | null;
+      if (s === "lust" || s === "jax") return s;
+      try {
+        const stored = localStorage.getItem("xilust_section") as Section | null;
+        if (stored === "lust" || stored === "jax") return stored;
+      } catch {}
+    }
+    return "lust";
+  });
+
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<{
     type: "category" | "actor" | "studio" | "tag";
     name: string;
   } | null>(null);
 
-  // Restore section, query, actor, studio, category from URL query params
+  // Restore section, query, actor, studio, category from URL query params on navigation
   const syncFromUrl = () => {
     if (typeof window === "undefined") return;
     const sp = new URLSearchParams(window.location.search);
@@ -26,7 +39,12 @@ export default function Home() {
     const category = sp.get("category");
     const tag = sp.get("tag");
 
-    if (s === "lust" || s === "jax") setSection(s);
+    if (s === "lust" || s === "jax") {
+      setSection(s);
+      try {
+        localStorage.setItem("xilust_section", s);
+      } catch {}
+    }
     setQuery(q || "");
 
     if (actor) {
@@ -52,6 +70,9 @@ export default function Home() {
     setSection(s);
     setFilter(null);
     if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("xilust_section", s);
+      } catch {}
       const url = new URL(window.location.href);
       url.searchParams.set("section", s);
       url.searchParams.delete("actor");
