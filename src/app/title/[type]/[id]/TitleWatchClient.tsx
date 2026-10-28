@@ -66,7 +66,7 @@ export function TitleWatchClient({
     playerTimeoutRef.current = window.setTimeout(() => {
       setPlayerLoading(false);
       setPlayerError(true);
-    }, 15000);
+    }, 20000);
 
     return () => {
       if (playerTimeoutRef.current !== null) {
@@ -76,13 +76,10 @@ export function TitleWatchClient({
     };
   }, [embedUrl, key]);
 
-  const handlePlayerLoaded = () => {
-    if (playerTimeoutRef.current !== null) {
-      window.clearTimeout(playerTimeoutRef.current);
-      playerTimeoutRef.current = null;
-    }
+  const handleEmbedLoaded = () => {
+    // The iframe loading only confirms that the provider page opened. It does
+    // not confirm that the video itself started, so keep the playback watchdog.
     setPlayerLoading(false);
-    setPlayerError(false);
   };
 
   const handlePlayerError = () => {
@@ -99,6 +96,12 @@ export function TitleWatchClient({
     setKey((k) => k + 1);
   };
 
+  const handleNextMirror = () => {
+    if (sources.length < 2) return;
+    setPlayerError(false);
+    setActiveIdx((idx) => (idx + 1) % sources.length);
+  };
+
   return (
     <div className="space-y-3 sm:space-y-4 max-w-full">
       {/* Centered Cinema Video Player Container */}
@@ -111,7 +114,7 @@ export function TitleWatchClient({
             className="absolute inset-0 h-full w-full border-0 object-contain"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
-            onLoad={handlePlayerLoaded}
+            onLoad={handleEmbedLoaded}
             onError={handlePlayerError}
           />
         ) : (
@@ -135,15 +138,26 @@ export function TitleWatchClient({
       {playerError && targetUrl && (
         <div role="alert" className="flex flex-col gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <p className="text-xs leading-relaxed text-amber-100/90 sm:text-sm">
-            If playback has not started, try another mirror, reload the player, or open the source directly.
+            Still waiting for the video? This provider may have removed or blocked the stream. Try another mirror or reload it.
           </p>
-          <button
-            type="button"
-            onClick={handleRefresh}
-            className="min-h-11 shrink-0 rounded-lg border border-amber-200/20 bg-white/[0.06] px-4 text-xs font-semibold text-white transition hover:bg-white/10 sm:text-sm"
-          >
-            Retry player
-          </button>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {sources.length > 1 && (
+              <button
+                type="button"
+                onClick={handleNextMirror}
+                className="min-h-11 rounded-lg bg-cyan-400 px-4 text-xs font-bold text-slate-950 transition hover:bg-cyan-300 sm:text-sm"
+              >
+                Try next mirror
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleRefresh}
+              className="min-h-11 rounded-lg border border-amber-200/20 bg-white/[0.06] px-4 text-xs font-semibold text-white transition hover:bg-white/10 sm:text-sm"
+            >
+              Retry this mirror
+            </button>
+          </div>
         </div>
       )}
 
