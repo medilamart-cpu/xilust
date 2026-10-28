@@ -88,19 +88,20 @@ export async function GET(req: NextRequest) {
       let backdropUrl: string | null = null;
 
       const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://interventions-precision-stake-alternate.trycloudflare.com";
-      if (item.section === "lust") {
+      const cleanThumb = item.thumbnail_url ? item.thumbnail_url.replace(/^\/?thumbs\/?/, "") : "";
+
+      if (cleanThumb) {
+        posterUrl = `${vpsBase}/${cleanThumb}`;
+        backdropUrl = `${vpsBase}/${cleanThumb}`;
+      } else if (item.section === "lust") {
         posterUrl = `${vpsBase}/${item.slug}.webp`;
         backdropUrl = `${vpsBase}/${item.slug}.webp`;
       } else {
-        if (item.thumbnail_url) {
-          const cleanThumb = item.thumbnail_url.startsWith("/") ? item.thumbnail_url : `/${item.thumbnail_url}`;
-          posterUrl = `${vpsBase}${cleanThumb}`;
-          backdropUrl = `${vpsBase}${cleanThumb}`;
-        } else {
-          posterUrl = item.cover_url || null;
-          backdropUrl = item.cover_url || null;
-        }
+        posterUrl = item.cover_url || null;
+        backdropUrl = item.cover_url || null;
       }
+
+      const fallbackUrl = item.cover_url || (item.section === "lust" ? `${vpsBase}/${item.slug}.webp` : null);
 
       return {
         key: `${item.section}-${item.id}`,
@@ -116,7 +117,7 @@ export async function GET(req: NextRequest) {
         popularity: Math.max(item.views, 150),
         posterUrl,
         backdropUrl,
-        fallbackUrl: item.cover_url || null,
+        fallbackUrl,
         studios: item.studios,
         actors: item.actors,
         categories: item.categories,

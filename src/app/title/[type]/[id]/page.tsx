@@ -223,12 +223,13 @@ export default async function TitlePage({
                 const vpsBase =
                   process.env.NEXT_PUBLIC_THUMBS_CDN ||
                   "https://interventions-precision-stake-alternate.trycloudflare.com";
-                const posterUrl =
-                  rec.section === "lust"
-                    ? `${vpsBase}/${rec.slug}.webp`
-                    : rec.thumbnail_url
-                    ? `${vpsBase}${rec.thumbnail_url.startsWith("/") ? rec.thumbnail_url : `/${rec.thumbnail_url}`}`
-                    : rec.cover_url || null;
+                const cleanThumb = rec.thumbnail_url ? rec.thumbnail_url.replace(/^\/?thumbs\/?/, "") : "";
+                const posterUrl = cleanThumb
+                  ? `${vpsBase}/${cleanThumb}`
+                  : rec.section === "lust"
+                  ? `${vpsBase}/${rec.slug}.webp`
+                  : rec.cover_url || null;
+                const fallbackUrl = rec.cover_url || (rec.section === "lust" ? `${vpsBase}/${rec.slug}.webp` : null);
 
                 return (
                   <TileCard
@@ -246,6 +247,7 @@ export default async function TitlePage({
                       rating: 8.5,
                       posterUrl,
                       backdropUrl: posterUrl,
+                      fallbackUrl,
                       studios: rec.studios,
                       actors: rec.actors,
                       categories: rec.categories,
