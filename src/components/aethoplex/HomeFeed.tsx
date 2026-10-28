@@ -8,7 +8,7 @@ import { formatStudioLabel } from "@/lib/studio-label";
 
 type TabId = "trending" | "new" | "top" | "random";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
-type FilterType = TaxonomyType | "code";
+type FilterType = TaxonomyType | "code" | "premium";
 
 const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
   { id: "new", label: "Newest Releases", icon: Sparkles },
@@ -20,8 +20,6 @@ const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
 const JAV_FORMAT_FILTERS: { label: string; type: "category" | "tag"; name: string }[] = [
   { label: "Uncensored", type: "category", name: "UNCENSORED" },
   { label: "English Subbed", type: "category", name: "English subbed JAV" },
-  { label: "Decensored", type: "category", name: "Decensored" },
-  { label: "Censored · Mosaic", type: "tag", name: "Digital Mosaic" },
   { label: "4K", type: "category", name: "4K" },
 ];
 
@@ -31,12 +29,14 @@ export function HomeFeed({
   filter,
   onFilterChange,
   onQueryChange,
+  onSectionChange,
 }: {
   section: "lust" | "jax";
   query: string;
   filter?: { type: FilterType; name: string } | null;
   onFilterChange?: (f: { type: FilterType; name: string } | null) => void;
   onQueryChange?: (query: string) => void;
+  onSectionChange?: (section: "lust" | "jax") => void;
 }) {
   const [tab, setTab] = useState<TabId>("new");
 
@@ -59,7 +59,7 @@ export function HomeFeed({
       if (filter?.type === "code") {
         setCodeInput(filter.name);
       } else if (filter) {
-        setTaxType(filter.type);
+        setTaxType(filter.type === "premium" ? "category" : filter.type);
         setCodeInput("");
       } else {
         setCodeInput("");
@@ -69,6 +69,7 @@ export function HomeFeed({
 
   // Movie Feed items & pagination
   const [items, setItems] = useState<CardModel[]>([]);
+  const premiumPoolRef = useRef<CardModel[] | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -152,6 +153,14 @@ export function HomeFeed({
       setBusy(true);
       setFeedError(null);
       try {
+        if (activeFilter?.type === "premium" && premiumPoolRef.current) {
+          const pool = premiumPoolRef.current;
+          setTotalPages(Math.max(1, Math.ceil(pool.length / 24)));
+          const pageItems = pool.slice((p - 1) * 24, p * 24);
+          setItems((previous) => p === 1 ? pageItems : [...previous, ...pageItems]);
+          return;
+        }
+
         const params = new URLSearchParams({
           section,
           page: String(p),
@@ -160,14 +169,20 @@ export function HomeFeed({
         });
 
         if (activeFilter) {
-          if (activeFilter.type === "category") params.set("category", activeFilter.name);
+          if (activeFilter.type === "premium") params.set("premium", "1");
+          else if (activeFilter.type === "category") params.set("category", activeFilter.name);
           else if (activeFilter.type === "actor") params.set("actor", activeFilter.name);
-          else if (activeFilter.type === "studio") params.set("studio", activeFilter.name);
+          else if (activeFilter.type === "studio") {
+            if (section === "jax") params.set("query", activeFilter.name);
+            else params.set("studio", activeFilter.name);
+          }
           else if (activeFilter.type === "tag") params.set("tag", activeFilter.name);
           else if (activeFilter.type === "code") params.set("code", activeFilter.name);
         }
 
-        if (query) params.set("query", query);
+        if (query && activeFilter?.type !== "studio" && activeFilter?.type !== "premium") {
+          params.set("query", query);
+        }
 
         const res = await fetch(`/api/catalog?${params.toString()}`, {
           signal: controller.signal,
@@ -187,11 +202,16 @@ export function HomeFeed({
         }
 
         setTotalPages(data.totalPages || 1);
+        let pageItems = data.items || [];
+        if (activeFilter?.type === "premium") {
+          premiumPoolRef.current = pageItems;
+          pageItems = pageItems.slice(0, 24);
+        }
 
         setItems((prev) => {
-          if (p === 1) return data.items || [];
+          if (p === 1) return pageItems;
           const seen = new Set(prev.map((x) => x.key));
-          const newItems = (data.items || []).filter((x: CardModel) => !seen.has(x.key));
+          const newItems = pageItems.filter((x: CardModel) => !seen.has(x.key));
           return [...prev, ...newItems];
         });
       } catch (err: any) {
@@ -212,6 +232,7 @@ export function HomeFeed({
   // Reset page & list when section, query, tab, or activeFilter changes
   useEffect(() => {
     if (abortRef.current) abortRef.current.abort();
+    premiumPoolRef.current = null;
     setItems([]);
     setTotalPages(1);
     setPage(1);
@@ -243,6 +264,7 @@ export function HomeFeed({
   }, [busy, page, totalPages]);
 
   const actorLabel = section === "jax" ? "Actresses" : "Pornstars";
+  const showTeamSkeetSuggestion = section === "jax" && taxType === "studio";
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-6 sm:py-10 pb-28 sm:pb-12">
@@ -326,9 +348,9 @@ export function HomeFeed({
             {activeFilter && (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/50">Viewing {activeFilter.type === "code" ? "JAV code" : activeFilter.type}:</span>
+                  <span className="text-xs text-white/50">Viewing {activeFilter.type === "code" ? "JAV code" : activeFilter.type === "premium" ? "studio collection" : activeFilter.type}:</span>
                   <span className="font-bold text-sm text-cyan-300 flex items-center gap-1.5">
-                    <span>{activeFilter.type === "actor" ? "🌸" : activeFilter.type === "studio" ? "🎬" : activeFilter.type === "code" ? "🔎" : "🏷️"}</span>
+                    <span>{activeFilter.type === "actor" ? "🌸" : activeFilter.type === "studio" ? "🎬" : activeFilter.type === "code" ? "🔎" : activeFilter.type === "premium" ? "✨" : "🏷️"}</span>
                     <span>{activeFilter.type === "studio" ? formatStudioLabel(activeFilter.name) : activeFilter.name}</span>
                   </span>
                   <button
@@ -399,6 +421,44 @@ export function HomeFeed({
 
           {section === "jax" && (
             <div className="flex flex-col gap-3">
+              <div className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.015] p-3 sm:p-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Popular JAV formats</p>
+                  <p className="mt-1 text-[11px] text-white/45">Choose a format to narrow the catalog</p>
+                </div>
+                <div className="flex max-w-full flex-wrap gap-2.5" role="group" aria-label="Popular JAV formats">
+                  {JAV_FORMAT_FILTERS.map((preset) => {
+                    const active = activeFilter?.type === preset.type && activeFilter.name === preset.name;
+                    const tone = preset.label === "Uncensored"
+                      ? "border-fuchsia-300/35 bg-gradient-to-r from-fuchsia-500/20 to-violet-500/15 text-fuchsia-100"
+                      : preset.label === "English Subbed"
+                        ? "border-cyan-300/35 bg-gradient-to-r from-cyan-500/20 to-blue-500/15 text-cyan-100"
+                        : "border-amber-300/35 bg-gradient-to-r from-amber-500/20 to-orange-500/15 text-amber-100";
+                    return (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => {
+                          const nextFilter = active ? null : { type: preset.type, name: preset.name };
+                          onQueryChange?.("");
+                          setTaxType("category");
+                          setTaxSearch("");
+                          handleSetFilter(nextFilter);
+                        }}
+                        className={`min-h-11 rounded-full border px-4 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${
+                          active
+                            ? "border-white/80 bg-white text-slate-950 shadow-lg shadow-white/10"
+                            : `${tone} hover:border-white/45 hover:brightness-110`
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <form onSubmit={applyCodeFilter} className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
                 <label htmlFor="jax-code-filter" className="sr-only">Filter by JAV code</label>
                 <input
@@ -414,35 +474,6 @@ export function HomeFeed({
                 </button>
               </form>
 
-              <div className="flex min-w-0 flex-col gap-2" aria-label="Quick JAV format filters">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">Quick JAV filters</p>
-                <div className="flex max-w-full flex-wrap gap-2">
-                  {JAV_FORMAT_FILTERS.map((preset) => {
-                    const active = activeFilter?.type === preset.type && activeFilter.name === preset.name;
-                    return (
-                      <button
-                        key={preset.label}
-                        type="button"
-                        aria-pressed={active}
-                        onClick={() => {
-                          const nextFilter = active ? null : { type: preset.type, name: preset.name };
-                          onQueryChange?.("");
-                          setTaxType(nextFilter?.type === "tag" ? "tag" : "category");
-                          setTaxSearch("");
-                          handleSetFilter(nextFilter);
-                        }}
-                        className={`min-h-11 rounded-full border px-3.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 ${
-                          active
-                            ? "border-pink-300/60 bg-pink-400/20 text-pink-100 shadow-sm shadow-pink-500/10"
-                            : "border-white/10 bg-white/[0.04] text-white/75 hover:border-pink-300/30 hover:bg-white/[0.08] hover:text-white"
-                        }`}
-                      >
-                        {preset.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           )}
 
@@ -469,12 +500,12 @@ export function HomeFeed({
               </button>
             </div>
           )}
-          {!taxLoading && !taxError && taxSearch.trim() && taxItems.length === 0 && (
+          {!taxLoading && !taxError && taxSearch.trim() && taxItems.length === 0 && !showTeamSkeetSuggestion && (
             <p role="status" className="text-xs text-white/45">No matching {taxType}s found.</p>
           )}
 
           {/* Interactive Taxonomy Pills Slider */}
-          {taxItems.length > 0 && (
+          {(taxItems.length > 0 || showTeamSkeetSuggestion) && (
             <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 no-scrollbar scrollbar-none touch-scroll max-w-full">
               <button
                 type="button"
@@ -487,6 +518,41 @@ export function HomeFeed({
               >
                 All
               </button>
+
+              {section === "lust" && taxType === "category" && (
+                <button
+                  type="button"
+                  aria-pressed={activeFilter?.type === "premium"}
+                  onClick={() => {
+                    onQueryChange?.("");
+                    const nextFilter = activeFilter?.type === "premium"
+                      ? null
+                      : { type: "premium" as const, name: "Premium Studios" };
+                    handleSetFilter(nextFilter);
+                  }}
+                  className={`min-h-11 shrink-0 rounded-lg border px-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 ${
+                    activeFilter?.type === "premium"
+                      ? "border-amber-200 bg-amber-100 text-slate-950 shadow-lg shadow-amber-400/15"
+                      : "border-amber-200/25 bg-gradient-to-r from-amber-300/15 to-orange-400/10 text-amber-100 hover:border-amber-100/50 hover:from-amber-300/25"
+                  }`}
+                >
+                  ✦ Premium Studios
+                </button>
+              )}
+
+              {showTeamSkeetSuggestion && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onQueryChange?.("");
+                    onSectionChange?.("lust");
+                    handleSetFilter({ type: "studio", name: "Teamskeet" });
+                  }}
+                  className="min-h-11 shrink-0 rounded-lg border border-cyan-300/25 bg-cyan-400/[0.08] px-3 text-xs font-semibold text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                >
+                  Team Skeet <span className="ml-1 text-[10px] text-white/45">Lust studio</span>
+                </button>
+              )}
 
               {taxItems.map((item) => {
                 const active = activeFilter?.type === taxType && activeFilter?.name === item.name;

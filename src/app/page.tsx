@@ -26,7 +26,7 @@ export default function Home() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<{
-    type: "category" | "actor" | "studio" | "tag" | "code";
+    type: "category" | "actor" | "studio" | "tag" | "code" | "premium";
     name: string;
   } | null>(null);
 
@@ -41,6 +41,7 @@ export default function Home() {
     const category = sp.get("category");
     const tag = sp.get("tag");
     const code = sp.get("code");
+    const premium = sp.get("premium") === "1";
 
     if (s === "lust" || s === "jax") {
       setSection(s);
@@ -50,7 +51,9 @@ export default function Home() {
     }
     setQuery(q || "");
 
-    if (actor) {
+    if (premium && s !== "jax") {
+      setFilter({ type: "premium", name: "Premium Studios" });
+    } else if (actor) {
       setFilter({ type: "actor", name: actor });
     } else if (studio) {
       setFilter({ type: "studio", name: studio });
@@ -99,6 +102,7 @@ export default function Home() {
       url.searchParams.delete("category");
       url.searchParams.delete("tag");
       url.searchParams.delete("code");
+      url.searchParams.delete("premium");
       window.history.pushState({}, "", url.toString());
     }
   };
@@ -121,7 +125,7 @@ export default function Home() {
   };
 
   const handleFilterChange = (
-    newFilter: { type: "category" | "actor" | "studio" | "tag" | "code"; name: string } | null
+    newFilter: { type: "category" | "actor" | "studio" | "tag" | "code" | "premium"; name: string } | null
   ) => {
     setFilter(newFilter);
     if (typeof window !== "undefined") {
@@ -131,8 +135,10 @@ export default function Home() {
       url.searchParams.delete("category");
       url.searchParams.delete("tag");
       url.searchParams.delete("code");
+      url.searchParams.delete("premium");
       if (newFilter) {
-        url.searchParams.set(newFilter.type, newFilter.name);
+        if (newFilter.type === "premium") url.searchParams.set("premium", "1");
+        else url.searchParams.set(newFilter.type, newFilter.name);
       }
       window.history.pushState({}, "", url.toString());
     }
@@ -162,6 +168,7 @@ export default function Home() {
                 filter={filter}
                 onFilterChange={handleFilterChange}
                 onQueryChange={handleQueryChange}
+                onSectionChange={handleSectionChange}
               />
             </>
           )}

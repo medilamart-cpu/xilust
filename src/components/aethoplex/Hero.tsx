@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Play, Pause, Info, ChevronLeft, ChevronRight, Star, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Play, Pause, ChevronLeft, ChevronRight, Star, Sparkles } from "lucide-react";
 import type { CardModel } from "./PosterCard";
 import { GeneratedArt } from "./GeneratedArt";
 
@@ -106,7 +105,6 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
     }
   };
 
-  const href = `/title/${cur?.section || section}/${encodeURIComponent(cur?.slug || String(cur?.id || ""))}`;
   const isJax = (cur?.section || section) === "jax";
   const uploadDate = cur?.uploadedAt && !Number.isNaN(Date.parse(cur.uploadedAt))
     ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(cur.uploadedAt))
@@ -205,24 +203,6 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
             )}
           </div>
 
-          {/* Action CTAs */}
-          <div className="mt-4 sm:mt-6 flex items-center gap-2.5 sm:gap-4">
-            <Link
-              href={href}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-black shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all active:scale-95 sm:hover:scale-105"
-            >
-              <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-black" />
-              <span>Watch Now</span>
-            </Link>
-
-            <Link
-              href={href}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white backdrop-blur-md transition-all active:scale-95"
-            >
-              <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Details</span>
-            </Link>
-          </div>
         </div>
 
         {/* Carousel controls: Top Right on mobile, Bottom Right on desktop */}
@@ -236,22 +216,17 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
             >
               <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
-            <span className="px-1.5 text-xs font-semibold tabular-nums text-white/85 sm:hidden" aria-live="polite">
-              {idx + 1} / {slides.length}
-            </span>
-            <div className="hidden items-center gap-1 sm:flex sm:gap-1.5 sm:px-1.5">
+            <div className="hidden items-center gap-1 rounded-full border border-white/10 bg-black/45 px-2 py-1 sm:flex sm:gap-1.5 sm:px-2.5 sm:py-1.5" role="group" aria-label="Featured slides">
               {slides.map((_, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => go(i)}
-                  aria-label={`Slide ${i + 1}`}
+                  aria-label={`Show featured slide ${i + 1}`}
                   aria-current={idx === i ? "true" : undefined}
-                  className={`group flex h-9 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${
-                    idx === i ? "w-8" : "w-5"
-                  }`}
+                  className="group flex h-8 w-5 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 sm:w-6"
                 >
-                  <span className={`h-1.5 rounded-full transition-colors ${idx === i ? "w-5 bg-cyan-300" : "w-1.5 bg-white/40 group-hover:bg-white/70"}`} />
+                  <span className={`h-1.5 rounded-full transition-all ${idx === i ? "w-5 bg-gradient-to-r from-cyan-300 to-violet-300 shadow-[0_0_10px_rgba(103,232,249,0.55)]" : "w-2.5 bg-white/30 group-hover:bg-white/65"}`} />
                 </button>
               ))}
             </div>
