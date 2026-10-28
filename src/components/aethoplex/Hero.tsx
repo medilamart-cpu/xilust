@@ -13,6 +13,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   const [imgError, setImgError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [carouselPaused, setCarouselPaused] = useState(false);
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -56,6 +57,20 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   }, []);
 
   const count = Math.max(slides.length, 1);
+  const cur = slides[idx];
+
+  useEffect(() => {
+    if (!cur) {
+      setImgSrc(null);
+      setImgError(false);
+      setImageLoaded(false);
+      return;
+    }
+
+    setImgSrc(cur.backdropUrl ?? cur.posterUrl ?? cur.fallbackUrl ?? null);
+    setImgError(false);
+    setImageLoaded(false);
+  }, [cur?.id, cur?.key, cur?.backdropUrl, cur?.posterUrl, cur?.fallbackUrl]);
 
   const go = useCallback(
     (n: number) => {
@@ -85,16 +100,6 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
       <div className="relative mx-auto mt-2 h-[360px] sm:h-[420px] max-w-7xl animate-pulse rounded-3xl bg-white/[0.03] border border-white/5" />
     );
   }
-
-  const cur = slides[idx];
-  const [imgSrc, setImgSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!cur) return;
-    setImgSrc(cur.backdropUrl ?? cur.posterUrl ?? cur.fallbackUrl ?? null);
-    setImgError(false);
-    setImageLoaded(false);
-  }, [cur?.id, cur?.backdropUrl, cur?.posterUrl, cur?.fallbackUrl]);
 
   const handleHeroImgError = () => {
     if (imgSrc && imgSrc !== cur?.fallbackUrl && cur?.fallbackUrl) {
