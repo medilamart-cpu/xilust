@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { queryItems, getTaxonomies } from "@/lib/catalog-db";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
@@ -43,8 +43,14 @@ export async function GET(req: NextRequest) {
         posterUrl = `${vpsBase}/${item.slug}.webp`;
         backdropUrl = `${vpsBase}/${item.slug}.webp`;
       } else {
-        posterUrl = item.cover_url || null;
-        backdropUrl = item.cover_url || null;
+        const cdnBase = process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
+        if (item.thumbnail_url && item.thumbnail_url.startsWith("/thumbs/")) {
+          posterUrl = `${cdnBase}${item.thumbnail_url}`;
+          backdropUrl = `${cdnBase}${item.thumbnail_url}`;
+        } else {
+          posterUrl = item.cover_url || null;
+          backdropUrl = item.cover_url || null;
+        }
       }
 
       return {

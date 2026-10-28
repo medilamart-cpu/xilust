@@ -42,19 +42,22 @@ function getLocalDb() {
     return null;
   }
   if (localDbChecked) return dbInstance;
-  localDbChecked = true;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const path = require("path");
+    const path = eval('require("node:path")');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const fs = require("fs");
+    const fs = eval('require("node:fs")');
     const dbPath = path.resolve(process.cwd(), "catalog.db");
     if (fs.existsSync(dbPath)) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { DatabaseSync } = require("node:sqlite");
+      const { DatabaseSync } = eval('require("node:sqlite")');
       dbInstance = new DatabaseSync(dbPath, { readOnly: true });
+      console.log("✅ [catalog-db] Connected to local catalog.db successfully!");
+    } else {
+      console.warn("⚠️ [catalog-db] catalog.db not found at:", dbPath);
     }
-  } catch {
+  } catch (err) {
+    console.error("❌ [catalog-db] getLocalDb failed:", err);
     dbInstance = null;
   }
   return dbInstance;
@@ -113,23 +116,23 @@ export async function queryItems(options: {
     }
 
     if (options.category && options.category !== "All") {
-      whereParts.push("categories LIKE ?");
-      params.push(`%"${options.category}"%`);
+      whereParts.push("(categories LIKE ? OR categories LIKE ?)");
+      params.push(`%"${options.category}"%`, `%${options.category}%`);
     }
 
     if (options.studio) {
-      whereParts.push("studios LIKE ?");
-      params.push(`%"${options.studio}"%`);
+      whereParts.push("(studios LIKE ? OR studios LIKE ?)");
+      params.push(`%"${options.studio}"%`, `%${options.studio}%`);
     }
 
     if (options.actor) {
-      whereParts.push("actors LIKE ?");
-      params.push(`%"${options.actor}"%`);
+      whereParts.push("(actors LIKE ? OR actors LIKE ?)");
+      params.push(`%"${options.actor}"%`, `%${options.actor}%`);
     }
 
     if (options.tag) {
-      whereParts.push("tags LIKE ?");
-      params.push(`%"${options.tag}"%`);
+      whereParts.push("(tags LIKE ? OR tags LIKE ?)");
+      params.push(`%"${options.tag}"%`, `%${options.tag}%`);
     }
 
     if (options.query) {

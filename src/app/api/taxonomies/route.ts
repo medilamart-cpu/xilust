@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getTaxonomies } from "@/lib/catalog-db";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {

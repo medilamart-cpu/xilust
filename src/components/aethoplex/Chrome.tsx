@@ -6,7 +6,7 @@ import { Wordmark } from "./Logo";
 
 export function Footer({ onNavigate }: { onNavigate?: (v: string) => void }) {
   return (
-    <footer className="border-t border-white/10 bg-[#06080d] py-12 text-white/60">
+    <footer className="border-t border-white/10 bg-[#06080d] py-10 sm:py-12 pb-28 sm:pb-12 text-white/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           <div className="md:col-span-2 space-y-3">

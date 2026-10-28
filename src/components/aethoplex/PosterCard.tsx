@@ -27,6 +27,20 @@ export interface CardModel {
   sourcesCount?: number;
 }
 
+export function cardOfItem(item: any): CardModel {
+  return {
+    key: String(item.id || item.key),
+    id: item.id,
+    name: item.title || item.name || "",
+    kind: item.media_type === "tv" ? "SERIES" : "FILM",
+    year: parseInt((item.release_date || item.first_air_date || "2026").slice(0, 4), 10) || 2026,
+    rating: item.vote_average || 0,
+    posterUrl: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
+    backdropUrl: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : null,
+    popularity: item.popularity || 0,
+  };
+}
+
 /* ---------- My List (localStorage-backed) ---------- */
 
 export interface ListItem {
@@ -188,50 +202,50 @@ export function TileCard({ item }: { item: CardModel }) {
           </div>
 
           {/* Badge: HD / CleanStream */}
-          <span className="absolute right-2 top-2 flex items-center gap-1 rounded bg-black/75 px-1.5 py-0.5 text-[9px] font-bold tracking-[0.14em] text-cyan-300 border border-cyan-500/30 backdrop-blur-md">
+          <span className="absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded bg-black/75 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] text-cyan-300 border border-cyan-500/30 backdrop-blur-md">
             HD
           </span>
 
           {/* Code badge if present on top left */}
           {item.code && art && (
-            <span className="absolute left-2 top-2 rounded bg-pink-600/90 px-1.5 py-0.5 text-[10px] font-black tracking-wider text-white shadow-md backdrop-blur-md">
+            <span className="absolute left-1.5 sm:left-2 top-1.5 sm:top-2 rounded bg-pink-600/90 px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-black tracking-wider text-white shadow-md backdrop-blur-md">
               {item.code}
             </span>
           )}
 
           {/* Section pill on bottom left */}
-          <span className={`absolute bottom-2 left-2 rounded px-1.5 py-0.5 text-[9px] font-bold tracking-[0.12em] text-white shadow backdrop-blur-md ${
+          <span className={`absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-white shadow backdrop-blur-md ${
             isJax ? "bg-pink-500/80" : "bg-purple-600/80"
           }`}>
             {isJax ? "JAX" : "LUST"}
           </span>
 
           {/* Rating pill on bottom right */}
-          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md bg-black/75 px-1.5 py-0.5 text-[10.5px] font-semibold text-cyan-200 border border-white/10 backdrop-blur-md">
-            <Star className="h-2.5 w-2.5 fill-cyan-300 text-cyan-300" />
+          <span className="absolute bottom-1.5 sm:bottom-2 right-1.5 sm:right-2 flex items-center gap-0.5 sm:gap-1 rounded-md bg-black/75 px-1 sm:px-1.5 py-0.5 text-[9.5px] sm:text-[10.5px] font-semibold text-cyan-200 border border-white/10 backdrop-blur-md">
+            <Star className="h-2 w-2 sm:h-2.5 sm:w-2.5 fill-cyan-300 text-cyan-300" />
             {item.rating > 0 ? item.rating.toFixed(1) : "—"}
           </span>
         </div>
       </Link>
 
       {/* Info footer */}
-      <div className="mt-2.5 flex items-start justify-between gap-2">
+      <div className="mt-2 sm:mt-2.5 flex items-start justify-between gap-1.5 sm:gap-2">
         <Link href={href} className="flex-1 min-w-0">
-          <p className="truncate text-[13.5px] font-semibold text-white/90 transition-colors group-hover:text-cyan-300">
+          <p className="line-clamp-1 sm:truncate text-xs sm:text-[13.5px] font-semibold text-white/90 transition-colors group-hover:text-cyan-300">
             {item.name}
           </p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/50">
+          <p className="mt-0.5 flex flex-wrap items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-white/50">
             <span>{item.year || "2026"}</span>
             {item.studios && item.studios.length > 0 && (
               <>
                 <span className="text-white/20">·</span>
-                <span className="truncate max-w-[120px]">{item.studios[0]}</span>
+                <span className="truncate max-w-[80px] sm:max-w-[120px]">{item.studios[0]}</span>
               </>
             )}
             {item.sourcesCount && item.sourcesCount > 0 && (
               <>
-                <span className="text-white/20">·</span>
-                <span className="text-cyan-400 font-medium">{item.sourcesCount} Mirrors</span>
+                <span className="text-white/20 hidden xs:inline">·</span>
+                <span className="text-cyan-400 font-medium hidden xs:inline">{item.sourcesCount} Mirrors</span>
               </>
             )}
           </p>
@@ -244,7 +258,7 @@ export function TileCard({ item }: { item: CardModel }) {
             toggle(item);
           }}
           aria-label={saved ? `Remove from my list` : `Add to my list`}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 text-white/70 hover:text-white transition-all"
+          className="flex h-8 w-8 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 active:scale-90 text-white/70 hover:text-white transition-all"
         >
           {saved ? (
             <Check className="h-3.5 w-3.5 text-cyan-300" />

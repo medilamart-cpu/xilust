@@ -81,11 +81,11 @@ export function TitleWatchClient({
       </div>
 
       {/* Player Controls & Mirror Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
         {/* Mirrors list */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
-          <span className="flex items-center gap-1.5 text-xs font-bold text-white/60 mr-2 shrink-0">
-            <Server className="h-3.5 w-3.5 text-cyan-400" />
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scrollbar-none touch-scroll py-1 max-w-full">
+          <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white/60 mr-1 sm:mr-2 shrink-0">
+            <Server className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-cyan-400" />
             Mirrors ({sources.length}):
           </span>
 
@@ -110,7 +110,7 @@ export function TitleWatchClient({
                   setActiveIdx(idx);
                   setKey((k) => k + 1);
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold shrink-0 transition-all active:scale-95 ${
                   active
                     ? "bg-cyan-400 text-black font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)]"
                     : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5"
@@ -124,55 +124,57 @@ export function TitleWatchClient({
         </div>
 
         {/* Right utility buttons: Mode Switcher, CleanStream status, Reload */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-2.5 pt-1 sm:pt-0 border-t border-white/5 sm:border-0">
           {/* Player Mode Switcher */}
-          <div className="flex items-center p-0.5 rounded-lg bg-black/40 border border-white/10 text-[11px]">
+          <div className="flex items-center p-0.5 rounded-lg bg-black/40 border border-white/10 text-[10px] sm:text-[11px]">
             <button
               type="button"
               onClick={() => setPlayerMode("clean")}
-              className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
+              className={`px-2 sm:px-2.5 py-1 rounded-md font-semibold transition-all ${
                 playerMode === "clean"
                   ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
                   : "text-white/50 hover:text-white/80"
               }`}
             >
-              🛡️ Ad-Free CleanStream
+              🛡️ CleanStream
             </button>
             <button
               type="button"
               onClick={() => setPlayerMode("direct")}
-              className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
+              className={`px-2 sm:px-2.5 py-1 rounded-md font-semibold transition-all ${
                 playerMode === "direct"
                   ? "bg-purple-500/20 text-purple-300 border border-purple-400/30"
                   : "text-white/50 hover:text-white/80"
               }`}
             >
-              🌐 Direct Host
+              🌐 Direct
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleRefresh}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-            title="Reload video player"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Reload</span>
-          </button>
-
-          {targetUrl && (
-            <a
-              href={targetUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              title="Open raw source"
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRefresh}
+              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
+              title="Reload video player"
             >
-              <ExternalLink className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Source</span>
-            </a>
-          )}
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>Reload</span>
+            </button>
+
+            {targetUrl && (
+              <a
+                href={targetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
+                title="Open raw source"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span>Source</span>
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>

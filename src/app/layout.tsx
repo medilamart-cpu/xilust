@@ -1,7 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/catalog";
+
+export const viewport: Viewport = {
+  themeColor: "#080a0f",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+};
 
 const inter = Inter({
   variable: "--font-inter",

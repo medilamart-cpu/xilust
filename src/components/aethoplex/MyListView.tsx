@@ -34,35 +34,37 @@ export function MyListView({
       </p>
 
       {list.length === 0 ? (
-        <div className="glass mt-10 flex flex-col items-center rounded-2xl px-6 py-20 text-center">
+        <div className="glass mt-8 sm:mt-10 flex flex-col items-center rounded-2xl px-4 sm:px-6 py-16 sm:py-20 text-center">
           <span className="glass-soft flex h-14 w-14 items-center justify-center rounded-2xl">
             <Heart className="h-6 w-6 text-[#cfe6ff]" />
           </span>
-          <p className="mt-5 text-lg font-semibold text-white/85">Nothing saved yet</p>
-          <p className="mt-2 max-w-sm text-[13px] text-white/55">
-            Hover any poster and hit the + to keep it here for later.
+          <p className="mt-5 text-base sm:text-lg font-semibold text-white/85">Nothing saved yet</p>
+          <p className="mt-2 max-w-sm text-xs sm:text-[13px] text-white/55">
+            Tap the + button on any title card to keep it here for later.
           </p>
           <button
             onClick={onBrowse}
-            className="cta-gradient focusable mt-6 rounded-xl px-5 py-2.5 text-[13px] font-semibold"
+            className="cta-gradient focusable mt-6 rounded-xl px-5 py-2.5 text-xs sm:text-[13px] font-semibold active:scale-95 transition-all"
           >
             Browse films & series
           </button>
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-2 gap-x-3.5 gap-y-7 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {list.map((li) => (
             <TileCard
-              key={li.key ?? `${li.mediaType}-${li.id}`}
+              key={li.key ?? `${li.section}-${li.id}`}
               item={{
-                key: li.key ?? `${li.mediaType}-${li.id}`,
+                key: li.key ?? `${li.section}-${li.id}`,
+                id: li.id,
+                section: li.section,
+                slug: li.slug,
+                code: li.code,
                 name: li.name,
                 kind: li.kind,
                 year: li.year,
                 rating: li.rating,
                 posterUrl: li.posterUrl,
-                tmdbId: li.mediaType === "movie" || li.mediaType === "tv" ? li.id : undefined,
-                mediaType: li.mediaType === "movie" || li.mediaType === "tv" ? li.mediaType : undefined,
               }}
             />
           ))}

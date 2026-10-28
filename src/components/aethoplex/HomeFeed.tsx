@@ -18,16 +18,32 @@ const TABS: { id: TabId; label: string; icon: typeof Flame }[] = [
 export function HomeFeed({
   section,
   query,
+  filter,
+  onFilterChange,
 }: {
   section: "lust" | "jax";
   query: string;
+  filter?: { type: TaxonomyType; name: string } | null;
+  onFilterChange?: (f: { type: TaxonomyType; name: string } | null) => void;
 }) {
   const [tab, setTab] = useState<TabId>("trending");
 
   // Taxonomy navigation
   const [taxType, setTaxType] = useState<TaxonomyType>("category");
   const [taxItems, setTaxItems] = useState<TaxonomyItem[]>([]);
-  const [activeFilter, setActiveFilter] = useState<{ type: TaxonomyType; name: string } | null>(null);
+  const [activeFilter, setActiveFilter] = useState<{ type: TaxonomyType; name: string } | null>(
+    filter || null
+  );
+
+  // Sync when filter prop changes (e.g. from URL redirect)
+  useEffect(() => {
+    if (filter !== undefined) {
+      setActiveFilter(filter);
+      if (filter) {
+        setTaxType(filter.type);
+      }
+    }
+  }, [filter]);
 
   // Movie Feed items & pagination
   const [items, setItems] = useState<CardModel[]>([]);
@@ -58,10 +74,10 @@ export function HomeFeed({
     setItems([]);
   }, [section, query, tab, activeFilter]);
 
-  // When switching sections, clear active filter
-  useEffect(() => {
-    setActiveFilter(null);
-  }, [section]);
+  const handleSetFilter = (newFilter: { type: TaxonomyType; name: string } | null) => {
+    setActiveFilter(newFilter);
+    onFilterChange?.(newFilter);
+  };
 
   // Fetch items
   const fetchPage = useCallback(
@@ -129,12 +145,12 @@ export function HomeFeed({
   const actorLabel = section === "jax" ? "Actresses" : "Pornstars";
 
   return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+    <section className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-6 sm:py-10 pb-28 sm:pb-12">
       {/* Feed Controls Header */}
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+      <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-4 sm:pb-5">
           {/* Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar scrollbar-none touch-scroll max-w-full">
             {TABS.map((t) => {
               const Icon = t.icon;
               const active = tab === t.id;
@@ -142,13 +158,13 @@ export function HomeFeed({
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all ${
+                  className={`shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold tracking-wide transition-all ${
                     active
                       ? "bg-white text-black shadow-lg"
                       : "bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/5"
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${active ? "text-black" : "text-cyan-400"}`} />
+                  <Icon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${active ? "text-black" : "text-cyan-400"}`} />
                   <span>{t.label}</span>
                 </button>
               );
@@ -156,7 +172,7 @@ export function HomeFeed({
           </div>
 
           {/* Result count & current section indicator */}
-          <div className="flex items-center gap-2 text-xs font-medium text-white/50">
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-white/50">
             <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
             <span>
               {totalItems.toLocaleString()} {section === "jax" ? "JAV Titles" : "Western Titles"}
@@ -166,57 +182,57 @@ export function HomeFeed({
         </div>
 
         {/* Categorization Mode Selector */}
-        <div className="flex flex-col gap-3.5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar scrollbar-none touch-scroll max-w-full">
               <button
                 type="button"
                 onClick={() => setTaxType("category")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
                   taxType === "category" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
                 }`}
               >
-                <Filter className="h-3.5 w-3.5 text-cyan-400" />
+                <Filter className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-cyan-400" />
                 <span>Categories</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setTaxType("actor")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
                   taxType === "actor" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
                 }`}
               >
-                <Star className="h-3.5 w-3.5 text-pink-400" />
+                <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-pink-400" />
                 <span>{actorLabel}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setTaxType("studio")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
                   taxType === "studio" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
                 }`}
               >
-                <Film className="h-3.5 w-3.5 text-purple-400" />
+                <Film className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-purple-400" />
                 <span>Studios</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setTaxType("tag")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
                   taxType === "tag" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
                 }`}
               >
-                <Tag className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Popular Tags</span>
+                <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-400" />
+                <span>Tags</span>
               </button>
             </div>
 
             {/* Clear active filter badge */}
             {activeFilter && (
-              <div className="flex items-center gap-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 px-3.5 py-1.5 text-xs">
+              <div className="flex items-center gap-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 px-3 py-1.5 text-xs">
                 <span className="text-white/70">Filtered by:</span>
                 <span className="font-bold text-cyan-300">
                   {activeFilter.type === "actor" ? "⭐ " : activeFilter.type === "studio" ? "🎬 " : "🏷️ "}
@@ -224,7 +240,7 @@ export function HomeFeed({
                 </span>
                 <button
                   type="button"
-                  onClick={() => setActiveFilter(null)}
+                  onClick={() => handleSetFilter(null)}
                   className="ml-1 rounded-full p-0.5 hover:bg-white/10 text-white/70 hover:text-white"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -235,11 +251,11 @@ export function HomeFeed({
 
           {/* Interactive Taxonomy Pills Slider */}
           {taxItems.length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 no-scrollbar scrollbar-none touch-scroll max-w-full">
               <button
                 type="button"
-                onClick={() => setActiveFilter(null)}
-                className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                onClick={() => handleSetFilter(null)}
+                className={`shrink-0 rounded-lg px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
                   !activeFilter
                     ? "bg-white text-black font-bold shadow"
                     : "bg-white/[0.04] border border-white/10 text-white/60 hover:text-white"
@@ -253,8 +269,8 @@ export function HomeFeed({
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveFilter({ type: taxType, name: item.name })}
-                    className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                    onClick={() => handleSetFilter({ type: taxType, name: item.name })}
+                    className={`shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium transition-all ${
                       active
                         ? section === "jax"
                           ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold shadow-md shadow-pink-500/25"
@@ -263,7 +279,7 @@ export function HomeFeed({
                     }`}
                   >
                     <span>{item.name}</span>
-                    <span className="rounded-full bg-white/10 px-1.5 py-0.2 text-[10px] text-white/50">
+                    <span className="rounded-full bg-white/10 px-1.5 py-0.2 text-[9px] sm:text-[10px] text-white/50">
                       {item.count.toLocaleString()}
                     </span>
                   </button>
@@ -274,19 +290,19 @@ export function HomeFeed({
         </div>
       </div>
 
-      {/* Grid of Movie Cards */}
+      {/* Grid of Movie Cards: 2 cols on mobile, 3 on tablet, 4 on desktop */}
       {items.length === 0 && !busy ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl mb-4">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl mb-3">
             {section === "jax" ? "🌸" : "🔥"}
           </div>
-          <h3 className="text-lg font-bold text-white">No titles found</h3>
-          <p className="mt-1 text-sm text-white/50 max-w-sm">
+          <h3 className="text-base sm:text-lg font-bold text-white">No titles found</h3>
+          <p className="mt-1 text-xs sm:text-sm text-white/50 max-w-sm">
             Try adjusting your search query, selecting another category/star, or switching sections.
           </p>
           {activeFilter && (
             <button
-              onClick={() => setActiveFilter(null)}
+              onClick={() => handleSetFilter(null)}
               className="mt-4 px-4 py-2 rounded-xl bg-white/10 border border-white/15 text-xs font-semibold text-white hover:bg-white/20"
             >
               Clear Filter
@@ -294,7 +310,7 @@ export function HomeFeed({
           )}
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="mt-6 sm:mt-8 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {items.map((item) => (
             <TileCard key={item.key} item={item} />
           ))}
