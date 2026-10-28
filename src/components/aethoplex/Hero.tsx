@@ -106,7 +106,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
             src={cur.backdropUrl}
             alt={cur.name}
             onError={() => setImgError(true)}
-            className="absolute inset-0 h-full w-full object-cover object-top sm:object-center transition-all duration-700 brightness-95 sm:brightness-[0.75] filter"
+            className="absolute inset-0 h-full w-full object-cover object-top sm:object-center transition-[transform,filter] duration-700 brightness-100"
           />
         ) : (
           <div className="absolute inset-0 h-full w-full">
@@ -115,11 +115,11 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
         )}
 
         {/* Cinematic Gradient Overlays: lightened on mobile so cover thumbnail is clearly visible */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/45 sm:via-[#080a0f]/60 to-transparent" />
-        <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f]/95 via-[#080a0f]/25 sm:via-[#080a0f]/40 to-transparent" />
+        <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-[#080a0f]/50 via-[#080a0f]/35 to-transparent" />
 
         {/* Content Box */}
-        <div className="relative flex min-h-[340px] sm:min-h-[460px] flex-col justify-end p-4 sm:p-10 md:p-14 max-w-3xl">
+        <div className="relative flex min-h-[340px] sm:min-h-[460px] flex-col justify-end p-4 sm:p-8 md:p-10 max-w-2xl">
           {/* Eyebrow badge */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
             <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md">
@@ -135,7 +135,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
           </div>
 
           {/* Title */}
-          <h1 className={`${isJax ? "line-clamp-2" : "break-words"} text-xl sm:text-4xl md:text-5xl font-black text-white leading-tight drop-shadow-md`}>
+          <h1 className="line-clamp-2 break-words text-lg sm:text-3xl md:text-4xl font-black leading-tight text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.9)]">
             {cur.name}
           </h1>
 

@@ -219,6 +219,16 @@ export function TileCard({ item }: { item: CardModel }) {
             </span>
           )}
 
+          {/* Lust studio badge; JAX keeps its code badge in this position. */}
+          {!isJax && item.studios?.[0] && (
+            <span
+              title={item.studios[0]}
+              className="absolute left-1.5 sm:left-2 top-1.5 sm:top-2 max-w-[48%] truncate rounded bg-purple-950/85 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wide text-white shadow-md ring-1 ring-white/15 backdrop-blur-md"
+            >
+              {item.studios[0]}
+            </span>
+          )}
+
           {/* Section pill on bottom left */}
           <span className={`absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-white shadow backdrop-blur-md ${
             isJax ? "bg-pink-500/80" : "bg-purple-600/80"
