@@ -183,7 +183,7 @@ export async function queryItems(options: {
     if (options.query) params.set("search", options.query);
 
     const res = await fetch(`${CATALOG_API_URL}/api/catalog?${params.toString()}`, {
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
     if (!res.ok) throw new Error(`Catalog API responded with ${res.status}`);
     const data = await res.json();

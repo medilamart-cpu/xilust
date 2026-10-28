@@ -210,14 +210,11 @@ export default async function TitlePage({
                 const vpsBase =
                   process.env.NEXT_PUBLIC_THUMBS_CDN ||
                   "https://interventions-precision-stake-alternate.trycloudflare.com";
-                const jaxVpsBase =
-                  process.env.NEXT_PUBLIC_CLEANSTREAM_URL ||
-                  "https://marriage-editorials-tyler-clark.trycloudflare.com";
                 const posterUrl =
                   rec.section === "lust"
                     ? `${vpsBase}/${rec.slug}.webp`
-                    : rec.thumbnail_url && rec.thumbnail_url.startsWith("/thumbs/")
-                    ? `${jaxVpsBase}${rec.thumbnail_url}`
+                    : rec.thumbnail_url
+                    ? `${vpsBase}${rec.thumbnail_url.startsWith("/") ? rec.thumbnail_url : `/${rec.thumbnail_url}`}`
                     : rec.cover_url || null;
 
                 return (

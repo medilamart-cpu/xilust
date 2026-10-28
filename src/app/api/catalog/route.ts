@@ -38,15 +38,15 @@ export async function GET(req: NextRequest) {
       let posterUrl: string | null = null;
       let backdropUrl: string | null = null;
 
+      const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://interventions-precision-stake-alternate.trycloudflare.com";
       if (item.section === "lust") {
-        const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://interventions-precision-stake-alternate.trycloudflare.com";
         posterUrl = `${vpsBase}/${item.slug}.webp`;
         backdropUrl = `${vpsBase}/${item.slug}.webp`;
       } else {
-        const cdnBase = process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
-        if (item.thumbnail_url && item.thumbnail_url.startsWith("/thumbs/")) {
-          posterUrl = `${cdnBase}${item.thumbnail_url}`;
-          backdropUrl = `${cdnBase}${item.thumbnail_url}`;
+        if (item.thumbnail_url) {
+          const cleanThumb = item.thumbnail_url.startsWith("/") ? item.thumbnail_url : `/${item.thumbnail_url}`;
+          posterUrl = `${vpsBase}${cleanThumb}`;
+          backdropUrl = `${vpsBase}${cleanThumb}`;
         } else {
           posterUrl = item.cover_url || null;
           backdropUrl = item.cover_url || null;
