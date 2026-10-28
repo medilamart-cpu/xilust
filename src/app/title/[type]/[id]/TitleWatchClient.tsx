@@ -85,15 +85,6 @@ export function TitleWatchClient({
     setPlayerError(false);
   };
 
-  const handlePlayerError = () => {
-    if (playerTimeoutRef.current !== null) {
-      window.clearTimeout(playerTimeoutRef.current);
-      playerTimeoutRef.current = null;
-    }
-    setPlayerLoading(false);
-    setPlayerError(true);
-  };
-
   const handleRefresh = () => {
     setPlayerError(false);
     setKey((k) => k + 1);
@@ -118,7 +109,6 @@ export function TitleWatchClient({
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             onLoad={handleEmbedLoaded}
-            onError={handlePlayerError}
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
