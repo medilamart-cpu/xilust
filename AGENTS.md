@@ -103,9 +103,10 @@ The repository is linked to **Cloudflare Pages** via GitHub integration:
 > Local file changes alone DO NOT update the live site. You MUST:
 > 1. Run `git add -A` and `git commit -m "..."`
 > 2. Run `git push origin main`
-> 3. Trigger or verify Cloudflare Pages deployment via the API:
+> 3. Trigger or verify Cloudflare Pages deployment via the API (token from `$env:APPDATA\xdg.config\.wrangler\config\default.toml`):
 >    ```powershell
->    curl.exe -s -X POST -H "Authorization: Bearer cfoat_2dqtQEnKRjl95gA2AnPYUF7m-iEhFKPuJ89lbByQD5Q.Apd1T94AWMOkd-wlWECXMsCRL5mmEPMfZy26RGgL12c" -H "Content-Type: application/json" -d "{\"branch\":\"main\"}" "https://api.cloudflare.com/client/v4/accounts/87e42b045dc2182ef8f54bd33ea8ee30/pages/projects/xilust/deployments"
+>    $token = (Get-Content "$env:APPDATA\xdg.config\.wrangler\config\default.toml" | Select-String 'oauth_token = "([^"]+)"').Matches.Groups[1].Value
+>    curl.exe -s -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" -d "{\"branch\":\"main\"}" "https://api.cloudflare.com/client/v4/accounts/87e42b045dc2182ef8f54bd33ea8ee30/pages/projects/xilust/deployments"
 >    ```
 > 4. Verify live deployment at `https://xilust.pages.dev/` using the browser subagent. Never declare a task complete without visually checking the live site!
 
