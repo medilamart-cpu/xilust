@@ -71,6 +71,7 @@ export async function GET(req: NextRequest) {
         popularity: Math.max(item.views, 150),
         posterUrl,
         backdropUrl,
+        fallbackUrl: item.cover_url || null,
         studios: item.studios,
         actors: item.actors,
         categories: item.categories,

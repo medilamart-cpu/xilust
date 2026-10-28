@@ -20,6 +20,7 @@ export interface CardModel {
   rating: number;
   posterUrl: string | null;
   backdropUrl?: string | null;
+  fallbackUrl?: string | null;
   overview?: string;
   popularity?: number;
   studios?: string[];
@@ -154,12 +155,28 @@ export function TileCard({ item }: { item: CardModel }) {
   const saved = has(item.key);
   const [imgError, setImgError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imgSrc, setImgSrc] = useState<string | null>(item.backdropUrl ?? item.posterUrl ?? item.fallbackUrl ?? null);
+
+  useEffect(() => {
+    setImgSrc(item.backdropUrl ?? item.posterUrl ?? item.fallbackUrl ?? null);
+    setImgError(false);
+    setImageLoaded(false);
+  }, [item.backdropUrl, item.posterUrl, item.fallbackUrl]);
+
+  const handleImgError = () => {
+    if (imgSrc && imgSrc !== item.fallbackUrl && item.fallbackUrl) {
+      setImgSrc(item.fallbackUrl);
+    } else {
+      setImageLoaded(false);
+      setImgError(true);
+    }
+  };
 
   const sec = item.section || "lust";
   const slug = item.slug || String(item.id || "");
   const href = `/title/${sec}/${encodeURIComponent(slug)}`;
   const views = viewsLabel(item.popularity);
-  const art = !imgError ? (item.backdropUrl ?? item.posterUrl) : null;
+  const art = !imgError ? imgSrc : null;
 
   const isJax = item.section === "jax";
   const primaryStudio = item.studios?.[0] || "";
@@ -189,10 +206,7 @@ export function TileCard({ item }: { item: CardModel }) {
                 className={`h-full w-full object-cover transition-[opacity,transform] duration-500 group-hover:scale-[1.06] ${imageLoaded ? "opacity-100" : "opacity-0"}`}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
-                onError={() => {
-                  setImageLoaded(false);
-                  setImgError(true);
-                }}
+                onError={handleImgError}
                 draggable={false}
               />
             </>
