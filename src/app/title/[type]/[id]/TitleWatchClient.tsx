@@ -8,9 +8,10 @@ function toDirectEmbedUrl(url: string): string {
   if (!url) return "";
   const clean = url.trim();
 
-  // Streamtape: /v/ID -> /e/ID
-  if (/(?:streamtape\.(?:com|net)|streamta\.pe|strtape\.tech|strcloud\.link)\/v\/([A-Za-z0-9_-]+)/i.test(clean)) {
-    return clean.replace(/\/v\//i, "/e/");
+  // Streamtape: rewrite domain to streamta.pe and ensure /e/ embed URL to bypass ISP DNS sinkholes
+  const stMatch = clean.match(/(?:streamtape\.(?:com|net)|streamta\.pe|strtape\.tech|strcloud\.link|advtpe\.com)\/(?:v|e)\/([A-Za-z0-9_-]+)/i);
+  if (stMatch) {
+    return `https://streamta.pe/e/${stMatch[1]}`;
   }
 
   // Mixdrop: /f/ID -> /e/ID
@@ -67,16 +68,22 @@ export function TitleWatchClient({
   const activeSource = sources[activeIdx];
   const targetUrl = activeSource?.url || activeSource?.embed_url || "";
 
+  const isStreamtape = useMemo(() => {
+    const h = (activeSource?.host || activeSource?.label || targetUrl).toLowerCase();
+    return h.includes("streamtape") || h.includes("strtape") || h.includes("streamta.pe") || h.includes("advtpe");
+  }, [activeSource, targetUrl]);
+
   // Build embed URL
   const embedUrl = useMemo(() => {
     if (!targetUrl) return "";
     const directEmbed = toDirectEmbedUrl(targetUrl);
-    if (playerMode === "direct") {
+    // Streamtape tokens are bound directly to browser IP, so direct embed works seamlessly
+    if (playerMode === "direct" || isStreamtape) {
       return directEmbed;
     }
-    // CleanStream ad-free player
+    // CleanStream ad-free player for other servers
     return `${cleanstreamUrl}/embed?url=${encodeURIComponent(directEmbed)}&autoplay=1`;
-  }, [cleanstreamUrl, targetUrl, playerMode]);
+  }, [cleanstreamUrl, targetUrl, playerMode, isStreamtape]);
 
   useEffect(() => {
     if (!embedUrl) {
@@ -244,7 +251,7 @@ export function TitleWatchClient({
               type="button"
               onClick={() => setPlayerMode("clean")}
               className={`px-2 sm:px-2.5 py-1 rounded-md font-semibold transition-all ${
-                playerMode === "clean"
+                playerMode === "clean" && !isStreamtape
                   ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
                   : "text-white/50 hover:text-white/80"
               }`}
@@ -255,7 +262,7 @@ export function TitleWatchClient({
               type="button"
               onClick={() => setPlayerMode("direct")}
               className={`px-2 sm:px-2.5 py-1 rounded-md font-semibold transition-all ${
-                playerMode === "direct"
+                playerMode === "direct" || isStreamtape
                   ? "bg-purple-500/20 text-purple-300 border border-purple-400/30"
                   : "text-white/50 hover:text-white/80"
               }`}
