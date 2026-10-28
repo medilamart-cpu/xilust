@@ -88,9 +88,27 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   }
 
   const cur = slides[idx];
-  const href = `/title/${cur.section || section}/${encodeURIComponent(cur.slug || String(cur.id))}`;
-  const isJax = (cur.section || section) === "jax";
-  const uploadDate = cur.uploadedAt && !Number.isNaN(Date.parse(cur.uploadedAt))
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!cur) return;
+    setImgSrc(cur.backdropUrl ?? cur.posterUrl ?? cur.fallbackUrl ?? null);
+    setImgError(false);
+    setImageLoaded(false);
+  }, [cur?.id, cur?.backdropUrl, cur?.posterUrl, cur?.fallbackUrl]);
+
+  const handleHeroImgError = () => {
+    if (imgSrc && imgSrc !== cur?.fallbackUrl && cur?.fallbackUrl) {
+      setImgSrc(cur.fallbackUrl);
+    } else {
+      setImageLoaded(false);
+      setImgError(true);
+    }
+  };
+
+  const href = `/title/${cur?.section || section}/${encodeURIComponent(cur?.slug || String(cur?.id || ""))}`;
+  const isJax = (cur?.section || section) === "jax";
+  const uploadDate = cur?.uploadedAt && !Number.isNaN(Date.parse(cur.uploadedAt))
     ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(cur.uploadedAt))
     : null;
 
@@ -111,6 +129,8 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
     setTouchStart(null);
   };
 
+  if (!cur) return null;
+
   return (
     <div className="relative mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
       <div
@@ -119,7 +139,7 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
         className={`relative min-h-[340px] sm:min-h-[460px] ${isJax ? "h-[360px] sm:h-[480px]" : "h-auto"} overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl`}
       >
         {/* Background Artwork - mobile optimized object-top and vivid brightness */}
-        {cur.backdropUrl && !imgError ? (
+        {imgSrc && !imgError ? (
           <>
             {!imageLoaded && (
               <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0a0d14] animate-pulse motion-reduce:animate-none">
@@ -127,13 +147,10 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
               </div>
             )}
             <img
-              src={cur.backdropUrl}
+              src={imgSrc}
               alt={cur.name}
               onLoad={() => setImageLoaded(true)}
-              onError={() => {
-                setImageLoaded(false);
-                setImgError(true);
-              }}
+              onError={handleHeroImgError}
               className={`absolute inset-0 h-full w-full object-cover object-top sm:object-center transition-[opacity,transform,filter] duration-700 brightness-100 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
             />
           </>
