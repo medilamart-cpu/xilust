@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
 import type { TaxonomyItem } from "@/lib/catalog-db";
+import { formatStudioLabel } from "@/lib/studio-label";
 
 type TabId = "trending" | "new" | "top" | "random";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
@@ -331,7 +332,7 @@ export function HomeFeed({
                   <span className="text-xs text-white/50">Viewing {activeFilter.type === "code" ? "JAV code" : activeFilter.type}:</span>
                   <span className="font-bold text-sm text-cyan-300 flex items-center gap-1.5">
                     <span>{activeFilter.type === "actor" ? "🌸" : activeFilter.type === "studio" ? "🎬" : activeFilter.type === "code" ? "🔎" : "🏷️"}</span>
-                    <span>{activeFilter.name}</span>
+                    <span>{activeFilter.type === "studio" ? formatStudioLabel(activeFilter.name) : activeFilter.name}</span>
                   </span>
                   <button
                     type="button"
@@ -460,6 +461,7 @@ export function HomeFeed({
 
               {taxItems.map((item) => {
                 const active = activeFilter?.type === taxType && activeFilter?.name === item.name;
+                const itemLabel = taxType === "studio" ? formatStudioLabel(item.name) : item.name;
                 return (
                   <button
                     key={item.id}
@@ -472,7 +474,7 @@ export function HomeFeed({
                         : "bg-white/[0.03] border border-white/10 text-white/70 hover:text-white hover:bg-white/[0.08]"
                     }`}
                   >
-                    <span>{item.name}</span>
+                    <span>{itemLabel}</span>
                     <span className="rounded-full bg-white/10 px-1.5 py-0.2 text-[9px] sm:text-[10px] text-white/50">
                       {item.count.toLocaleString()}
                     </span>

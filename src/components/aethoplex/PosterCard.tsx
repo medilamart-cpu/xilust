@@ -4,6 +4,7 @@ import { Star, Plus, Check, Play, Film } from "lucide-react";
 import { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
 import { GeneratedArt } from "./GeneratedArt";
+import { formatStudioLabel } from "@/lib/studio-label";
 
 /* ---------- unified card model ---------- */
 
@@ -152,6 +153,7 @@ export function TileCard({ item }: { item: CardModel }) {
   const { has, toggle } = useMyList();
   const saved = has(item.key);
   const [imgError, setImgError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const sec = item.section || "lust";
   const slug = item.slug || String(item.id || "");
@@ -161,7 +163,7 @@ export function TileCard({ item }: { item: CardModel }) {
 
   const isJax = item.section === "jax";
   const primaryStudio = item.studios?.[0] || "";
-  const studioLabel = primaryStudio.toLowerCase() === "teamskeet" ? "Team Skeet" : primaryStudio;
+  const studioLabel = formatStudioLabel(primaryStudio);
   const uploadDate = item.uploadedAt && !Number.isNaN(Date.parse(item.uploadedAt))
     ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(item.uploadedAt))
     : null;
@@ -175,14 +177,25 @@ export function TileCard({ item }: { item: CardModel }) {
       >
         <div className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-[#0d1017] shadow-[0_8px_28px_rgba(0,0,0,0.55)] transition-[transform,border-color] duration-300 group-hover:-translate-y-1 group-hover:border-cyan-400/40">
           {art ? (
-            <img
-              src={art}
-              alt={item.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-              loading="lazy"
-              onError={() => setImgError(true)}
-              draggable={false}
-            />
+            <>
+              {!imageLoaded && (
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0d1017] animate-pulse motion-reduce:animate-none">
+                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
+                </div>
+              )}
+              <img
+                src={art}
+                alt={item.name}
+                className={`h-full w-full object-cover transition-[opacity,transform] duration-500 group-hover:scale-[1.06] ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                loading="lazy"
+                onLoad={() => setImageLoaded(true)}
+                onError={() => {
+                  setImageLoaded(false);
+                  setImgError(true);
+                }}
+                draggable={false}
+              />
+            </>
           ) : (
             <div className="relative h-full w-full">
               <GeneratedArt name={item.name} kind={item.kind} wide />
@@ -224,10 +237,11 @@ export function TileCard({ item }: { item: CardModel }) {
           {/* Lust studio badge; JAX keeps its code badge in this position. */}
           {!isJax && primaryStudio && (
             <span
-              title={primaryStudio}
-              className="absolute left-1.5 sm:left-2 top-1.5 sm:top-2 max-w-[48%] truncate rounded bg-purple-950/85 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wide text-white shadow-md ring-1 ring-white/15 backdrop-blur-md"
+              title={studioLabel}
+              className="absolute left-2 top-2 inline-flex min-h-6 max-w-[58%] min-w-0 items-center gap-1.5 rounded-full border border-violet-200/25 bg-slate-950/70 px-2 py-1 text-[9px] font-semibold tracking-wide text-white/95 shadow-[0_3px_12px_rgba(2,6,23,0.45)] backdrop-blur-md sm:text-[10px]"
             >
-              {studioLabel}
+              <Film aria-hidden="true" className="h-3 w-3 shrink-0 text-fuchsia-300" />
+              <span className="min-w-0 truncate">{studioLabel}</span>
             </span>
           )}
 
@@ -257,7 +271,7 @@ export function TileCard({ item }: { item: CardModel }) {
             {item.studios && item.studios.length > 0 && (
               <>
                 <span className="text-white/20">·</span>
-                <span className="truncate max-w-[80px] sm:max-w-[120px]">{item.studios[0]}</span>
+                <span className="truncate max-w-[80px] sm:max-w-[120px]">{formatStudioLabel(item.studios[0])}</span>
               </>
             )}
             {item.sourcesCount && item.sourcesCount > 0 && (

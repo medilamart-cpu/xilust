@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Play, Info, ChevronLeft, ChevronRight, Star, Sparkles } from "lucide-react";
+import { Play, Pause, Info, ChevronLeft, ChevronRight, Star, Sparkles } from "lucide-react";
 import Link from "next/link";
 import type { CardModel } from "./PosterCard";
 import { GeneratedArt } from "./GeneratedArt";
@@ -12,6 +12,8 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   const [loading, setLoading] = useState(true);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [imgError, setImgError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [carouselPaused, setCarouselPaused] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -44,24 +46,40 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
     };
   }, [section]);
 
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reducedMotion.matches) setCarouselPaused(true);
+    const handleMotionPreference = (event: MediaQueryListEvent) => {
+      if (event.matches) setCarouselPaused(true);
+    };
+    reducedMotion.addEventListener("change", handleMotionPreference);
+    return () => reducedMotion.removeEventListener("change", handleMotionPreference);
+  }, []);
+
   const count = Math.max(slides.length, 1);
 
   const go = useCallback(
     (n: number) => {
       setImgError(false);
+      setImageLoaded(false);
       setIdx(((n % count) + count) % count);
     },
     [count],
   );
 
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (slides.length <= 1 || carouselPaused) return;
     const t = setInterval(() => {
       setImgError(false);
+      setImageLoaded(false);
       setIdx((v) => (v + 1) % count);
     }, 6500);
     return () => clearInterval(t);
-  }, [count, slides.length]);
+  }, [count, slides.length, carouselPaused]);
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [slides[idx]?.backdropUrl]);
 
   if (loading || slides.length === 0) {
     return (
@@ -102,12 +120,23 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
       >
         {/* Background Artwork - mobile optimized object-top and vivid brightness */}
         {cur.backdropUrl && !imgError ? (
-          <img
-            src={cur.backdropUrl}
-            alt={cur.name}
-            onError={() => setImgError(true)}
-            className="absolute inset-0 h-full w-full object-cover object-top sm:object-center transition-[transform,filter] duration-700 brightness-100"
-          />
+          <>
+            {!imageLoaded && (
+              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0a0d14] animate-pulse motion-reduce:animate-none">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+              </div>
+            )}
+            <img
+              src={cur.backdropUrl}
+              alt={cur.name}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => {
+                setImageLoaded(false);
+                setImgError(true);
+              }}
+              className={`absolute inset-0 h-full w-full object-cover object-top sm:object-center transition-[opacity,transform,filter] duration-700 brightness-100 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+            />
+          </>
         ) : (
           <div className="absolute inset-0 h-full w-full">
             <GeneratedArt name={cur.name} kind={cur.kind} wide />
@@ -183,28 +212,47 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
         {slides.length > 1 && (
           <div className="absolute top-4 right-4 sm:top-auto sm:bottom-10 sm:right-10 flex items-center gap-1.5 sm:gap-2 z-10">
             <button
+              type="button"
               onClick={() => go(idx - 1)}
               aria-label="Previous slide"
-              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-black/50 border border-white/15 text-white/80 hover:text-white hover:bg-black/70 backdrop-blur-md transition-all active:scale-90"
+              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white/85 shadow-lg backdrop-blur-md transition-colors hover:bg-black/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"
             >
               <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
-            <div className="flex items-center gap-1 sm:gap-1.5 px-1.5">
+            <span className="px-1.5 text-xs font-semibold tabular-nums text-white/85 sm:hidden" aria-live="polite">
+              {idx + 1} / {slides.length}
+            </span>
+            <div className="hidden items-center gap-1 sm:flex sm:gap-1.5 sm:px-1.5">
               {slides.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setIdx(i)}
+                  type="button"
+                  onClick={() => go(i)}
                   aria-label={`Slide ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all ${
-                    idx === i ? "w-4 sm:w-6 bg-cyan-400" : "w-1.5 bg-white/30 hover:bg-white/50"
+                  aria-current={idx === i ? "true" : undefined}
+                  className={`group flex h-9 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${
+                    idx === i ? "w-8" : "w-5"
                   }`}
-                />
+                >
+                  <span className={`h-1.5 rounded-full transition-colors ${idx === i ? "w-5 bg-cyan-300" : "w-1.5 bg-white/40 group-hover:bg-white/70"}`} />
+                </button>
               ))}
             </div>
             <button
+              type="button"
+              onClick={() => setCarouselPaused((paused) => !paused)}
+              aria-label={carouselPaused ? "Resume featured carousel" : "Pause featured carousel"}
+              aria-pressed={carouselPaused}
+              title={carouselPaused ? "Resume featured carousel" : "Pause featured carousel"}
+              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white/85 shadow-lg backdrop-blur-md transition-colors hover:bg-black/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"
+            >
+              {carouselPaused ? <Play className="h-4 w-4 fill-current" /> : <Pause className="h-4 w-4 fill-current" />}
+            </button>
+            <button
+              type="button"
               onClick={() => go(idx + 1)}
               aria-label="Next slide"
-              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-black/50 border border-white/15 text-white/80 hover:text-white hover:bg-black/70 backdrop-blur-md transition-all active:scale-90"
+              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white/85 shadow-lg backdrop-blur-md transition-colors hover:bg-black/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"
             >
               <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>

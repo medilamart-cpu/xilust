@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Star, Film, Server, Eye, Tag, Share2, Sparkles, AlertCircle } from "lucide-react";
 import { getItemBySlug, queryItems, type CatalogItem } from "@/lib/catalog-db";
+import { formatStudioLabel } from "@/lib/studio-label";
 import { TileCard } from "@/components/aethoplex/PosterCard";
 import { TitleWatchClient } from "./TitleWatchClient";
 
@@ -126,7 +127,7 @@ export default async function TitlePage({
                       className="rounded-lg bg-purple-500/15 border border-purple-500/30 px-3 py-1.5 text-xs font-medium text-purple-200 hover:bg-purple-500/30 transition-all active:scale-95 flex items-center gap-1.5"
                     >
                       <span>🎬</span>
-                      <span>{studio}</span>
+                      <span>{formatStudioLabel(studio)}</span>
                     </Link>
                   ))}
                 </div>
@@ -181,7 +182,7 @@ export default async function TitlePage({
                         href={`/?section=${section}&studio=${encodeURIComponent(s)}`}
                         className="font-medium text-purple-300 hover:text-purple-100 hover:underline transition-colors truncate"
                       >
-                        {s}
+                        {formatStudioLabel(s)}
                       </Link>
                     ))}
                   </div>
