@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queryItems, getTaxonomies } from "@/lib/catalog-db";
 import { PREMIUM_LUST_STUDIOS } from "@/lib/premium-studios";
+import { getCatalogThumbnailUrls } from "@/lib/catalog-thumbnail";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -84,24 +85,9 @@ export async function GET(req: NextRequest) {
 
     // Map to CardModel format
     const cards = items.map((item) => {
-      let posterUrl: string | null = null;
-      let backdropUrl: string | null = null;
-
       const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://interventions-precision-stake-alternate.trycloudflare.com";
-      const cleanThumb = item.thumbnail_url ? item.thumbnail_url.replace(/^\/?thumbs\/?/, "") : "";
-
-      if (cleanThumb) {
-        posterUrl = `${vpsBase}/${cleanThumb}`;
-        backdropUrl = `${vpsBase}/${cleanThumb}`;
-      } else if (item.section === "lust") {
-        posterUrl = `${vpsBase}/${item.slug}.webp`;
-        backdropUrl = `${vpsBase}/${item.slug}.webp`;
-      } else {
-        posterUrl = item.cover_url || null;
-        backdropUrl = item.cover_url || null;
-      }
-
-      const fallbackUrl = item.cover_url || (item.section === "lust" ? `${vpsBase}/${item.slug}.webp` : null);
+      const { posterUrl, fallbackUrl } = getCatalogThumbnailUrls(item, vpsBase);
+      const backdropUrl = posterUrl;
 
       return {
         key: `${item.section}-${item.id}`,

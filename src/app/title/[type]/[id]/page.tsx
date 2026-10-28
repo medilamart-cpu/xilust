@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Star, Film, Server, Eye, Tag, Share2, Sparkles, AlertCircle } from "lucide-react";
 import { getItemBySlug, queryItems, type CatalogItem } from "@/lib/catalog-db";
+import { getCatalogThumbnailUrls } from "@/lib/catalog-thumbnail";
 import { formatStudioLabel } from "@/lib/studio-label";
 import { TileCard } from "@/components/aethoplex/PosterCard";
 import { TitleWatchClient } from "./TitleWatchClient";
@@ -223,13 +224,7 @@ export default async function TitlePage({
                 const vpsBase =
                   process.env.NEXT_PUBLIC_THUMBS_CDN ||
                   "https://interventions-precision-stake-alternate.trycloudflare.com";
-                const cleanThumb = rec.thumbnail_url ? rec.thumbnail_url.replace(/^\/?thumbs\/?/, "") : "";
-                const posterUrl = cleanThumb
-                  ? `${vpsBase}/${cleanThumb}`
-                  : rec.section === "lust"
-                  ? `${vpsBase}/${rec.slug}.webp`
-                  : rec.cover_url || null;
-                const fallbackUrl = rec.cover_url || (rec.section === "lust" ? `${vpsBase}/${rec.slug}.webp` : null);
+                const { posterUrl, fallbackUrl } = getCatalogThumbnailUrls(rec, vpsBase);
 
                 return (
                   <TileCard
