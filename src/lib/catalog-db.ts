@@ -42,15 +42,18 @@ function getLocalDb() {
     return null;
   }
   if (localDbChecked) return dbInstance;
+  localDbChecked = true;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const path = eval('require("node:path")');
+    const path = require("path");
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const fs = eval('require("node:fs")');
-    const dbPath = path.resolve(process.cwd(), "catalog.db");
+    const fs = require("fs");
+    const proc = typeof process !== "undefined" ? (process as any) : null;
+    const cwd = typeof proc?.["cwd"] === "function" ? proc["cwd"]() : "";
+    const dbPath = path.resolve(cwd, "catalog.db");
     if (fs.existsSync(dbPath)) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { DatabaseSync } = eval('require("node:sqlite")');
+      const { DatabaseSync } = require("node:sqlite");
       dbInstance = new DatabaseSync(dbPath, { readOnly: true });
       console.log("✅ [catalog-db] Connected to local catalog.db successfully!");
     } else {
