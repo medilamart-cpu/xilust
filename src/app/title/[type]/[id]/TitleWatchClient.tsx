@@ -135,7 +135,7 @@ export function TitleWatchClient({
       {playerError && targetUrl && (
         <div role="alert" className="flex flex-col gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <p className="text-xs leading-relaxed text-amber-100/90 sm:text-sm">
-            This source did not respond. Try another mirror, reload the player, or open the source directly.
+            If playback has not started, try another mirror, reload the player, or open the source directly.
           </p>
           <button
             type="button"

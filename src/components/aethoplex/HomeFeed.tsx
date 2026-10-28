@@ -138,6 +138,8 @@ export function HomeFeed({
         if (err.name === "AbortError") return;
         console.error("Error fetching feed:", err);
         setFeedError("The catalog could not be reached. Check the connection and try again.");
+        setTotalPages(1);
+        setPage(1);
       } finally {
         if (abortRef.current === controller) {
           setBusy(false);
@@ -153,13 +155,9 @@ export function HomeFeed({
     setItems([]);
     setTotalItems(0);
     setTotalPages(1);
-
-    if (page === 1) {
-      fetchPage(1);
-    } else {
-      setPage(1);
-    }
-  }, [section, query, tab, activeFilter]);
+    setPage(1);
+    fetchPage(1);
+  }, [section, query, tab, activeFilter, fetchPage]);
 
   // Handle subsequent pagination
   useEffect(() => {
