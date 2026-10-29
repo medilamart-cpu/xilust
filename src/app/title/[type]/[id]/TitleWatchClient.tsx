@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles } from "lucide-react";
+import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles, Activity, X, CheckCircle2, Clock } from "lucide-react";
 import type { CatalogItem } from "@/lib/catalog-db";
 
 function toDirectEmbedUrl(url: string): string {
@@ -63,27 +63,46 @@ export function TitleWatchClient({
   const [key, setKey] = useState(0);
   const [playerError, setPlayerError] = useState(false);
   const [playerLoading, setPlayerLoading] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [serverHealth, setServerHealth] = useState<{
+    cleanstream_online: boolean;
+    latency_ms: number;
+    servers: Record<string, { name: string; status: string; cleanstream_working: boolean; latency_ms: number; note?: string }>;
+    active_count: number;
+    total_count: number;
+  } | null>(null);
+  const [healthLoading, setHealthLoading] = useState(false);
+
+  const fetchStatus = () => {
+    setHealthLoading(true);
+    fetch("/api/cleanstream/status")
+      .then((r) => r.json())
+      .then((data) => setServerHealth(data))
+      .catch(() => {})
+      .finally(() => setHealthLoading(false));
+  };
+
+  useEffect(() => {
+    if (showStatusModal && !serverHealth) {
+      fetchStatus();
+    }
+  }, [showStatusModal, serverHealth]);
+
   const playerTimeoutRef = useRef<number | null>(null);
 
   const activeSource = sources[activeIdx];
   const targetUrl = activeSource?.url || activeSource?.embed_url || "";
 
-  const isStreamtape = useMemo(() => {
-    const h = (activeSource?.host || activeSource?.label || targetUrl).toLowerCase();
-    return h.includes("streamtape") || h.includes("strtape") || h.includes("streamta.pe") || h.includes("advtpe");
-  }, [activeSource, targetUrl]);
-
   // Build embed URL
   const embedUrl = useMemo(() => {
     if (!targetUrl) return "";
     const directEmbed = toDirectEmbedUrl(targetUrl);
-    // Streamtape tokens are bound directly to browser IP, so direct embed works seamlessly
-    if (playerMode === "direct" || isStreamtape) {
+    if (playerMode === "direct") {
       return directEmbed;
     }
-    // CleanStream ad-free player for other servers
+    // CleanStream ad-free player for all supported mirrors (Streamtape, Mixdrop, Doodstream, etc.)
     return `${cleanstreamUrl}/embed?url=${encodeURIComponent(directEmbed)}&autoplay=1`;
-  }, [cleanstreamUrl, targetUrl, playerMode, isStreamtape]);
+  }, [cleanstreamUrl, targetUrl, playerMode]);
 
   useEffect(() => {
     if (!embedUrl) {
@@ -251,7 +270,7 @@ export function TitleWatchClient({
               type="button"
               onClick={() => setPlayerMode("clean")}
               className={`px-2 sm:px-2.5 py-1 rounded-md font-semibold transition-all ${
-                playerMode === "clean" && !isStreamtape
+                playerMode === "clean"
                   ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
                   : "text-white/50 hover:text-white/80"
               }`}
@@ -262,7 +281,7 @@ export function TitleWatchClient({
               type="button"
               onClick={() => setPlayerMode("direct")}
               className={`px-2 sm:px-2.5 py-1 rounded-md font-semibold transition-all ${
-                playerMode === "direct" || isStreamtape
+                playerMode === "direct"
                   ? "bg-purple-500/20 text-purple-300 border border-purple-400/30"
                   : "text-white/50 hover:text-white/80"
               }`}
@@ -272,6 +291,23 @@ export function TitleWatchClient({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setShowStatusModal(true);
+                fetchStatus();
+              }}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors active:scale-95"
+              title="View live server health and CleanStream status"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <Activity className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">Servers</span>
+            </button>
+
             <button
               type="button"
               onClick={handleRefresh}
@@ -297,6 +333,109 @@ export function TitleWatchClient({
           </div>
         </div>
       </div>
+
+      {/* Live Server & CleanStream Status Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg rounded-2xl bg-zinc-950/95 border border-white/10 p-4 sm:p-6 shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                  <Activity className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-white">CleanStream & Server Status</h3>
+                  <p className="text-[11px] text-white/50">Real-time status of streaming hosts on CleanStream</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowStatusModal(false)}
+                className="p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="py-4 space-y-3">
+              {/* CleanStream Engine Overview */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${serverHealth?.cleanstream_online ? "bg-emerald-400" : "bg-red-400"} opacity-75`}></span>
+                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${serverHealth?.cleanstream_online ? "bg-emerald-500" : "bg-red-500"}`}></span>
+                  </span>
+                  <div>
+                    <div className="text-xs font-semibold text-white">CleanStream Protection Engine</div>
+                    <div className="text-[10px] text-white/40">Cloudflare Tunnel Proxy • Ad & Pop-up Trap Bypass</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${serverHealth?.cleanstream_online ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-red-500/20 text-red-300 border border-red-500/30"}`}>
+                    {serverHealth?.cleanstream_online ? "Operational" : "Offline"}
+                  </span>
+                  {serverHealth?.latency_ms ? (
+                    <div className="text-[9px] text-white/40 mt-0.5">{serverHealth.latency_ms}ms ping</div>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Server List */}
+              <div className="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar pr-1">
+                <div className="text-[11px] font-bold text-white/40 uppercase tracking-wider px-1">
+                  Streaming Mirrors on CleanStream
+                </div>
+                {healthLoading && !serverHealth ? (
+                  <div className="p-4 text-center text-xs text-white/40">Probing streaming servers...</div>
+                ) : (
+                  Object.values(serverHealth?.servers || {}).map((s) => (
+                    <div
+                      key={s.name}
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 border border-white/5 hover:border-white/10 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        {s.cleanstream_working ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                        ) : (
+                          <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        )}
+                        <div>
+                          <div className="text-xs font-medium text-white">{s.name}</div>
+                          <div className="text-[10px] text-white/40">{s.note || (s.cleanstream_working ? "CleanStream Protected" : "Mirror Unavailable")}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${s.cleanstream_working ? "bg-cyan-500/10 text-cyan-300" : "bg-white/5 text-white/40"}`}>
+                          {s.cleanstream_working ? "CleanStream Active" : "Direct Only"}
+                        </span>
+                        {s.latency_ms ? (
+                          <div className="text-[9px] text-white/30">{s.latency_ms}ms</div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-white/40">
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>Auto-checks every 60s</span>
+              </div>
+              <button
+                type="button"
+                onClick={fetchStatus}
+                disabled={healthLoading}
+                className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 transition-colors"
+              >
+                <RefreshCw className={`h-3 w-3 ${healthLoading ? "animate-spin" : ""}`} />
+                <span>{healthLoading ? "Checking..." : "Re-check"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
