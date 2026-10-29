@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
 
     // Map to CardModel format
     const cards = items.map((item) => {
-      const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://interventions-precision-stake-alternate.trycloudflare.com";
+      const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
       const { posterUrl, fallbackUrl } = getCatalogThumbnailUrls(item, vpsBase);
       const backdropUrl = posterUrl;
 
