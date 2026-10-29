@@ -1,0 +1,20 @@
+[Unit]
+Description=XiLust CleanStream & Server Status Telegram Bot (@xilust_stats_bot)
+After=network.target cleanstream.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/cleanstream
+Environment=TELEGRAM_BOT_TOKEN=9101460871:AAH0BAqzALzfAmjNHG_MC8mZClUHszOR8ls
+Environment=NEXT_PUBLIC_CLEANSTREAM_URL=https://marriage-editorials-tyler-clark.trycloudflare.com
+Environment=CATALOG_API_URL=https://revenue-substitute-summaries-subject.trycloudflare.com
+ExecStart=/home/ubuntu/cleanstream/venv/bin/python cleanstream_status_bot.py --telegram
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/ubuntu/cleanstream/bot.log
+StandardError=append:/home/ubuntu/cleanstream/bot.log
+
+[Install]
+WantedBy=multi-user.target
+
