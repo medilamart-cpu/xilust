@@ -9,7 +9,7 @@ export const runtime = "edge";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const section = (searchParams.get("section") as "lust" | "jax") || "lust";
+    const section = (searchParams.get("section") as "lust" | "jax" | "fans") || "lust";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const category = searchParams.get("category") || undefined;

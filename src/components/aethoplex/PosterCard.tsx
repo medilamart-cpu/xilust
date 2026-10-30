@@ -11,7 +11,7 @@ import { formatStudioLabel } from "@/lib/studio-label";
 export interface CardModel {
   key: string;
   id?: number;
-  section?: "lust" | "jax";
+  section?: "lust" | "jax" | "fans";
   slug?: string;
   code?: string;
   name: string;
@@ -52,7 +52,7 @@ export function cardOfItem(item: any): CardModel {
 
 export interface ListItem {
   id: number;
-  section: "lust" | "jax";
+  section: "lust" | "jax" | "fans";
   slug: string;
   name: string;
   posterUrl: string | null;

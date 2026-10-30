@@ -1,5 +1,5 @@
 type CatalogThumbnailInput = {
-  section: "lust" | "jax";
+  section: "lust" | "jax" | "fans";
   slug?: string;
   thumbnail_url?: string | null;
   cover_url?: string | null;

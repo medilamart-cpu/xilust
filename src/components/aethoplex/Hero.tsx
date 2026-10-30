@@ -7,7 +7,7 @@ import { type CardModel } from "./PosterCard";
 import { extractCleanTitleAndDate, formatVideoDuration } from "@/lib/video-utils";
 import { GeneratedArt } from "./GeneratedArt";
 
-export function Hero({ section }: { section: "lust" | "jax" }) {
+export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   const [slides, setSlides] = useState<CardModel[]>([]);
   const [idx, setIdx] = useState(0);
   const [loading, setLoading] = useState(true);

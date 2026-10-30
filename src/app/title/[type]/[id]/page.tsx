@@ -20,7 +20,7 @@ export default async function TitlePage({
   const type = resolvedParams?.type;
   const rawId = resolvedParams?.id || "";
   const id = decodeURIComponent(rawId);
-  const section = type === "jax" ? "jax" : "lust";
+  const section = type === "jax" ? "jax" : type === "fans" ? "fans" : "lust";
   const item = await getItemBySlug(section, id);
 
   if (!item) {
@@ -38,7 +38,7 @@ export default async function TitlePage({
           href={`/?section=${section}`}
           className="cta-gradient focusable mt-8 flex h-11 items-center rounded-xl px-6 text-[14px] font-semibold transition"
         >
-          Back to {section === "jax" ? "🌸 Jax" : "🔥 Lust"}
+          Back to {section === "jax" ? "🌸 Jax" : section === "fans" ? "⭐ Fans" : "🔥 Lust"}
         </Link>
       </div>
     );
@@ -68,7 +68,7 @@ export default async function TitlePage({
           className="flex items-center gap-1.5 sm:gap-2 rounded-lg bg-white/5 border border-white/10 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-white/80 hover:text-white hover:bg-white/10 transition-all active:scale-95"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>Back to {section === "jax" ? "🌸 Jax" : "🔥 Lust"}</span>
+          <span>Back to {section === "jax" ? "🌸 Jax" : section === "fans" ? "⭐ Fans" : "🔥 Lust"}</span>
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-2">

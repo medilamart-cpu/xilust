@@ -1,6 +1,6 @@
 export interface CatalogItem {
   id: number;
-  section: "lust" | "jax";
+  section: "lust" | "jax" | "fans";
   slug: string;
   title: string;
   code: string;
@@ -25,7 +25,7 @@ export interface CatalogItem {
 
 export interface TaxonomyItem {
   id: number;
-  section: "lust" | "jax";
+  section: "lust" | "jax" | "fans";
   type: "actor" | "studio" | "category" | "tag";
   name: string;
   slug: string;
@@ -97,7 +97,7 @@ export function parseItem(row: any): CatalogItem {
 }
 
 export async function queryItems(options: {
-  section?: "lust" | "jax";
+  section?: "lust" | "jax" | "fans";
   limit?: number;
   offset?: number;
   category?: string;
@@ -242,7 +242,7 @@ export async function queryItems(options: {
   }
 }
 
-export async function getItemBySlug(section: "lust" | "jax", slug: string): Promise<CatalogItem | null> {
+export async function getItemBySlug(section: "lust" | "jax" | "fans", slug: string): Promise<CatalogItem | null> {
   const db = getLocalDb();
 
   if (db) {
@@ -284,7 +284,7 @@ export async function getItemBySlug(section: "lust" | "jax", slug: string): Prom
 }
 
 export async function getTaxonomies(
-  section: "lust" | "jax",
+  section: "lust" | "jax" | "fans",
   type: "actor" | "studio" | "category" | "tag",
   limit: number = 40,
   search: string = ""

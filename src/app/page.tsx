@@ -17,10 +17,10 @@ export default function Home() {
     if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search);
       const s = sp.get("section") as Section | null;
-      if (s === "lust" || s === "jax") return s;
+      if (s === "lust" || s === "jax" || s === "fans") return s;
       try {
         const stored = localStorage.getItem("xilust_section") as Section | null;
-        if (stored === "lust" || stored === "jax") return stored;
+        if (stored === "lust" || stored === "jax" || stored === "fans") return stored;
       } catch {}
     }
     return "lust";
@@ -45,7 +45,7 @@ export default function Home() {
     const code = sp.get("code");
     const premium = sp.get("premium") === "1";
 
-    if (s === "lust" || s === "jax") {
+    if (s === "lust" || s === "jax" || s === "fans") {
       setSection(s);
       try {
         localStorage.setItem("xilust_section", s);
@@ -53,7 +53,7 @@ export default function Home() {
     }
     setQuery(q || "");
 
-    if (premium && s !== "jax") {
+    if (premium && s === "lust") {
       setFilter({ type: "premium", name: "Premium Studios" });
     } else if (actor) {
       setFilter({ type: "actor", name: actor });

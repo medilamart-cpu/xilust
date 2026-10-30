@@ -34,12 +34,12 @@ export function HomeFeed({
   onQueryChange,
   onSectionChange,
 }: {
-  section: "lust" | "jax";
+  section: "lust" | "jax" | "fans";
   query: string;
   filter?: { type: FilterType; name: string } | null;
   onFilterChange?: (f: { type: FilterType; name: string } | null) => void;
   onQueryChange?: (query: string) => void;
-  onSectionChange?: (section: "lust" | "jax") => void;
+  onSectionChange?: (section: "lust" | "jax" | "fans") => void;
 }) {
   const [tab, setTab] = useState<TabId>("new");
   const [jaxSubFilter, setJaxSubFilter] = useState<"Subbed" | "Uncensored" | "4K" | null>(null);
@@ -324,6 +324,7 @@ export function HomeFeed({
                 <span>{actorLabel}</span>
               </button>
 
+              {section !== "fans" && (
               <button
                 type="button"
                 onClick={() => changeTaxType("studio")}
@@ -334,6 +335,7 @@ export function HomeFeed({
                 <Film className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-purple-400" />
                 <span>Studios</span>
               </button>
+              )}
 
               <button
                 type="button"

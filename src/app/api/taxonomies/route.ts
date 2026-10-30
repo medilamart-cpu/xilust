@@ -89,7 +89,7 @@ const STUDIO_NAMES_IN_CATEGORIES = new Set([
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const section = (searchParams.get("section") as "lust" | "jax") || "lust";
+    const section = (searchParams.get("section") as "lust" | "jax" | "fans") || "lust";
     const type = (searchParams.get("type") as "actor" | "studio" | "category" | "tag") || "actor";
     const limit = parseInt(searchParams.get("limit") || "40", 10);
     const search = searchParams.get("q") || searchParams.get("search") || "";

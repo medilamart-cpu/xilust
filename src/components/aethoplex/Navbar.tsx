@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { Search, Flame, Bookmark, X } from "lucide-react";
 import { Wordmark, LogoMark } from "./Logo";
 
-export type Section = "lust" | "jax";
+export type Section = "lust" | "jax" | "fans";
 export type View = string;
 
 export function Navbar({
@@ -150,6 +150,20 @@ export function Navbar({
                     <span>JAX</span>
                     <span className="hidden md:inline-block text-[10px] opacity-75 font-normal">(JAV)</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onSectionChange("fans")}
+                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${
+                      section === "fans"
+                        ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
+                        : "text-white/60 hover:text-white/90"
+                    }`}
+                  >
+                    <span className="text-xs sm:text-sm leading-none">⭐</span>
+                    <span>FANS</span>
+                    <span className="hidden md:inline-block text-[10px] opacity-75 font-normal">(Leaks)</span>
+                  </button>
                 </div>
               </div>
 
@@ -248,6 +262,20 @@ export function Navbar({
           >
             <span className="text-sm leading-none">🌸</span>
             <span className="text-[10px]">Jax (JAV)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              onSectionChange("fans");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${
+              section === "fans" ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"
+            }`}
+          >
+            <span className="text-sm leading-none">⭐</span>
+            <span className="text-[10px]">Fans</span>
           </button>
 
           <button
