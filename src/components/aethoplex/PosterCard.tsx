@@ -31,7 +31,8 @@ export interface CardModel {
   durationSeconds?: number | null;
 }
 
-export { formatVideoDuration, extractCleanTitleAndDate } from "@/lib/video-utils";
+import { formatVideoDuration, extractCleanTitleAndDate } from "@/lib/video-utils";
+export { formatVideoDuration, extractCleanTitleAndDate };
 
 export function cardOfItem(item: any): CardModel {
   return {

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles, Clock } from "lucide-react";
-import { type CardModel, extractCleanTitleAndDate, formatVideoDuration } from "./PosterCard";
+import { type CardModel } from "./PosterCard";
+import { extractCleanTitleAndDate, formatVideoDuration } from "@/lib/video-utils";
 import { GeneratedArt } from "./GeneratedArt";
 
 export function Hero({ section }: { section: "lust" | "jax" }) {

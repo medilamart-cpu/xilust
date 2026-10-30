@@ -5,7 +5,7 @@ import { getItemBySlug, queryItems, type CatalogItem } from "@/lib/catalog-db";
 import { getCatalogThumbnailUrls } from "@/lib/catalog-thumbnail";
 import { formatStudioLabel } from "@/lib/studio-label";
 import { TileCard } from "@/components/aethoplex/PosterCard";
-import { extractCleanTitleAndDate, formatVideoDuration } from "@/lib/video-utils";
+import { extractCleanTitleAndDate } from "@/lib/video-utils";
 import { TitleWatchClient } from "./TitleWatchClient";
 
 export const dynamic = "force-dynamic";
