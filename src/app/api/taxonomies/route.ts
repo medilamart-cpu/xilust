@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTaxonomies } from "@/lib/catalog-db";
+import { getTaxonomies, type TaxonomyItem } from "@/lib/catalog-db";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -96,11 +96,26 @@ export async function GET(req: NextRequest) {
 
     let items = await getTaxonomies(section, type, type === "category" ? limit + 80 : limit, search);
 
-    // Remove studio names from the general categories section
-    if (type === "category") {
+    // Fans records currently have no performer metadata; the upstream Fans
+    // taxonomy endpoint incorrectly aliases tags into its actor response.
+    if (section === "fans" && type === "actor") items = [];
+    if (section === "fans" && type === "studio") items = [];
+
+    // Keep category, studio, and cast vocabularies distinct within each section.
+    if (type === "category" || (section === "fans" && type === "tag")) {
+      const [studios, actors] = await Promise.all([
+        section === "fans" ? Promise.resolve([] as TaxonomyItem[]) : getTaxonomies(section, "studio", 500),
+        type === "category" && section !== "fans" ? getTaxonomies(section, "actor", 500) : Promise.resolve([] as TaxonomyItem[]),
+      ]);
+      const normalize = (value: string) => value.toLocaleLowerCase().normalize("NFKC").replace(/[\s\p{P}\p{S}]/gu, "");
+      const studioNames = new Set([
+        ...Array.from(STUDIO_NAMES_IN_CATEGORIES, normalize),
+        ...studios.map((item) => normalize(item.name)),
+      ]);
+      const actorNames = new Set(actors.map((item) => normalize(item.name)));
       items = items.filter((item) => {
-        const cleanSlug = (item.slug || item.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        return !STUDIO_NAMES_IN_CATEGORIES.has(cleanSlug);
+        const name = normalize(item.name || item.slug || "");
+        return Boolean(name) && !studioNames.has(name) && !actorNames.has(name);
       }).slice(0, limit);
     }
 

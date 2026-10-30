@@ -1,7 +1,7 @@
 "use client";
 
 import { Star, Plus, Check, Play, Film, Clock, Sparkles } from "lucide-react";
-import React, { useState, useEffect, createContext, useContext, useRef } from "react";
+import React, { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
 import { GeneratedArt } from "./GeneratedArt";
 import { formatStudioLabel } from "@/lib/studio-label";
@@ -31,7 +31,7 @@ export interface CardModel {
   durationSeconds?: number | null;
 }
 
-import { formatVideoDuration, extractCleanTitleAndDate } from "@/lib/video-utils";
+import { formatVideoDuration, extractCleanTitleAndDate, formatRelativeUploadTime } from "@/lib/video-utils";
 export { formatVideoDuration, extractCleanTitleAndDate };
 
 export function cardOfItem(item: any): CardModel {
@@ -165,9 +165,6 @@ export function TileCard({ item }: { item: CardModel }) {
 
   // Video Preview & Timeline scrubber states
   const [isHovered, setIsHovered] = useState(false);
-  const [scrubPercent, setScrubPercent] = useState<number | null>(null);
-  const [previewSec, setPreviewSec] = useState<number>(0);
-  const previewTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setImgSrc(item.backdropUrl ?? item.posterUrl ?? item.fallbackUrl ?? null);
@@ -186,30 +183,10 @@ export function TileCard({ item }: { item: CardModel }) {
 
   const handleMouseEnter = () => {
     setIsHovered(true);
-    let sec = 0;
-    if (previewTimerRef.current) clearInterval(previewTimerRef.current);
-    previewTimerRef.current = window.setInterval(() => {
-      sec += 1;
-      setPreviewSec(sec);
-    }, 450);
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    setScrubPercent(null);
-    setPreviewSec(0);
-    if (previewTimerRef.current) {
-      clearInterval(previewTimerRef.current);
-      previewTimerRef.current = null;
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    if (rect.width <= 0) return;
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const pct = Math.round((x / rect.width) * 100);
-    setScrubPercent(pct);
   };
 
   const sec = item.section || "lust";
@@ -222,22 +199,21 @@ export function TileCard({ item }: { item: CardModel }) {
   const studioLabel = formatStudioLabel(primaryStudio);
   const durationLabel = formatVideoDuration(item.durationSeconds, item.name, item.id, item.section);
 
-  const { cleanTitle, originalYear } = extractCleanTitleAndDate(item.name, item.year);
+  const { cleanTitle } = extractCleanTitleAndDate(item.name, item.year);
+  const relativeUploadTime = formatRelativeUploadTime(item.uploadedAt);
 
-  // Active timeline progress calculation: mouse scrub or auto-advancing preview loop
-  const activeProgress = scrubPercent !== null ? scrubPercent : ((previewSec * 7) % 100);
+  const isFans = item.section === "fans";
 
   return (
     <div className="group block shrink-0 rounded-xl text-left">
       <Link
         href={href}
         className="block focusable rounded-xl"
-        aria-label={`${cleanTitle}, ${originalYear || ""}`}
+        aria-label={cleanTitle}
       >
         <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
           className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-[#0d1017] shadow-[0_8px_28px_rgba(0,0,0,0.55)] transition-[transform,border-color] duration-300 group-hover:-translate-y-1 group-hover:border-cyan-400/50"
         >
           {art ? (
@@ -250,12 +226,7 @@ export function TileCard({ item }: { item: CardModel }) {
               <img
                 src={art}
                 alt={cleanTitle}
-                className={`h-full w-full object-cover transition-all duration-500 ${
-                  isHovered ? "scale-[1.08] brightness-105" : "scale-100"
-                } ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-                style={{
-                  transformOrigin: scrubPercent !== null ? `${scrubPercent}% 50%` : "50% 50%",
-                }}
+                className={`h-full w-full object-cover ${imageLoaded ? "opacity-100" : "opacity-0"}`}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 onError={handleImgError}
@@ -288,40 +259,6 @@ export function TileCard({ item }: { item: CardModel }) {
             </span>
           </div>
 
-          {/* Live Video Preview Indicator on Hover */}
-          {isHovered && (
-            <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 rounded-full bg-black/85 px-2 py-0.5 text-[9px] font-black tracking-wider text-cyan-300 border border-cyan-400/40 shadow-lg backdrop-blur-md animate-in fade-in duration-200">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400"></span>
-              </span>
-              <span>PREVIEW</span>
-              {scrubPercent !== null && (
-                <span className="text-white/60 font-mono text-[8.5px] border-l border-white/20 pl-1">
-                  {Math.round((scrubPercent / 100) * 100)}%
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Video Timeline Scrubber Bar at Bottom (Visual Progress Preview) */}
-          <div
-            className={`absolute bottom-0 inset-x-0 z-20 transition-all duration-200 ${
-              isHovered ? "h-1.5 bg-black/60 opacity-100" : "h-1 bg-black/30 opacity-60 group-hover:opacity-100"
-            }`}
-          >
-            <div
-              className="h-full bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 transition-all duration-150"
-              style={{ width: `${Math.min(100, Math.max(0, activeProgress))}%` }}
-            />
-            {/* Timeline chapter markers */}
-            <div className="absolute inset-0 flex justify-between pointer-events-none px-1">
-              <span className="w-0.5 h-full bg-white/20" />
-              <span className="w-0.5 h-full bg-white/20" />
-              <span className="w-0.5 h-full bg-white/20" />
-            </div>
-          </div>
-
           {/* Badge: 4K / HD */}
           <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] backdrop-blur-md ${
             item.categories?.some(c => c.toLowerCase() === "4k") || item.name.toLowerCase().includes("4k")
@@ -345,7 +282,7 @@ export function TileCard({ item }: { item: CardModel }) {
           )}
 
           {/* Lust studio badge; JAX keeps its code badge in this position. */}
-          {!isJax && primaryStudio && !isHovered && (
+          {!isJax && !isFans && primaryStudio && !isHovered && (
             <span
               title={studioLabel}
               className="absolute left-2 top-2 inline-flex min-h-6 max-w-[58%] min-w-0 items-center gap-1.5 rounded-full border border-violet-200/25 bg-slate-950/70 px-2 py-0.5 text-[9px] font-semibold tracking-wide text-white/95 shadow-[0_3px_12px_rgba(2,6,23,0.45)] backdrop-blur-md sm:text-[10px]"
@@ -372,24 +309,22 @@ export function TileCard({ item }: { item: CardModel }) {
         </div>
       </Link>
 
-      {/* Info footer with guaranteed 2-Line Titles & clean dates */}
+      {/* Info footer with consistent title height and relative upload time */}
       <div className="mt-2 sm:mt-2.5 flex items-start justify-between gap-1.5 sm:gap-2">
         <Link href={href} className="flex-1 min-w-0">
           <div className="min-h-[2.6rem] sm:min-h-[2.85rem] flex items-start">
             <p
               title={cleanTitle}
-              className="line-clamp-2 text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300"
+              className={`${isFans ? "truncate whitespace-nowrap" : "line-clamp-2"} text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300`}
             >
               {cleanTitle}
             </p>
           </div>
           <p className="mt-0.5 flex flex-wrap items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-white/50">
-            {originalYear && (
-              <span>{originalYear}</span>
-            )}
-            {item.studios && item.studios.length > 0 && (
+            {relativeUploadTime && <span>{relativeUploadTime}</span>}
+            {!isFans && item.studios && item.studios.length > 0 && (
               <>
-                {originalYear && <span className="text-white/20">·</span>}
+                {relativeUploadTime && <span className="text-white/20">·</span>}
                 <span className="truncate max-w-[80px] sm:max-w-[120px]">{formatStudioLabel(item.studios[0])}</span>
               </>
             )}

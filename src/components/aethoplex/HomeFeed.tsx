@@ -1,20 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X } from "lucide-react";
+import Link from "next/link";
+import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
 import type { TaxonomyItem } from "@/lib/catalog-db";
 import { formatStudioLabel } from "@/lib/studio-label";
 
 const PAGE_SIZE = 20;
 
-type TabId = "trending" | "new" | "top" | "random" | "movies";
+type TabId = "trending" | "new" | "top" | "random" | "movies" | "longform";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
 type FilterType = TaxonomyType | "code" | "premium";
 
 const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
   { id: "new", label: "Newest Releases", icon: Sparkles },
   { id: "movies", label: "Feature Movies", icon: Film },
+  { id: "longform", label: "Longform (60+ min)", icon: Clock },
   { id: "top", label: "Most Popular / Views", icon: Trophy },
   { id: "trending", label: "Trending", icon: Flame },
   { id: "random", label: "Discover Random", icon: Shuffle },
@@ -71,6 +73,10 @@ export function HomeFeed({
     }
   }, [filter]);
 
+  useEffect(() => {
+    if (section === "fans" && taxType === "studio") setTaxType("category");
+  }, [section, taxType]);
+
   // Movie Feed items & pagination
   const [items, setItems] = useState<CardModel[]>([]);
   const premiumPoolRef = useRef<CardModel[] | null>(null);
@@ -88,7 +94,7 @@ export function HomeFeed({
     setTaxError(false);
     setTaxItems([]);
     const timer = window.setTimeout(() => {
-      const params = new URLSearchParams({ section, type: taxType, limit: "40" });
+      const params = new URLSearchParams({ section, type: taxType, limit: "8" });
       if (taxSearch.trim()) params.set("q", taxSearch.trim());
       fetch(`/api/taxonomies?${params.toString()}`, { signal: controller.signal })
         .then(async (r) => {
@@ -176,12 +182,13 @@ export function HomeFeed({
           section,
           page: String(p),
           limit: String(PAGE_SIZE),
-          tab: tab === "movies" ? "new" : tab,
+          tab: tab === "movies" || tab === "longform" ? "new" : tab,
         });
 
         if (tab === "movies") {
           params.set("movies", "1");
         }
+        if (tab === "longform") params.set("longform", "1");
 
         if (activeFilter) {
           if (activeFilter.type === "premium") params.set("premium", "1");
@@ -266,8 +273,9 @@ export function HomeFeed({
     }
   };
 
-  const actorLabel = section === "jax" ? "Actresses" : "Pornstars";
+  const actorLabel = section === "jax" ? "Actresses" : section === "fans" ? "Creators" : "Pornstars";
   const showTeamSkeetSuggestion = section === "jax" && taxType === "studio";
+  const browseTaxType = section === "fans" && taxType === "studio" ? "actor" : taxType;
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-6 sm:py-10 pb-28 sm:pb-12">
@@ -348,6 +356,9 @@ export function HomeFeed({
                 <span>Tags</span>
               </button>
             </div>
+            <Link href={`/browse/${browseTaxType}?section=${section}`} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-cyan-300/20 bg-cyan-400/[0.06] px-3 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/15">
+              View all <span aria-hidden="true">→</span>
+            </Link>
 
             {/* Active filter banner with instant sorting selector */}
             {activeFilter && (
@@ -589,9 +600,9 @@ export function HomeFeed({
                 const active = activeFilter?.type === taxType && activeFilter?.name === item.name;
                 const itemLabel = taxType === "studio" ? formatStudioLabel(item.name) : item.name;
                 return (
-                  <button
+                  <Link
                     key={item.id}
-                    onClick={() => handleSetFilter({ type: taxType, name: item.name })}
+                    href={`/browse/${taxType}/${encodeURIComponent(item.slug)}?section=${section}&name=${encodeURIComponent(item.name)}`}
                     className={`shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium transition-all ${
                       active
                         ? section === "jax"
@@ -601,7 +612,7 @@ export function HomeFeed({
                     }`}
                   >
                     <span>{itemLabel}</span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
@@ -623,7 +634,7 @@ export function HomeFeed({
         </div>
       )}
 
-      {/* Grid of Movie Cards: 1 col on mobile (less distraction), 2 on tablet, 3-4 on desktop */}
+      {/* Catalog cards reflow to two columns on phones and expand on larger screens. */}
       {items.length === 0 && !busy && !feedError ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl mb-3">
@@ -643,7 +654,7 @@ export function HomeFeed({
           )}
         </div>
       ) : items.length > 0 ? (
-        <div ref={gridTopRef} className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 scroll-mt-20">
+        <div ref={gridTopRef} className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 scroll-mt-20">
           {items.map((item) => (
             <TileCard key={item.key} item={item} />
           ))}
@@ -661,7 +672,7 @@ export function HomeFeed({
             Previous
           </button>
           <span aria-live="polite" className="min-w-16 text-center text-sm font-medium text-white/60">
-            Page {page}
+            {page} / {totalPages}
           </span>
           <button
             type="button"

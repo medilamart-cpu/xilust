@@ -27,6 +27,26 @@ function toDirectEmbedUrl(url: string): string {
   return clean;
 }
 
+function serverIdentity(source: { label?: string; host?: string }, section: CatalogItem["section"]) {
+  const key = `${source.host || ""} ${source.label || ""}`.toLowerCase();
+  const identities = section === "jax"
+    ? [
+        { match: ["streamhihi"], name: "Naruto", icon: "🍥" },
+        { match: ["javlesbian"], name: "Sasuke", icon: "⚡" },
+        { match: ["maxstream"], name: "Kakashi", icon: "🥷" },
+        { match: ["vid0", "vide0"], name: "Sakura 🗑️", icon: "🌸" },
+        { match: ["javclan"], name: "Tsunade", icon: "💮" },
+      ]
+    : section === "lust"
+      ? [
+          { match: ["streamtape", "streamta.pe"], name: "Naruto", icon: "🍥" },
+          { match: ["mixdrop", "mxdrop", "mixdrp"], name: "Sasuke", icon: "⚡" },
+          { match: ["doodstream", "dood", "d000d"], name: "Sakura 🗑️", icon: "🌸" },
+        ]
+      : [];
+  return identities.find((identity) => identity.match.some((part) => key.includes(part)));
+}
+
 export function TitleWatchClient({
   item,
   cleanstreamUrl,
@@ -232,8 +252,10 @@ export function TitleWatchClient({
           {sources.map((s, idx) => {
             const active = activeIdx === idx;
             let label = s.label || s.host || `Mirror ${idx + 1}`;
+            const identity = serverIdentity(s, item.section);
             // Clean up host label for readability
-            if (label.toLowerCase().includes("hdplayer") || label.toLowerCase().includes("jolly")) label = "Jolly";
+            if (identity) label = identity.name;
+            else if (label.toLowerCase().includes("hdplayer") || label.toLowerCase().includes("jolly")) label = "Jolly";
             else if (label.toLowerCase().includes("hornyleak") || label.toLowerCase().includes("molly")) label = "Molly";
             else if (label.toLowerCase().includes("streamtape")) label = "Streamtape";
             else if (label.toLowerCase().includes("mixdrop")) label = "Mixdrop";
@@ -260,6 +282,7 @@ export function TitleWatchClient({
                 }`}
               >
                 <Play className={`h-2.5 w-2.5 ${active ? "fill-black" : "fill-current"}`} />
+                {identity && <span aria-hidden="true">{identity.icon}</span>}
                 <span>{label}</span>
               </button>
             );
@@ -392,32 +415,36 @@ export function TitleWatchClient({
                 {healthLoading && !serverHealth ? (
                   <div className="p-4 text-center text-xs text-white/40">Probing streaming servers...</div>
                 ) : (
-                  Object.values(serverHealth?.servers || {}).map((s) => (
-                    <div
-                      key={s.name}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 border border-white/5 hover:border-white/10 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        {s.cleanstream_working ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                        ) : (
-                          <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                        )}
-                        <div>
-                          <div className="text-xs font-medium text-white">{s.name}</div>
-                          <div className="text-[10px] text-white/40">{s.note || (s.cleanstream_working ? "CleanStream Protected" : "Mirror Unavailable")}</div>
+                  Object.values(serverHealth?.servers || {}).map((s) => {
+                    const identity = serverIdentity({ host: s.name, label: s.name }, item.section);
+                    return (
+                      <div
+                        key={s.name}
+                        className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 border border-white/5 hover:border-white/10 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          {s.cleanstream_working ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                          ) : (
+                            <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                          )}
+                          {identity && <span aria-hidden="true">{identity.icon}</span>}
+                          <div>
+                            <div className="text-xs font-medium text-white">{identity?.name || s.name}</div>
+                            <div className="text-[10px] text-white/40">{s.note || (s.cleanstream_working ? "CleanStream Protected" : "Mirror Unavailable")}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${s.cleanstream_working ? "bg-cyan-500/10 text-cyan-300" : "bg-white/5 text-white/40"}`}>
+                            {s.cleanstream_working ? "CleanStream Active" : "Direct Only"}
+                          </span>
+                          {s.latency_ms ? (
+                            <div className="text-[9px] text-white/30">{s.latency_ms}ms</div>
+                          ) : null}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${s.cleanstream_working ? "bg-cyan-500/10 text-cyan-300" : "bg-white/5 text-white/40"}`}>
-                          {s.cleanstream_working ? "CleanStream Active" : "Direct Only"}
-                        </span>
-                        {s.latency_ms ? (
-                          <div className="text-[9px] text-white/30">{s.latency_ms}ms</div>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

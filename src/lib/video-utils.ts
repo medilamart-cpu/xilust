@@ -67,6 +67,37 @@ export function formatVideoDuration(
   }
 }
 
+/** Format the catalog's original upload timestamp for listing cards. */
+export function formatRelativeUploadTime(timestamp?: string | null, now = Date.now()): string | null {
+  if (!timestamp) return null;
+  const uploaded = new Date(timestamp).getTime();
+  if (!Number.isFinite(uploaded)) return null;
+
+  const elapsed = Math.max(0, now - uploaded);
+  const hours = Math.floor(elapsed / 3_600_000);
+  const days = Math.floor(elapsed / 86_400_000);
+  if (hours < 1) return "Less than 1 hour ago";
+  if (hours < 24) return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+  if (days < 30) return `${days} ${days === 1 ? "day" : "days"} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} ${months === 1 ? "month" : "months"} ago`;
+  const years = Math.max(1, Math.floor(days / 365));
+  return `${years} ${years === 1 ? "year" : "years"} ago`;
+}
+
+/** Format the same catalog upload timestamp for the detail page. */
+export function formatUploadDate(timestamp?: string | null): string | null {
+  if (!timestamp) return null;
+  const date = new Date(timestamp);
+  if (!Number.isFinite(date.getTime())) return null;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
 /** Clean title string and extract actual original release date */
 export function extractCleanTitleAndDate(rawTitle: string, rawYear?: number | null) {
   let title = rawTitle || "";
@@ -78,13 +109,14 @@ export function extractCleanTitleAndDate(rawTitle: string, rawYear?: number | nu
   let originalDate: string | null = null;
   let originalYear: number | null = null;
 
-  // Match mm.dd.yyyy or yyyy.mm.dd
-  const slashDateMatch = title.match(/[/(]\s*(\d{1,2})[./-](\d{1,2})[./-]((?:19|20)\d{2})\s*[)]?/);
+  // Match mm.dd.yyyy or yyyy.mm.dd wherever it appears in the source title.
+  const slashDateMatch = title.match(/\b(?:(\d{1,2})[./-](\d{1,2})[./-]((?:19|20)\d{2})|((?:19|20)\d{2})[./-](\d{1,2})[./-](\d{1,2}))\b/);
   if (slashDateMatch) {
-    originalYear = parseInt(slashDateMatch[3], 10);
-    originalDate = `${slashDateMatch[1]}.${slashDateMatch[2]}.${slashDateMatch[3]}`;
-    // Strip trailing date from title for cleaner display e.g. " / 10.24.2026)" -> ")"
-    title = title.replace(/\s*\/\s*\d{1,2}[./-]\d{1,2}[./-](?:19|20)\d{2}\s*\)/, ")").trim();
+    originalYear = parseInt(slashDateMatch[3] || slashDateMatch[4], 10);
+    originalDate = slashDateMatch[3]
+      ? `${slashDateMatch[1]}.${slashDateMatch[2]}.${slashDateMatch[3]}`
+      : `${slashDateMatch[5]}.${slashDateMatch[6]}.${slashDateMatch[4]}`;
+    title = title.replace(/\b(?:(?:19|20)\d{2}[./-]\d{1,2}[./-]\d{1,2}|\d{1,2}[./-]\d{1,2}[./-](?:19|20)\d{2})\b/g, " ");
   } else {
     const yearMatch = title.match(/\b((?:19|20)\d{2})\b/);
     if (yearMatch) {
@@ -98,6 +130,14 @@ export function extractCleanTitleAndDate(rawTitle: string, rawYear?: number | nu
   if (!originalYear && rawYear && rawYear >= 1990) {
     originalYear = rawYear;
   }
+
+  // Listing titles never expose a year as an upload-date substitute.
+  title = title
+    .replace(/\b(?:19|20)\d{2}\b/g, " ")
+    .replace(/[([]\s*[)\]]/g, " ")
+    .replace(/\s*\/\s*(?=[),]|$)/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
   return {
     cleanTitle: title,

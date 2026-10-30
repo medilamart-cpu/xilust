@@ -110,6 +110,7 @@ export async function queryItems(options: {
   tab?: "trending" | "top" | "new" | "random";
   sort?: "newest" | "popular" | "views";
   movies?: boolean;
+  longform?: boolean;
   subfilter?: string;
 }): Promise<{ items: CatalogItem[]; total: number }> {
   const db = getLocalDb();
@@ -159,6 +160,10 @@ export async function queryItems(options: {
 
     if (options.movies) {
       whereParts.push("(duration_seconds >= 3600 OR section = 'jax' OR title LIKE '%movie%' OR title LIKE '%feature%')");
+    }
+
+    if (options.longform) {
+      whereParts.push("duration_seconds > 3600");
     }
 
     if (options.subfilter) {
@@ -216,6 +221,7 @@ export async function queryItems(options: {
     if (options.tag) params.set("tag", options.tag);
     if (options.code) params.set("code", options.code);
     if (options.movies) params.set("movies", "1");
+    if (options.longform) params.set("longform", "1");
     if (options.subfilter) params.set("subfilter", options.subfilter);
     if (options.query) params.set("search", options.query);
     if (options.tab) params.set("tab", options.tab);
@@ -301,7 +307,7 @@ export async function getTaxonomies(
         LIMIT ?
       `;
       const q = search.trim();
-      const rows = db.prepare(sql).all(section, type, q, `%${q}%`, Math.min(Math.max(limit, 1), 100));
+      const rows = db.prepare(sql).all(section, type, q, `%${q}%`, Math.min(Math.max(limit, 1), 500));
       return rows as unknown as TaxonomyItem[];
     } catch (err) {
       console.error("Taxonomy query error:", err);
@@ -312,7 +318,7 @@ export async function getTaxonomies(
   // Remote Catalog API
   try {
     const res = await fetch(
-      `${CATALOG_API_URL}/api/taxonomies?section=${encodeURIComponent(section)}&type=${encodeURIComponent(type)}&limit=${Math.min(Math.max(limit, 1), 100)}&q=${encodeURIComponent(search.trim())}`,
+      `${CATALOG_API_URL}/api/taxonomies?section=${encodeURIComponent(section)}&type=${encodeURIComponent(type)}&limit=${Math.min(Math.max(limit, 1), 500)}&q=${encodeURIComponent(search.trim())}`,
       { cache: "no-store" }
     );
     if (!res.ok) {

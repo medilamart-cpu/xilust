@@ -9,9 +9,9 @@ export type View = string;
 
 export function Navbar({
   section = "lust",
-  onSectionChange = () => {},
+  onSectionChange = () => { },
   query = "",
-  onQueryChange = () => {},
+  onQueryChange = () => { },
 }: {
   section?: Section;
   onSectionChange?: (s: Section) => void;
@@ -57,16 +57,15 @@ export function Navbar({
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
-          scrolled
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${scrolled
             ? "border-b border-white/10 bg-[#080a0f]/95 backdrop-blur-2xl shadow-xl"
             : "border-b border-white/5 bg-[#080a0f]/80 backdrop-blur-md"
-        }`}
+          }`}
       >
         <nav className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 lg:px-8">
           {/* Mobile Search Overlay when opened */}
           {mobileSearchOpen ? (
-            <div className="flex w-full items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex w-full items-center gap-2 animate-in fade-in duration-200">
               <div className="relative flex-1 flex h-10 items-center gap-2 rounded-full border border-cyan-400/50 bg-[#121622] px-3 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
                 <Search className="h-4 w-4 shrink-0 text-cyan-400" />
                 <input
@@ -75,7 +74,7 @@ export function Navbar({
                   value={query}
                   onChange={(e) => onQueryChange(e.target.value)}
                   placeholder={section === "jax" ? "Search JAV code (e.g. KNMB-134), title, actress..." : "Search title, pornstar, studio (e.g. Team Skeet)..."}
-                  className="w-full bg-transparent text-xs text-white placeholder-white/40 focus:outline-none"
+                  className="w-full bg-transparent text-base sm:text-xs text-white placeholder-white/40 focus:outline-none"
                 />
                 {query && (
                   <button
@@ -100,14 +99,7 @@ export function Navbar({
               {/* Brand and Section Tabs */}
               <div className="flex items-center gap-2.5 sm:gap-6 min-w-0">
                 <a
-                  href="/"
-                  onClick={(e) => {
-                    if (window.location.pathname === "/") {
-                      e.preventDefault();
-                      onQueryChange("");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }
-                  }}
+                  href="/xilust"
                   className="shrink-0 flex items-center"
                 >
                   <span className="hidden sm:inline-block">
@@ -126,11 +118,10 @@ export function Navbar({
                   <button
                     type="button"
                     onClick={() => onSectionChange("lust")}
-                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${
-                      section === "lust"
+                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "lust"
                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-pink-500/20"
                         : "text-white/60 hover:text-white/90"
-                    }`}
+                      }`}
                   >
                     <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-pink-300" />
                     <span>LUST</span>
@@ -140,11 +131,10 @@ export function Navbar({
                   <button
                     type="button"
                     onClick={() => onSectionChange("jax")}
-                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${
-                      section === "jax"
+                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "jax"
                         ? "bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-lg shadow-rose-500/20"
                         : "text-white/60 hover:text-white/90"
-                    }`}
+                      }`}
                   >
                     <span className="text-xs sm:text-sm leading-none">🌸</span>
                     <span>JAX</span>
@@ -154,11 +144,10 @@ export function Navbar({
                   <button
                     type="button"
                     onClick={() => onSectionChange("fans")}
-                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${
-                      section === "fans"
+                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "fans"
                         ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
                         : "text-white/60 hover:text-white/90"
-                    }`}
+                      }`}
                   >
                     <span className="text-xs sm:text-sm leading-none">⭐</span>
                     <span>FANS</span>
@@ -172,11 +161,10 @@ export function Navbar({
                 {/* Desktop Search bar */}
                 <div className="hidden sm:block relative">
                   <div
-                    className={`flex h-10 items-center gap-2.5 rounded-full border bg-white/[0.05] px-3.5 transition-all duration-300 ${
-                      focus || query
+                    className={`flex h-10 items-center gap-2.5 rounded-full border bg-white/[0.05] px-3.5 transition-all duration-300 ${focus || query
                         ? "w-64 lg:w-80 border-cyan-400/50 bg-[#121622] shadow-[0_0_20px_rgba(6,182,212,0.2)]"
                         : "w-44 lg:w-64 border-white/10 hover:border-white/20"
-                    }`}
+                      }`}
                   >
                     <Search className="h-4 w-4 shrink-0 text-white/40" />
                     <input
@@ -186,7 +174,7 @@ export function Navbar({
                       onFocus={() => setFocus(true)}
                       onBlur={() => setFocus(false)}
                       placeholder={section === "jax" ? "Search JAV code (e.g. KNMB-134), title, actress..." : "Search title, pornstar, studio (e.g. Team Skeet)..."}
-                      className="w-full bg-transparent text-xs text-white placeholder-white/40 focus:outline-none"
+                      className="w-full bg-transparent text-base sm:text-xs text-white placeholder-white/40 focus:outline-none"
                     />
                     {query && (
                       <button
@@ -242,9 +230,8 @@ export function Navbar({
               onSectionChange("lust");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${
-              section === "lust" ? "text-pink-400 font-bold" : "text-white/50 hover:text-white/80"
-            }`}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "lust" ? "text-pink-400 font-bold" : "text-white/50 hover:text-white/80"
+              }`}
           >
             <Flame className={`h-4 w-4 ${section === "lust" ? "text-pink-400" : "text-white/40"}`} />
             <span className="text-[10px]">Lust</span>
@@ -256,9 +243,8 @@ export function Navbar({
               onSectionChange("jax");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${
-              section === "jax" ? "text-rose-400 font-bold" : "text-white/50 hover:text-white/80"
-            }`}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "jax" ? "text-rose-400 font-bold" : "text-white/50 hover:text-white/80"
+              }`}
           >
             <span className="text-sm leading-none">🌸</span>
             <span className="text-[10px]">Jax (JAV)</span>
@@ -270,9 +256,8 @@ export function Navbar({
               onSectionChange("fans");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${
-              section === "fans" ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"
-            }`}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "fans" ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"
+              }`}
           >
             <span className="text-sm leading-none">⭐</span>
             <span className="text-[10px]">Fans</span>
@@ -281,9 +266,8 @@ export function Navbar({
           <button
             type="button"
             onClick={openMobileSearch}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${
-              query || mobileSearchOpen ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"
-            }`}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${query || mobileSearchOpen ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"
+              }`}
           >
             <Search className="h-4 w-4 text-cyan-400" />
             <span className="text-[10px]">Search</span>

@@ -5,7 +5,7 @@ import { getItemBySlug, queryItems, type CatalogItem } from "@/lib/catalog-db";
 import { getCatalogThumbnailUrls } from "@/lib/catalog-thumbnail";
 import { formatStudioLabel } from "@/lib/studio-label";
 import { TileCard } from "@/components/aethoplex/PosterCard";
-import { extractCleanTitleAndDate, formatVideoDuration } from "@/lib/video-utils";
+import { extractCleanTitleAndDate, formatVideoDuration, formatUploadDate } from "@/lib/video-utils";
 import { TitleWatchClient } from "./TitleWatchClient";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +57,7 @@ export default async function TitlePage({
   
   const { cleanTitle, originalYear, originalDate } = extractCleanTitleAndDate(item.title, item.year);
   const duration = formatVideoDuration(item.duration_seconds, item.title, item.id, section);
+  const uploadDate = formatUploadDate(item.published_at);
   const jaxRating = section === "jax" ? Math.round(((item.views % 30) / 10 + 7.0) * 10) / 10 : null;
 
   return (
@@ -149,7 +150,7 @@ export default async function TitlePage({
             )}
 
             {/* Studios & Production */}
-            {item.studios.length > 0 && (
+            {section !== "fans" && item.studios.length > 0 && (
               <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
                 <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                   <Film className="h-3.5 w-3.5 text-purple-400" />
@@ -246,6 +247,13 @@ export default async function TitlePage({
                 <span className="text-white/50">Streaming Mirrors</span>
                 <span className="font-bold text-cyan-400">{item.video_sources.length} Available</span>
               </div>
+
+              {uploadDate && (
+                <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
+                  <span className="text-white/50">Uploaded</span>
+                  <span className="font-medium text-white/90">{uploadDate}</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/50">Ad Protection</span>

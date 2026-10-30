@@ -92,6 +92,7 @@ export default function Home() {
 
   const handleSectionChange = (s: Section) => {
     setSection(s);
+    setQuery("");
     setFilter(null);
     if (typeof window !== "undefined") {
       try {
@@ -99,6 +100,8 @@ export default function Home() {
       } catch {}
       const url = new URL(window.location.href);
       url.searchParams.set("section", s);
+      url.searchParams.delete("q");
+      url.searchParams.delete("query");
       url.searchParams.delete("actor");
       url.searchParams.delete("studio");
       url.searchParams.delete("category");
