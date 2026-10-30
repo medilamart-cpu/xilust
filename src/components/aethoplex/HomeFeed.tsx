@@ -9,6 +9,9 @@ import { formatStudioLabel } from "@/lib/studio-label";
 
 const PAGE_SIZE = 20;
 
+const feedCache = new Map<string, { items: CardModel[]; totalPages: number; time: number }>();
+const taxCache = new Map<string, TaxonomyItem[]>();
+
 type TabId = "trending" | "new" | "top" | "random" | "movies" | "longform";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
 type FilterType = TaxonomyType | "code" | "premium";
@@ -99,9 +102,16 @@ export function HomeFeed({
   useEffect(() => {
     let alive = true;
     const controller = new AbortController();
-    setTaxLoading(true);
-    setTaxError(false);
-    setTaxItems([]);
+    const cacheKey = `${section}:${taxType}:${taxSearch.trim()}`;
+    if (taxCache.has(cacheKey)) {
+      setTaxItems(taxCache.get(cacheKey)!);
+      setTaxLoading(false);
+      setTaxError(false);
+    } else {
+      setTaxLoading(true);
+      setTaxError(false);
+      setTaxItems([]);
+    }
     const timer = window.setTimeout(() => {
       const params = new URLSearchParams({ section, type: taxType, limit: "8" });
       if (taxSearch.trim()) params.set("q", taxSearch.trim());
@@ -113,7 +123,9 @@ export function HomeFeed({
         })
         .then((d) => {
           if (alive) {
-            setTaxItems(d.items || []);
+            const list = d.items || [];
+            taxCache.set(cacheKey, list);
+            setTaxItems(list);
             setTaxLoading(false);
           }
         })
@@ -126,7 +138,7 @@ export function HomeFeed({
             }
           }
         });
-    }, 180);
+    }, taxCache.has(cacheKey) ? 500 : 120);
 
     return () => {
       alive = false;
@@ -178,7 +190,20 @@ export function HomeFeed({
       const controller = new AbortController();
       abortRef.current = controller;
 
-      setBusy(true);
+      // SWR Cache Key for standard browsing
+      const isCacheable = !query && tab !== "random" && activeFilter?.type !== "premium";
+      const cacheKey = isCacheable
+        ? `${section}:${p}:${tab}:${activeFilter?.type || ""}:${activeFilter?.name || ""}:${jaxSubFilter || ""}`
+        : null;
+
+      if (cacheKey && feedCache.has(cacheKey)) {
+        const cached = feedCache.get(cacheKey)!;
+        setItems(cached.items);
+        setTotalPages(cached.totalPages);
+        setBusy(false);
+      } else {
+        setBusy(true);
+      }
       setFeedError(null);
       try {
         if (activeFilter?.type === "premium" && premiumPoolRef.current) {
@@ -246,6 +271,13 @@ export function HomeFeed({
           pageItems = pageItems.slice(0, PAGE_SIZE);
         }
         setItems(pageItems);
+        if (cacheKey) {
+          feedCache.set(cacheKey, {
+            items: pageItems,
+            totalPages: data.totalPages || 1,
+            time: Date.now(),
+          });
+        }
       } catch (err: any) {
         if (err.name === "AbortError") return;
         console.error("Error fetching feed:", err);

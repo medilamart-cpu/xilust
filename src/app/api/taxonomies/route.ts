@@ -119,11 +119,18 @@ export async function GET(req: NextRequest) {
       }).slice(0, limit);
     }
 
-    return NextResponse.json({
-      section,
-      type,
-      items,
-    });
+    return NextResponse.json(
+      {
+        section,
+        type,
+        items,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=300, s-maxage=1800, stale-while-revalidate=86400",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("API /api/taxonomies error:", error);
     return NextResponse.json({ error: error.message || "Failed to load taxonomies" }, { status: 500 });

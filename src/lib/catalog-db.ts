@@ -231,8 +231,10 @@ export async function queryItems(options: {
     if (options.tab) params.set("tab", options.tab);
     if (options.sort) params.set("sort", options.sort);
 
+    const isCacheable = !options.query && !options.code && options.tab !== "random";
     const res = await fetch(`${CATALOG_API_URL}/api/catalog?${params.toString()}`, {
-      cache: "no-store",
+      next: isCacheable ? { revalidate: 60 } : undefined,
+      cache: isCacheable ? undefined : "no-store",
     });
     if (!res.ok) {
       console.warn(`Catalog API responded with ${res.status}`);
@@ -282,7 +284,7 @@ export async function getItemBySlug(section: "lust" | "jax" | "fans", slug: stri
   try {
     const res = await fetch(
       `${CATALOG_API_URL}/api/title?section=${encodeURIComponent(section)}&slug=${encodeURIComponent(slug)}`,
-      { cache: "no-store" }
+      { next: { revalidate: 300 } }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -323,7 +325,7 @@ export async function getTaxonomies(
   try {
     const res = await fetch(
       `${CATALOG_API_URL}/api/taxonomies?section=${encodeURIComponent(section)}&type=${encodeURIComponent(type)}&limit=${Math.min(Math.max(limit, 1), 500)}&q=${encodeURIComponent(search.trim())}`,
-      { cache: "no-store" }
+      { next: { revalidate: 300 } }
     );
     if (!res.ok) {
       console.warn(`Taxonomy API responded with ${res.status}`);

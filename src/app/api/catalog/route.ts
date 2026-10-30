@@ -119,14 +119,26 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({
-      section,
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-      items: cards,
-    });
+    const isCacheable = !query && !code && tab !== "random";
+    const cacheControl = isCacheable
+      ? "public, max-age=60, s-maxage=120, stale-while-revalidate=600"
+      : "no-store";
+
+    return NextResponse.json(
+      {
+        section,
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        items: cards,
+      },
+      {
+        headers: {
+          "Cache-Control": cacheControl,
+        },
+      }
+    );
   } catch (error: any) {
     console.error("API /api/catalog error:", error);
     return NextResponse.json({ error: error.message || "Failed to load catalog" }, { status: 500 });

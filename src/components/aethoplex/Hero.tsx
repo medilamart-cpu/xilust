@@ -7,10 +7,12 @@ import { type CardModel } from "./PosterCard";
 import { extractCleanTitleAndDate } from "@/lib/video-utils";
 import { GeneratedArt } from "./GeneratedArt";
 
+const heroCache = new Map<string, CardModel[]>();
+
 export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
-  const [slides, setSlides] = useState<CardModel[]>([]);
+  const [slides, setSlides] = useState<CardModel[]>(() => heroCache.get(section) || []);
   const [idx, setIdx] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !heroCache.has(section));
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [imgError, setImgError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -20,8 +22,14 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   useEffect(() => {
     let alive = true;
     const controller = new AbortController();
-    setLoading(true);
-    setSlides([]); // Reset immediately on section switch so previous section slides don't flash
+    const cached = heroCache.get(section);
+    if (cached && cached.length > 0) {
+      setSlides(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+      setSlides([]); // Reset immediately on section switch so previous section slides don't flash
+    }
     setImgError(false);
 
     // For JAX and Lust, always feature newest releases so old titles never get featured
@@ -33,7 +41,9 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
         if (!alive || controller.signal.aborted) return;
         // Verify response matches current section
         if (data.section && data.section !== section) return;
-        setSlides(data.items || []);
+        const items = data.items || [];
+        heroCache.set(section, items);
+        setSlides(items);
         setIdx(0);
         setImgError(false);
         setLoading(false);
