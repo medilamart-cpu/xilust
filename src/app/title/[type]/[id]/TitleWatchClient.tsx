@@ -100,8 +100,8 @@ export function TitleWatchClient({
     if (playerMode === "direct") {
       return directEmbed;
     }
-    // CleanStream ad-free player for all supported mirrors (Streamtape, Mixdrop, Doodstream, etc.)
-    return `${cleanstreamUrl}/embed?url=${encodeURIComponent(directEmbed)}&autoplay=1`;
+    // CleanStream ad-free player with unmuted audio enabled (&autoplay=1&muted=0)
+    return `${cleanstreamUrl}/embed?url=${encodeURIComponent(directEmbed)}&autoplay=1&muted=0`;
   }, [cleanstreamUrl, targetUrl, playerMode]);
 
   useEffect(() => {

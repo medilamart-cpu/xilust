@@ -7,9 +7,11 @@ import { HomeFeed } from "@/components/aethoplex/HomeFeed";
 import { MyListView } from "@/components/aethoplex/MyListView";
 import { MyListProvider } from "@/components/aethoplex/PosterCard";
 import { Footer, LivePill } from "@/components/aethoplex/Chrome";
+import { AdminModal } from "@/components/aethoplex/AdminModal";
 
 export default function Home() {
   const [showMyList, setShowMyList] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
   // Synchronously initialize section from URL params or localStorage to avoid race conditions
   const [section, setSection] = useState<Section>(() => {
     if (typeof window !== "undefined") {
@@ -177,6 +179,26 @@ export default function Home() {
         {/* Global Footer */}
         <Footer />
         <LivePill />
+
+        {/* Secret Admin Panel Trigger & Modal */}
+        <div className="fixed bottom-3 left-3 z-40 opacity-25 hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => setShowAdminModal(true)}
+            title="Admin & Premium Studios"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 border border-white/10 text-[10px] text-white/50 hover:text-amber-300 hover:border-amber-400/40"
+          >
+            ⚙
+          </button>
+        </div>
+
+        <AdminModal
+          isOpen={showAdminModal}
+          onClose={() => setShowAdminModal(false)}
+          onSelectStudio={(studio) => {
+            setSection("lust");
+            handleFilterChange({ type: "studio", name: studio });
+          }}
+        />
       </div>
     </MyListProvider>
   );

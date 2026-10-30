@@ -31,12 +31,30 @@ export interface CardModel {
   durationSeconds?: number | null;
 }
 
-function formatVideoDuration(seconds?: number | null) {
-  if (!seconds || !Number.isFinite(seconds) || seconds < 60) return null;
-  const totalMinutes = Math.floor(seconds / 60);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
+function formatVideoDuration(seconds?: number | null, title?: string) {
+  if (seconds && Number.isFinite(seconds) && seconds >= 60) {
+    const totalMinutes = Math.floor(seconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
+  }
+  // Fallback: detect duration written in title e.g. "45 min", "120 mins", "1h 30m"
+  if (title) {
+    const hmMatch = title.match(/(\d+)\s*h(?:our|rs?)?\s*(\d+)?\s*m(?:in|ins|inute|inutes)?/i);
+    if (hmMatch) {
+      const h = hmMatch[1];
+      const m = hmMatch[2] ? hmMatch[2] : "0";
+      return `${h}h ${m}m`;
+    }
+    const mMatch = title.match(/(\d{2,3})\s*(?:mins?|minutes?)\b/i);
+    if (mMatch) {
+      const m = parseInt(mMatch[1], 10);
+      const hours = Math.floor(m / 60);
+      const rem = m % 60;
+      return hours ? `${hours}h ${rem}m` : `${rem}m`;
+    }
+  }
+  return null;
 }
 
 export function cardOfItem(item: any): CardModel {
@@ -190,10 +208,7 @@ export function TileCard({ item }: { item: CardModel }) {
   const isJax = item.section === "jax";
   const primaryStudio = item.studios?.[0] || "";
   const studioLabel = formatStudioLabel(primaryStudio);
-  const uploadDate = item.uploadedAt && !Number.isNaN(Date.parse(item.uploadedAt))
-    ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(item.uploadedAt))
-    : null;
-  const durationLabel = formatVideoDuration(item.durationSeconds);
+  const durationLabel = formatVideoDuration(item.durationSeconds, item.name);
 
   return (
     <div className="group block shrink-0 rounded-xl text-left">
@@ -246,9 +261,13 @@ export function TileCard({ item }: { item: CardModel }) {
             </span>
           </div>
 
-          {/* Badge: HD / CleanStream */}
-          <span className="absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded bg-black/75 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] text-cyan-300 border border-cyan-500/30 backdrop-blur-md">
-            HD
+          {/* Badge: 4K / HD */}
+          <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] backdrop-blur-md ${
+            item.categories?.some(c => c.toLowerCase() === "4k") || item.name.toLowerCase().includes("4k")
+              ? "bg-amber-500/80 text-black border border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.5)] font-black"
+              : "bg-black/75 text-cyan-300 border border-cyan-500/30"
+          }`}>
+            {item.categories?.some(c => c.toLowerCase() === "4k") || item.name.toLowerCase().includes("4k") ? "4K UHD" : "HD"}
           </span>
 
           {durationLabel && (
@@ -283,18 +302,20 @@ export function TileCard({ item }: { item: CardModel }) {
             {isJax ? "JAX" : "LUST"}
           </span>
 
-          {/* Rating pill on bottom right */}
-          <span className="absolute bottom-1.5 sm:bottom-2 right-1.5 sm:right-2 flex items-center gap-0.5 sm:gap-1 rounded-md bg-black/75 px-1 sm:px-1.5 py-0.5 text-[9.5px] sm:text-[10.5px] font-semibold text-cyan-200 border border-white/10 backdrop-blur-md">
-            <Star className="h-2 w-2 sm:h-2.5 sm:w-2.5 fill-cyan-300 text-cyan-300" />
-            {item.rating > 0 ? item.rating.toFixed(1) : "—"}
-          </span>
+          {/* Rating pill: shown only for JAX; hidden on Lust */}
+          {isJax && (
+            <span className="absolute bottom-1.5 sm:bottom-2 right-1.5 sm:right-2 flex items-center gap-0.5 sm:gap-1 rounded-md bg-black/75 px-1 sm:px-1.5 py-0.5 text-[9.5px] sm:text-[10.5px] font-semibold text-cyan-200 border border-white/10 backdrop-blur-md">
+              <Star className="h-2 w-2 sm:h-2.5 sm:w-2.5 fill-cyan-300 text-cyan-300" />
+              {item.rating > 0 ? item.rating.toFixed(1) : "—"}
+            </span>
+          )}
         </div>
       </Link>
 
       {/* Info footer */}
       <div className="mt-2 sm:mt-2.5 flex items-start justify-between gap-1.5 sm:gap-2">
         <Link href={href} className="flex-1 min-w-0">
-          <p className={`${isJax ? "line-clamp-1 sm:truncate" : "break-words"} text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300`}>
+          <p className="line-clamp-2 text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300">
             {item.name}
           </p>
           <p className="mt-0.5 flex flex-wrap items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-white/50">
@@ -310,11 +331,6 @@ export function TileCard({ item }: { item: CardModel }) {
                 <span className="text-white/20 hidden xs:inline">·</span>
                 <span className="text-cyan-400 font-medium hidden xs:inline">{item.sourcesCount} Mirrors</span>
               </>
-            )}
-            {uploadDate && (
-              <span className="basis-full text-[10px] text-white/40 sm:text-[11px]">
-                Uploaded {uploadDate}
-              </span>
             )}
           </p>
         </Link>

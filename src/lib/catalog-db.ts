@@ -102,6 +102,7 @@ export async function queryItems(options: {
   query?: string;
   tab?: "trending" | "top" | "new" | "random";
   sort?: "newest" | "popular" | "views";
+  movies?: boolean;
 }): Promise<{ items: CatalogItem[]; total: number }> {
   const db = getLocalDb();
 
@@ -148,6 +149,10 @@ export async function queryItems(options: {
       params.push(options.code.trim());
     }
 
+    if (options.movies) {
+      whereParts.push("(duration_seconds >= 3600 OR section = 'jax' OR title LIKE '%movie%' OR title LIKE '%feature%')");
+    }
+
     if (options.query) {
       const q = options.query.trim();
       if (q) {
@@ -191,6 +196,7 @@ export async function queryItems(options: {
     if (options.actor) params.set("actor", options.actor);
     if (options.tag) params.set("tag", options.tag);
     if (options.code) params.set("code", options.code);
+    if (options.movies) params.set("movies", "1");
     if (options.query) params.set("search", options.query);
     if (options.tab) params.set("tab", options.tab);
     if (options.sort) params.set("sort", options.sort);

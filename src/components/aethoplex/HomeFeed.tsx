@@ -8,12 +8,13 @@ import { formatStudioLabel } from "@/lib/studio-label";
 
 const PAGE_SIZE = 20;
 
-type TabId = "trending" | "new" | "top" | "random";
+type TabId = "trending" | "new" | "top" | "random" | "movies";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
 type FilterType = TaxonomyType | "code" | "premium";
 
 const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
   { id: "new", label: "Newest Releases", icon: Sparkles },
+  { id: "movies", label: "Feature Movies", icon: Film },
   { id: "top", label: "Most Popular / Views", icon: Trophy },
   { id: "trending", label: "Trending", icon: Flame },
   { id: "random", label: "Discover Random", icon: Shuffle },
@@ -41,6 +42,7 @@ export function HomeFeed({
   onSectionChange?: (section: "lust" | "jax") => void;
 }) {
   const [tab, setTab] = useState<TabId>("new");
+  const [jaxSubFilter, setJaxSubFilter] = useState<"Subbed" | "Uncensored" | "4K" | null>(null);
 
   // Taxonomy navigation
   const [taxType, setTaxType] = useState<TaxonomyType>("category");
@@ -72,6 +74,7 @@ export function HomeFeed({
   // Movie Feed items & pagination
   const [items, setItems] = useState<CardModel[]>([]);
   const premiumPoolRef = useRef<CardModel[] | null>(null);
+  const gridTopRef = useRef<HTMLDivElement | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -124,6 +127,12 @@ export function HomeFeed({
 
   const handleSetFilter = (newFilter: { type: FilterType; name: string } | null) => {
     setActiveFilter(newFilter);
+    setJaxSubFilter(null);
+    if (newFilter && (newFilter.type === 'actor' || newFilter.type === 'studio')) {
+      if (tab === 'random') {
+        setTab('new');
+      }
+    }
     if (newFilter?.type === "code") setCodeInput(newFilter.name);
     else setCodeInput("");
     onFilterChange?.(newFilter);
@@ -167,8 +176,12 @@ export function HomeFeed({
           section,
           page: String(p),
           limit: String(PAGE_SIZE),
-          tab,
+          tab: tab === "movies" ? "new" : tab,
         });
+
+        if (tab === "movies") {
+          params.set("movies", "1");
+        }
 
         if (activeFilter) {
           if (activeFilter.type === "premium") params.set("premium", "1");
@@ -180,6 +193,16 @@ export function HomeFeed({
           }
           else if (activeFilter.type === "tag") params.set("tag", activeFilter.name);
           else if (activeFilter.type === "code") params.set("code", activeFilter.name);
+        }
+
+        if (section === "jax" && jaxSubFilter) {
+          if (jaxSubFilter === "4K") {
+            params.set("category", "4K");
+          } else if (jaxSubFilter === "Uncensored") {
+            params.set("category", "UNCENSORED");
+          } else if (jaxSubFilter === "Subbed") {
+            params.set("category", "English subbed JAV");
+          }
         }
 
         if (query && activeFilter?.type !== "studio" && activeFilter?.type !== "premium") {
@@ -223,7 +246,7 @@ export function HomeFeed({
         }
       }
     },
-    [section, query, tab, activeFilter],
+    [section, query, tab, activeFilter, jaxSubFilter],
   );
 
   // Reset page & list when section, query, tab, or activeFilter changes
@@ -234,13 +257,19 @@ export function HomeFeed({
     setTotalPages(1);
     setPage(1);
     fetchPage(1);
-  }, [section, query, tab, activeFilter, fetchPage]);
+  }, [section, query, tab, activeFilter, jaxSubFilter, fetchPage]);
 
   const goToPage = (nextPage: number) => {
     if (busy || nextPage < 1 || nextPage > totalPages || nextPage === page) return;
     setItems([]);
     setPage(nextPage);
     void fetchPage(nextPage);
+    // Smooth scroll directly to the first post / top of grid
+    if (gridTopRef.current) {
+      gridTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 400, behavior: "smooth" });
+    }
   };
 
   const actorLabel = section === "jax" ? "Actresses" : "Pornstars";
@@ -335,13 +364,39 @@ export function HomeFeed({
                   </span>
                   <button
                     type="button"
-                    onClick={() => handleSetFilter(null)}
+                    onClick={() => {
+                      setJaxSubFilter(null);
+                      handleSetFilter(null);
+                    }}
                     className="ml-1 rounded-full p-1 bg-white/5 hover:bg-white/15 text-white/60 hover:text-white transition-colors"
                     title="Clear filter"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
+
+                {section === "jax" && (activeFilter.type === "actor" || activeFilter.type === "studio") && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5">
+                    <span className="text-[11px] font-semibold text-white/40 mr-1 shrink-0">Filter:</span>
+                    {(["Subbed", "Uncensored", "4K"] as const).map((fmt) => {
+                      const active = jaxSubFilter === fmt;
+                      return (
+                        <button
+                          key={fmt}
+                          type="button"
+                          onClick={() => setJaxSubFilter(active ? null : fmt)}
+                          className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                            active
+                              ? "bg-pink-500 text-white font-bold shadow-md shadow-pink-500/30"
+                              : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5"
+                          }`}
+                        >
+                          {fmt === "4K" ? "⚡ 4K" : fmt === "Subbed" ? "💬 Subbed" : "🔓 Uncensored"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Sort Options for filtered page */}
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5">
@@ -592,7 +647,7 @@ export function HomeFeed({
           )}
         </div>
       ) : items.length > 0 ? (
-        <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+        <div ref={gridTopRef} className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 scroll-mt-20">
           {items.map((item) => (
             <TileCard key={item.key} item={item} />
           ))}

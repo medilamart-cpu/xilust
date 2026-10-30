@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Star, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import type { CardModel } from "./PosterCard";
 import { GeneratedArt } from "./GeneratedArt";
 
@@ -23,7 +23,8 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
     setSlides([]); // Reset immediately on section switch so previous section slides don't flash
     setImgError(false);
 
-    fetch(`/api/catalog?section=${section}&tab=top&limit=6`, {
+    // For JAX and Lust, always feature newest releases so old titles never get featured
+    fetch(`/api/catalog?section=${section}&tab=new&limit=6`, {
       signal: controller.signal,
     })
       .then((r) => r.json())
@@ -112,9 +113,6 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   };
 
   const isJax = (cur?.section || section) === "jax";
-  const uploadDate = cur?.uploadedAt && !Number.isNaN(Date.parse(cur.uploadedAt))
-    ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(cur.uploadedAt))
-    : null;
   const titleHref = `/title/${cur.section || section}/${encodeURIComponent(cur.slug || String(cur.id || cur.key))}`;
 
   // Mobile touch swipe support
@@ -196,16 +194,19 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
             {cur.name}
           </h1>
 
-          {/* Meta Line */}
+          {/* Meta Line - cleaned: no rating, no upload date */}
           <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-white/70">
-            <span className="flex items-center gap-1 rounded bg-black/50 px-2 py-0.5 text-cyan-300 font-semibold border border-white/10">
-              <Star className="h-3.5 w-3.5 fill-cyan-400 text-cyan-400" />
-              {cur.rating.toFixed(1)}
-            </span>
-            <span>{cur.year || "2026"}</span>
-            {uploadDate && <span>Uploaded {uploadDate}</span>}
+            <span className="font-semibold text-white/90">{cur.year || "2026"}</span>
             <span className="text-white/30">•</span>
-            <span className="rounded bg-white/10 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase">1080p HD</span>
+            <span className="rounded bg-white/10 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase text-cyan-300 border border-white/10">1080p HD</span>
+            {cur.studios && cur.studios.length > 0 && (
+              <>
+                <span className="text-white/30">•</span>
+                <span className="text-white/80 font-medium truncate max-w-[150px]">
+                  {cur.studios[0]}
+                </span>
+              </>
+            )}
             {cur.actors && cur.actors.length > 0 && (
               <>
                 <span className="text-white/30">•</span>
