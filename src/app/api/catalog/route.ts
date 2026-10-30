@@ -28,6 +28,51 @@ export async function GET(req: NextRequest) {
     const offset = (page - 1) * limit;
 
     const premium = section === "lust" && searchParams.get("premium") === "1";
+
+    // Fast-path: Check R2 edge cache for standard top feeds & hero carousels
+    const isStandardFeed =
+      !category &&
+      !studio &&
+      !actor &&
+      !tag &&
+      !code &&
+      !year &&
+      !query &&
+      !subfilter &&
+      !premium &&
+      tab !== "random" &&
+      page <= 5;
+
+    if (isStandardFeed) {
+      let r2Key: string | null = null;
+      if (limit === 6 && tab === "new") {
+        r2Key = `feeds/${section}_hero.json`;
+      } else if (limit === 20) {
+        const feedTab = movies ? "movies" : (longform ? "longform" : (tab === "movies" || tab === "longform" ? "new" : tab));
+        r2Key = `feeds/${section}_${feedTab}_p${page}.json`;
+      }
+
+      if (r2Key) {
+        try {
+          const r2Url = `https://pub-2e7c05ee5cd1414784641924f34316da.r2.dev/${r2Key}`;
+          const r2Res = await fetch(r2Url, { next: { revalidate: 120 } });
+          if (r2Res.ok) {
+            const data = await r2Res.json();
+            if (data && Array.isArray(data.items) && data.items.length > 0) {
+              return NextResponse.json(data, {
+                headers: {
+                  "Cache-Control": "public, max-age=60, s-maxage=120, stale-while-revalidate=600",
+                  "X-Catalog-Source": "r2",
+                },
+              });
+            }
+          }
+        } catch {
+          // Graceful fallback to VPS database
+        }
+      }
+    }
+
     let items;
     let total;
 

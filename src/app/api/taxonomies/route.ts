@@ -94,6 +94,27 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "40", 10);
     const search = searchParams.get("q") || searchParams.get("search") || "";
 
+    // Fast-path: Check R2 edge cache for default taxonomies
+    if (!search && limit <= 40) {
+      try {
+        const r2Url = `https://pub-2e7c05ee5cd1414784641924f34316da.r2.dev/taxonomies/${section}_${type}.json`;
+        const r2Res = await fetch(r2Url, { next: { revalidate: 300 } });
+        if (r2Res.ok) {
+          const data = await r2Res.json();
+          if (data && Array.isArray(data.items)) {
+            return NextResponse.json(data, {
+              headers: {
+                "Cache-Control": "public, max-age=300, s-maxage=1800, stale-while-revalidate=86400",
+                "X-Taxonomy-Source": "r2",
+              },
+            });
+          }
+        }
+      } catch {
+        // Fall back gracefully
+      }
+    }
+
     let items = await getTaxonomies(section, type, type === "category" ? limit + 80 : limit, search);
 
     // Fans records currently have no performer metadata; the upstream Fans
