@@ -100,6 +100,18 @@ SAMPLE_HOSTS = {
         "category": "HLS Gateway",
         "description": "VidHide adaptive m3u8 resolver",
     },
+    "Jolly (HDPlayer)": {
+        "label": "Jolly",
+        "url": "https://hdplayer.gives/embed/7lpnxyMFqU68Jwk",
+        "category": "HLS Fans Gateway",
+        "description": "HDPlayer tokenized master playlist extractor & CORS proxy",
+    },
+    "Molly (HornyLeak)": {
+        "label": "Molly",
+        "url": "https://www.hornyleak.tv/embed/33510/",
+        "category": "HLS Fans Gateway",
+        "description": "HornyLeak embed bridge & CleanStream HLS proxy",
+    },
 }
 
 

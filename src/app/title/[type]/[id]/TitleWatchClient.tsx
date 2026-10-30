@@ -43,13 +43,15 @@ export function TitleWatchClient({
       const hB = (b.host || b.label || "").toLowerCase();
 
       const priority = (h: string) => {
-        if (h.includes("streamtape")) return 1;
-        if (h.includes("javclan") || h.includes("sb")) return 2;
-        if (h.includes("vide0") || h.includes("dd")) return 3;
-        if (h.includes("mixdrop")) return 4;
-        if (h.includes("maxstream") || h.includes("jk")) return 5;
-        if (h.includes("streamhihi") || h.includes("lu")) return 6;
-        if (h.includes("javlesbians") || h.includes("vo")) return 7;
+        if (h.includes("jolly") || h.includes("hdplayer")) return 1;
+        if (h.includes("molly") || h.includes("hornyleak")) return 2;
+        if (h.includes("streamtape")) return 3;
+        if (h.includes("javclan") || h.includes("sb")) return 4;
+        if (h.includes("vide0") || h.includes("dd")) return 5;
+        if (h.includes("mixdrop")) return 6;
+        if (h.includes("maxstream") || h.includes("jk")) return 7;
+        if (h.includes("streamhihi") || h.includes("lu")) return 8;
+        if (h.includes("javlesbians") || h.includes("vo")) return 9;
         if (h.includes("dood")) return 99; // Dood often deletes older files
         return 10;
       };
@@ -231,7 +233,9 @@ export function TitleWatchClient({
             const active = activeIdx === idx;
             let label = s.label || s.host || `Mirror ${idx + 1}`;
             // Clean up host label for readability
-            if (label.toLowerCase().includes("streamtape")) label = "Streamtape";
+            if (label.toLowerCase().includes("hdplayer") || label.toLowerCase().includes("jolly")) label = "Jolly";
+            else if (label.toLowerCase().includes("hornyleak") || label.toLowerCase().includes("molly")) label = "Molly";
+            else if (label.toLowerCase().includes("streamtape")) label = "Streamtape";
             else if (label.toLowerCase().includes("mixdrop")) label = "Mixdrop";
             else if (label.toLowerCase().includes("dood")) label = "Doodstream";
             else if (label.toLowerCase().includes("javclan") || label.includes("SB")) label = "JavClan (SB)";
