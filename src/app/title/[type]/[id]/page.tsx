@@ -56,7 +56,7 @@ export default async function TitlePage({
     process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
   
   const { cleanTitle, originalYear, originalDate } = extractCleanTitleAndDate(item.title, item.year);
-  const duration = formatVideoDuration(item.duration_seconds, item.title, item.id, section);
+  const duration = formatVideoDuration(item.duration_seconds, item.title, item.id, section, item.categories, item.tags);
   const uploadDate = formatUploadDate(item.published_at);
   const jaxRating = section === "jax" ? Math.round(((item.views % 30) / 10 + 7.0) * 10) / 10 : null;
 
@@ -73,7 +73,7 @@ export default async function TitlePage({
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {item.code && (
+          {section === "jax" && item.code && (
             <span className="rounded-md bg-pink-500/80 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-black tracking-wider text-white shadow-md">
               {item.code}
             </span>
@@ -200,7 +200,7 @@ export default async function TitlePage({
                 Video Details
               </h3>
 
-              {item.code && (
+              {section === "jax" && item.code && (
                 <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
                   <span className="text-white/50">JAV Code</span>
                   <Link href={`/?section=jax&code=${encodeURIComponent(item.code)}`} className="font-mono font-bold text-pink-300 hover:text-pink-100 hover:underline">
@@ -209,7 +209,7 @@ export default async function TitlePage({
                 </div>
               )}
 
-              {item.studios.length > 0 && (
+              {section !== "fans" && item.studios.length > 0 && (
                 <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
                   <span className="text-white/50">Studio / Label</span>
                   <div className="flex flex-wrap justify-end gap-1.5 max-w-[170px]">

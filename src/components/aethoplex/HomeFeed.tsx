@@ -74,6 +74,11 @@ export function HomeFeed({
   }, [filter]);
 
   useEffect(() => {
+    if (section === "fans") {
+      setActiveFilter(null);
+      setJaxSubFilter(null);
+      setCodeInput("");
+    }
     if (section === "fans" && taxType === "studio") setTaxType("category");
   }, [section, taxType]);
 
@@ -311,7 +316,26 @@ export function HomeFeed({
 
         </div>
 
-        {/* Categorization Mode Selector */}
+        {/* Active search query banner with one-click dismiss */}
+        {query && (
+          <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-cyan-500/[0.08] border border-cyan-400/25 backdrop-blur-md">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs text-white/50 shrink-0">Search query:</span>
+              <span className="font-bold text-sm text-cyan-300 truncate">"{query}"</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => onQueryChange?.("")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold shrink-0 transition-colors"
+            >
+              <X className="h-3.5 w-3.5 text-cyan-300" />
+              <span>Clear Search</span>
+            </button>
+          </div>
+        )}
+
+        {/* Categorization Mode Selector & Filters (Hidden in Fans) */}
+        {section !== "fans" && (
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar scrollbar-none touch-scroll max-w-full">
@@ -462,24 +486,6 @@ export function HomeFeed({
                     <span>Random</span>
                   </button>
                 </div>
-              </div>
-            )}
-
-            {/* Active search query banner with one-click dismiss */}
-            {query && (
-              <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-cyan-500/[0.08] border border-cyan-400/25 backdrop-blur-md">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-xs text-white/50 shrink-0">Search query:</span>
-                  <span className="font-bold text-sm text-cyan-300 truncate">"{query}"</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onQueryChange?.("")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold shrink-0 transition-colors"
-                >
-                  <X className="h-3.5 w-3.5 text-cyan-300" />
-                  <span>Clear Search</span>
-                </button>
               </div>
             )}
           </div>
@@ -641,6 +647,7 @@ export function HomeFeed({
             </div>
           )}
         </div>
+        )}
       </div>
 
       {feedError && (

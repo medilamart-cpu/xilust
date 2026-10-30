@@ -163,7 +163,7 @@ export async function queryItems(options: {
     }
 
     if (options.longform) {
-      whereParts.push("(section = 'jax' OR title LIKE '%compilation%' OR title LIKE '%feature%' OR title LIKE '%movie%' OR title LIKE '%best of%' OR title LIKE '%full length%' OR title LIKE '% 1h%' OR title LIKE '% 2h%' OR title LIKE '%hour%' OR categories LIKE '%compilation%' OR categories LIKE '%feature%' OR categories LIKE '%movie%' OR categories LIKE '%full length%' OR tags LIKE '%compilation%' OR tags LIKE '%feature%')");
+      whereParts.push("(section = 'jax' OR categories LIKE '%compilation%' OR tags LIKE '%compilation%' OR title LIKE '%compilation%' OR title LIKE '%best of%' OR title LIKE '%full length%' OR title LIKE '%full movie%' OR title LIKE '%feature film%' OR title LIKE '% 1 hr%' OR title LIKE '% 2 hr%' OR title LIKE '% 1 hour%' OR title LIKE '% 2 hour%' OR title LIKE '% 60 min%' OR title LIKE '% 70 min%' OR title LIKE '% 80 min%' OR title LIKE '% 90 min%' OR title LIKE '% 100 min%' OR title LIKE '% 120 min%')");
     }
 
     if (options.subfilter) {

@@ -7,7 +7,9 @@ export function formatVideoDuration(
   seconds?: number | null,
   title?: string,
   id?: number,
-  section?: string
+  section?: string,
+  categories?: string[],
+  tags?: string[]
 ): string {
   let sec = seconds;
 
@@ -50,9 +52,14 @@ export function formatVideoDuration(
     const s = Math.floor(totalSec % 60);
     return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   } else {
-    const isMovie = title && /(?:movie|feature|compilation|collection|full\s*length)/i.test(title);
-    if (isMovie) {
-      const totalSec = 4800 + (seed % 2400); // 1h 20m - 2h
+    const isLongform =
+      (title && /(?:compilation|collection|best\s*of|full\s*length|full\s*movie|feature\s*film)/i.test(title)) ||
+      categories?.some(c => /(?:compilation|feature|full\s*length)/i.test(c)) ||
+      tags?.some(t => /(?:compilation|feature)/i.test(t));
+
+    if (isLongform) {
+      // Compilation / Full Length / Feature film: ALWAYS 60+ min (between 1:12:00 and 2:25:00)
+      const totalSec = 4320 + (seed % 4380);
       const h = Math.floor(totalSec / 3600);
       const m = Math.floor((totalSec % 3600) / 60);
       const s = Math.floor(totalSec % 60);

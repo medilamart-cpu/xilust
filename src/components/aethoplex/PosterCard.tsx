@@ -197,7 +197,7 @@ export function TileCard({ item }: { item: CardModel }) {
   const isJax = item.section === "jax";
   const primaryStudio = item.studios?.[0] || "";
   const studioLabel = formatStudioLabel(primaryStudio);
-  const durationLabel = formatVideoDuration(item.durationSeconds, item.name, item.id, item.section);
+  const durationLabel = formatVideoDuration(item.durationSeconds, item.name, item.id, item.section, item.categories, item.tags);
 
   const { cleanTitle } = extractCleanTitleAndDate(item.name, item.year);
   const relativeUploadTime = formatRelativeUploadTime(item.uploadedAt);
@@ -274,14 +274,14 @@ export function TileCard({ item }: { item: CardModel }) {
             <span>{durationLabel}</span>
           </span>
 
-          {/* Code badge if present on top left (when not hovered) */}
-          {!isFans && item.code && art && !isHovered && (
+          {/* Code badge if present on top left (when not hovered) - JAX only */}
+          {isJax && item.code && art && !isHovered && (
             <span className="absolute left-1.5 sm:left-2 top-1.5 sm:top-2 rounded bg-pink-600/90 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-black tracking-wider text-white shadow-md backdrop-blur-md">
               {item.code}
             </span>
           )}
 
-          {/* Lust studio badge; JAX keeps its code badge in this position. */}
+          {/* Lust studio badge; JAX keeps its code badge in this position; hidden on Fans. */}
           {!isJax && !isFans && primaryStudio && !isHovered && (
             <span
               title={studioLabel}
@@ -292,20 +292,22 @@ export function TileCard({ item }: { item: CardModel }) {
             </span>
           )}
 
-          {/* Section pill on bottom left */}
-          <span className={`absolute bottom-3 left-1.5 sm:left-2 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-white shadow backdrop-blur-md z-10 ${
-            isJax ? "bg-pink-500/80" : isFans ? "bg-cyan-600/85" : "bg-purple-600/80"
-          }`}>
-            {isJax ? "JAX" : isFans ? "FANS" : "LUST"}
-          </span>
-
-          {/* Rating pill: shown only for JAX; hidden on Lust */}
-          {isJax && item.rating > 0 && (
-            <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 sm:left-auto sm:right-16 flex items-center gap-0.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[9.5px] font-semibold text-cyan-200 border border-white/10 backdrop-blur-md">
-              <Star className="h-2 w-2 fill-cyan-300 text-cyan-300" />
-              {item.rating.toFixed(1)}
+          {/* Section pill & Rating on bottom left */}
+          <div className="absolute bottom-3 left-1.5 sm:left-2 flex items-center gap-1.5 z-10">
+            <span className={`rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-white shadow backdrop-blur-md ${
+              isJax ? "bg-pink-500/80" : isFans ? "bg-cyan-600/85" : "bg-purple-600/80"
+            }`}>
+              {isJax ? "JAX" : isFans ? "FANS" : "LUST"}
             </span>
-          )}
+
+            {/* Rating pill: shown beside JAX badge */}
+            {isJax && item.rating > 0 && (
+              <span className="flex items-center gap-0.5 rounded bg-black/75 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-cyan-200 border border-white/10 backdrop-blur-md">
+                <Star className="h-2 w-2 fill-cyan-300 text-cyan-300" />
+                {item.rating.toFixed(1)}
+              </span>
+            )}
+          </div>
         </div>
       </Link>
 

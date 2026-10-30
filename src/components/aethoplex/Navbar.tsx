@@ -54,6 +54,17 @@ export function Navbar({
     }, 100);
   };
 
+  // Close search automatically as soon as search is cleared or section/menu changes
+  useEffect(() => {
+    if (!query) {
+      setMobileSearchOpen(false);
+    }
+  }, [query]);
+
+  useEffect(() => {
+    setMobileSearchOpen(false);
+  }, [section]);
+
   return (
     <>
       <header
@@ -210,6 +221,10 @@ export function Navbar({
                 {/* My list shortcut */}
                 <a
                   href="/#mylist"
+                  onClick={() => {
+                    setMobileSearchOpen(false);
+                    if (query) onQueryChange("");
+                  }}
                   aria-label="View saved list"
                   className="flex h-9 w-9 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] px-0 text-xs font-medium text-white/80 transition-colors hover:border-white/20 sm:h-10 sm:w-auto sm:justify-start sm:px-3"
                 >
@@ -236,6 +251,7 @@ export function Navbar({
           <button
             type="button"
             onClick={() => {
+              setMobileSearchOpen(false);
               onSectionChange("lust");
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
@@ -250,6 +266,7 @@ export function Navbar({
           <button
             type="button"
             onClick={() => {
+              setMobileSearchOpen(false);
               onSectionChange("jax");
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
@@ -264,6 +281,7 @@ export function Navbar({
           <button
             type="button"
             onClick={() => {
+              setMobileSearchOpen(false);
               onSectionChange("fans");
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
@@ -287,6 +305,10 @@ export function Navbar({
 
           <a
             href="/#mylist"
+            onClick={() => {
+              setMobileSearchOpen(false);
+              if (query) onQueryChange("");
+            }}
             className="flex flex-col items-center gap-1 min-w-[56px] py-1 text-white/50 hover:text-white/80 transition-all relative"
           >
             <Bookmark className="h-4 w-4 text-cyan-300" />
