@@ -93,9 +93,12 @@ export async function GET(req: NextRequest) {
     const type = (searchParams.get("type") as "actor" | "studio" | "category" | "tag") || "actor";
     const limit = parseInt(searchParams.get("limit") || "40", 10);
     const search = searchParams.get("q") || searchParams.get("search") || "";
+    const bypassR2 =
+      searchParams.get("refresh") === "1" ||
+      req.headers.get("x-bypass-r2") === "1";
 
     // Fast-path: Check R2 edge cache for default taxonomies
-    if (!search && limit <= 40) {
+    if (!bypassR2 && !search && limit <= 40) {
       try {
         const r2Url = `https://pub-2e7c05ee5cd1414784641924f34316da.r2.dev/taxonomies/${section}_${type}.json`;
         const r2Res = await fetch(r2Url, { next: { revalidate: 300 } });

@@ -28,9 +28,13 @@ export async function GET(req: NextRequest) {
     const offset = (page - 1) * limit;
 
     const premium = section === "lust" && searchParams.get("premium") === "1";
+    const bypassR2 =
+      searchParams.get("refresh") === "1" ||
+      req.headers.get("x-bypass-r2") === "1";
 
     // Fast-path: Check R2 edge cache for standard top feeds & hero carousels
     const isStandardFeed =
+      !bypassR2 &&
       !category &&
       !studio &&
       !actor &&
