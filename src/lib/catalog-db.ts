@@ -265,7 +265,7 @@ export async function getItemBySlug(section: "lust" | "jax", slug: string): Prom
   try {
     const res = await fetch(
       `${CATALOG_API_URL}/api/title?section=${encodeURIComponent(section)}&slug=${encodeURIComponent(slug)}`,
-      { next: { revalidate: 300 } }
+      { cache: "no-store" }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -306,7 +306,7 @@ export async function getTaxonomies(
   try {
     const res = await fetch(
       `${CATALOG_API_URL}/api/taxonomies?section=${encodeURIComponent(section)}&type=${encodeURIComponent(type)}&limit=${Math.min(Math.max(limit, 1), 100)}&q=${encodeURIComponent(search.trim())}`,
-      search.trim() ? { cache: "no-store" } : { next: { revalidate: 600 } }
+      { cache: "no-store" }
     );
     if (!res.ok) {
       console.warn(`Taxonomy API responded with ${res.status}`);
