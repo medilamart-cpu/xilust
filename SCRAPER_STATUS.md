@@ -14,7 +14,7 @@
 | **Total Catalog Items** | **261,608** |
 | **JAX (JAV Guru)** | **184,556** |
 | **LUST (XMovies)** | **77,052** |
-| **Catalog API** | `https://revenue-substitute-summaries-subject.trycloudflare.com` |
+| **Catalog API** | `https://supervisor-demonstrated-rhythm-ignored.trycloudflare.com` |
 | **Website URL** | `https://xilust.pages.dev/` |
 
 ---
@@ -51,3 +51,4 @@
    ```powershell
    python scripts/check_scraper_status.py
    ```
+
