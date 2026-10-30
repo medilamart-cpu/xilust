@@ -33,7 +33,7 @@ export interface TaxonomyItem {
 }
 
 const CATALOG_API_URL =
-  process.env.CATALOG_API_URL || "https://revenue-substitute-summaries-subject.trycloudflare.com";
+  process.env.CATALOG_API_URL || "https://supervisor-demonstrated-rhythm-ignored.trycloudflare.com";
 
 let dbInstance: any = null;
 let localDbChecked = false;
@@ -217,7 +217,10 @@ export async function queryItems(options: {
     const res = await fetch(`${CATALOG_API_URL}/api/catalog?${params.toString()}`, {
       cache: "no-store",
     });
-    if (!res.ok) throw new Error(`Catalog API responded with ${res.status}`);
+    if (!res.ok) {
+      console.warn(`Catalog API responded with ${res.status}`);
+      return { items: [], total: 0 };
+    }
     const data = await res.json();
     return {
       items: (data.items || []).map(parseItem),
@@ -225,7 +228,10 @@ export async function queryItems(options: {
     };
   } catch (err) {
     console.error("Failed to fetch from remote catalog API:", err);
-    throw new Error("Remote catalog API is unavailable", { cause: err });
+    return {
+      items: [],
+      total: 0,
+    };
   }
 }
 
@@ -302,7 +308,10 @@ export async function getTaxonomies(
       `${CATALOG_API_URL}/api/taxonomies?section=${encodeURIComponent(section)}&type=${encodeURIComponent(type)}&limit=${Math.min(Math.max(limit, 1), 100)}&q=${encodeURIComponent(search.trim())}`,
       search.trim() ? { cache: "no-store" } : { next: { revalidate: 600 } }
     );
-    if (!res.ok) throw new Error(`Taxonomy API responded with ${res.status}`);
+    if (!res.ok) {
+      console.warn(`Taxonomy API responded with ${res.status}`);
+      return [];
+    }
     const data = await res.json();
     return (data.items || []).map((item: any, idx: number) => ({
       id: idx + 1,
@@ -314,6 +323,6 @@ export async function getTaxonomies(
     }));
   } catch (err) {
     console.error("Failed to fetch taxonomies from remote catalog API:", err);
-    throw new Error("Remote taxonomy API is unavailable", { cause: err });
+    return [];
   }
 }

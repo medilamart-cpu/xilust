@@ -44,10 +44,10 @@ CLEANSTREAM_URL = os.environ.get(
     "NEXT_PUBLIC_CLEANSTREAM_URL", "https://marriage-editorials-tyler-clark.trycloudflare.com"
 ).rstrip("/")
 CATALOG_API_URL = os.environ.get(
-    "CATALOG_API_URL", "https://revenue-substitute-summaries-subject.trycloudflare.com"
+    "CATALOG_API_URL", "https://supervisor-demonstrated-rhythm-ignored.trycloudflare.com"
 ).rstrip("/")
 THUMBS_CDN_URL = os.environ.get(
-    "NEXT_PUBLIC_THUMBS_CDN", "https://interventions-precision-stake-alternate.trycloudflare.com"
+    "NEXT_PUBLIC_THUMBS_CDN", "https://xithumbs.duckdns.org"
 ).rstrip("/")
 
 # Known sample test links for live verification through CleanStream

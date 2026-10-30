@@ -55,7 +55,7 @@ All scraped data is maintained across **4 structured layers** between the **VPS 
 ### Layer 4: Live Query API & SQLite Mirror
 * **Catalog API (`/home/ubuntu/catalog_api.py`):** Runs on Port 8089 on VPS, backed by `/home/ubuntu/catalog.db`.
 * **Local Fast SQLite Engine (`catalog.db`):** 540+ MB high-speed database in repository root queried directly by Next.js server runtime (`node:sqlite DatabaseSync`) with FTS5 search index.
-* **Remote Fallback API (`CATALOG_API_URL`):** `https://revenue-substitute-summaries-subject.trycloudflare.com` for Edge/serverless deployments.
+* **Remote Fallback API (`CATALOG_API_URL`):** `https://supervisor-demonstrated-rhythm-ignored.trycloudflare.com` for Edge/serverless deployments.
 
 ---
 
@@ -103,8 +103,8 @@ The repository is linked to **Cloudflare Pages** via GitHub integration:
 ### Required Environment Variables (Cloudflare Pages Dashboard):
 Set these in **Cloudflare Pages -> Project Settings -> Environment Variables**:
 * `NEXT_PUBLIC_CLEANSTREAM_URL`: `https://marriage-editorials-tyler-clark.trycloudflare.com`
-* `NEXT_PUBLIC_THUMBS_CDN`: `https://interventions-precision-stake-alternate.trycloudflare.com`
-* `CATALOG_API_URL`: `https://revenue-substitute-summaries-subject.trycloudflare.com`
+* `NEXT_PUBLIC_THUMBS_CDN`: `https://xithumbs.duckdns.org`
+* `CATALOG_API_URL`: `https://supervisor-demonstrated-rhythm-ignored.trycloudflare.com`
 
 ---
 

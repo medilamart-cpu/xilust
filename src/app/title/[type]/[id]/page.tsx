@@ -29,7 +29,7 @@ export default async function TitlePage({
     section,
     category: category || undefined,
     limit: 8,
-  });
+  }).catch(() => ({ items: [], total: 0 }));
 
   const cleanstreamUrl =
     process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
@@ -242,7 +242,7 @@ export default async function TitlePage({
               {recs.slice(0, 4).map((rec) => {
                 const vpsBase =
                   process.env.NEXT_PUBLIC_THUMBS_CDN ||
-                  "https://interventions-precision-stake-alternate.trycloudflare.com";
+                  "https://xithumbs.duckdns.org";
                 const { posterUrl, fallbackUrl } = getCatalogThumbnailUrls(rec, vpsBase);
 
                 return (
