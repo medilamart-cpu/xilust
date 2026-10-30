@@ -23,8 +23,8 @@ export function getCatalogThumbnailUrls(item: CatalogThumbnailInput, baseUrl: st
     const nestedUrl = catalogPath || null;
     const flatUrl = item.slug ? `${base}/${item.slug}.webp` : null;
     return {
-      posterUrl: nestedUrl ?? coverUrl ?? flatUrl,
-      fallbackUrl: coverUrl && coverUrl !== nestedUrl ? coverUrl : flatUrl && flatUrl !== nestedUrl ? flatUrl : null,
+      posterUrl: flatUrl ?? coverUrl ?? nestedUrl,
+      fallbackUrl: nestedUrl && nestedUrl !== flatUrl ? nestedUrl : coverUrl && coverUrl !== flatUrl ? coverUrl : null,
     };
   }
 
