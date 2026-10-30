@@ -7,17 +7,20 @@ type CatalogThumbnailInput = {
 
 export function getCatalogThumbnailUrls(item: CatalogThumbnailInput, baseUrl: string) {
   const base = baseUrl.replace(/\/+$/, "");
-  const rawPath = item.thumbnail_url?.trim().replace(/^\/+/, "") ?? "";
+  const rawThumbnail = item.thumbnail_url?.trim() ?? "";
+  const rawPath = rawThumbnail.replace(/^\/+/, "");
   const catalogPath = rawPath
-    ? rawPath.startsWith("thumbs/")
+    ? /^https?:\/\//i.test(rawPath)
       ? rawPath
-      : `thumbs/${rawPath}`
+      : rawPath.startsWith("thumbs/")
+        ? `${base}/${rawPath}`
+        : `${base}/thumbs/${rawPath}`
     : "";
   const coverUrl = item.cover_url?.trim() || null;
 
   if (item.section === "lust") {
     // Prefer the hosted catalog thumbnail, then the original catalog cover.
-    const nestedUrl = catalogPath ? `${base}/${catalogPath}` : null;
+    const nestedUrl = catalogPath || null;
     const flatUrl = item.slug ? `${base}/${item.slug}.webp` : null;
     return {
       posterUrl: nestedUrl ?? coverUrl ?? flatUrl,
@@ -26,7 +29,7 @@ export function getCatalogThumbnailUrls(item: CatalogThumbnailInput, baseUrl: st
   }
 
   return {
-    posterUrl: catalogPath ? `${base}/${catalogPath}` : coverUrl,
+    posterUrl: catalogPath || coverUrl,
     fallbackUrl: coverUrl,
   };
 }
