@@ -52,6 +52,18 @@ THUMBS_CDN_URL = os.environ.get(
 
 # Known sample test links for live verification through CleanStream
 SAMPLE_HOSTS = {
+    "KameHaus": {
+        "label": "KameHaus (Decensored)",
+        "url": "https://kamehaus.net/e/oz64qahod5wi",
+        "category": "HLS Gateway",
+        "description": "Decensored Subbed HLS master playlist extractor",
+    },
+    "Vidara": {
+        "label": "Vidara (Decensored)",
+        "url": "https://vidara.to/e/p9xole2C8HuDv",
+        "category": "HLS Gateway",
+        "description": "Decensored Subbed direct 1080p stream resolver",
+    },
     "Streamtape": {
         "label": "Streamtape",
         "url": "https://streamtape.com/v/qraxMqwboYcyrR",
