@@ -39,7 +39,14 @@ let dbInstance: any = null;
 let localDbChecked = false;
 
 function getLocalDb() {
-  if (typeof process === "undefined" || process.env.NEXT_RUNTIME === "edge") {
+  if (
+    typeof process === "undefined" ||
+    process.env.NEXT_RUNTIME === "edge" ||
+    process.env.CF_PAGES === "1" ||
+    Boolean(process.env.CLOUDFLARE_PAGES) ||
+    typeof (globalThis as any).WebSocketPair !== "undefined" ||
+    typeof (globalThis as any).EdgeRuntime !== "undefined"
+  ) {
     return null;
   }
   if (localDbChecked) return dbInstance;

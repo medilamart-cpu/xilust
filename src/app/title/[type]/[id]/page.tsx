@@ -15,7 +15,8 @@ export default async function TitlePage({
 }: {
   params: Promise<{ type: string; id: string }>;
 }) {
-  const resolvedParams = await Promise.resolve(params);
+  try {
+    const resolvedParams = await Promise.resolve(params);
   const type = resolvedParams?.type;
   const rawId = resolvedParams?.id || "";
   const id = decodeURIComponent(rawId);
@@ -297,4 +298,13 @@ export default async function TitlePage({
       </main>
     </div>
   );
+  } catch (err: any) {
+    return (
+      <div className="min-h-screen bg-[#080a0f] text-red-400 p-8 font-mono">
+        <h1 className="text-xl font-bold mb-4">TitlePage Rendering Diagnostic</h1>
+        <p className="mb-2 font-bold text-white">Error: {String(err?.message || err)}</p>
+        <pre className="p-4 bg-black/60 rounded border border-white/10 text-xs overflow-auto">{String(err?.stack || "")}</pre>
+      </div>
+    );
+  }
 }
