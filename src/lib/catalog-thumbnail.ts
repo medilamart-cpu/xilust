@@ -16,12 +16,12 @@ export function getCatalogThumbnailUrls(item: CatalogThumbnailInput, baseUrl: st
   const coverUrl = item.cover_url?.trim() || null;
 
   if (item.section === "lust") {
-    // Lust thumbnails are split between nested catalog paths and legacy flat files.
+    // Prefer the hosted catalog thumbnail, then the original catalog cover.
     const nestedUrl = catalogPath ? `${base}/${catalogPath}` : null;
     const flatUrl = item.slug ? `${base}/${item.slug}.webp` : null;
     return {
-      posterUrl: nestedUrl ?? flatUrl,
-      fallbackUrl: flatUrl && flatUrl !== nestedUrl ? flatUrl : coverUrl,
+      posterUrl: nestedUrl ?? coverUrl ?? flatUrl,
+      fallbackUrl: coverUrl && coverUrl !== nestedUrl ? coverUrl : flatUrl && flatUrl !== nestedUrl ? flatUrl : null,
     };
   }
 
