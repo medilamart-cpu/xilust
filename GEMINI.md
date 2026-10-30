@@ -81,24 +81,55 @@ This automatically:
 
 ---
 
-## 3. GitHub & Cloudflare Pages CI/CD Deployment
+## 3. GitHub & Cloudflare Pages CI/CD & Multi-Agent Protocol
 
-The repository is linked to **Cloudflare Pages** via GitHub integration:
-* **Remote Repository:** `https://github.com/medilamart-cpu/xilust.git`
-* **Production Branch:** `main`
+> [!CAUTION]
+> **CRITICAL MULTI-AGENT PROTOCOL (Antigravity & Codex)**
+> This repository is actively maintained by two distinct AI agents (**Antigravity** and **Codex**).
+> To prevent one agent from overwriting, missing, or reverting the other agent's changes, EVERY agent MUST strictly adhere to this protocol.
 
-### Mandatory AI Agent Rule: Push to GitHub & Verify Live Deployment
-> [!IMPORTANT]
-> **ANY AI AGENT WORKING ON THIS REPOSITORY MUST ALWAYS COMMIT AND PUSH CHANGES TO GITHUB `main` BEFORE CONCLUDING WORK.**
-> Local file changes alone DO NOT update the live site. You MUST:
-> 1. Run `git add -A` and `git commit -m "..."`
-> 2. Run `git push origin main`
-> 3. Trigger or verify Cloudflare Pages deployment via the API (token from `$env:APPDATA\xdg.config\.wrangler\config\default.toml`):
->    ```powershell
->    $token = (Get-Content "$env:APPDATA\xdg.config\.wrangler\config\default.toml" | Select-String 'oauth_token = "([^"]+)"').Matches.Groups[1].Value
->    curl.exe -s -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" -d "{\"branch\":\"main\"}" "https://api.cloudflare.com/client/v4/accounts/87e42b045dc2182ef8f54bd33ea8ee30/pages/projects/xilust/deployments"
->    ```
-> 4. Verify live deployment at `https://xilust.pages.dev/` using the browser subagent. Never declare a task complete without visually checking the live site!
+### Step 0: Mandatory Pull Before ANY Work Begins
+Before reading files or making ANY code edits, the agent MUST run:
+```powershell
+git fetch origin main
+git pull --rebase origin main
+```
+*Never assume the local disk or working tree has the latest code. The other agent may have pushed changes minutes ago.*
+
+### Step 1: Surgical Edits Only — Never Blindly Overwrite Files
+- ALWAYS use targeted search/replace edits (`edit_file` / unified diffs).
+- **NEVER** rewrite an entire file or component from scratch. Replacing full files from memory silently deletes functions, imports, bug fixes, or features newly implemented by the other agent.
+- Always preserve existing comments, docstrings, imports, and helper functions unrelated to your immediate task.
+
+### Step 2: Check Recent Commit History
+Before modifying shared critical files (`catalog-db.ts`, `page.tsx`, `TitleWatchClient.tsx`, `Hero.tsx`), run:
+```powershell
+git log -n 5 --stat
+```
+Inspect recent commit messages to understand what the other agent recently built and avoid conflicting regressions.
+
+### Step 3: Mandatory Pre-Push Rebase & Deployment
+When finishing work:
+1. Stage and commit with a clear, descriptive message:
+   ```powershell
+   git add -A
+   git commit -m "feat/fix(scope): clear description of changes"
+   ```
+2. Rebase on top of any concurrent remote commits:
+   ```powershell
+   git pull --rebase origin main
+   ```
+3. Push to `main`:
+   ```powershell
+   git push origin main
+   ```
+   > [!WARNING]
+   > **`git push --force` or `git push -f` is STRICTLY PROHIBITED.** If a push is rejected, rebase cleanly and resolve conflicts by keeping BOTH agents' logic intact.
+4. Trigger or verify Cloudflare Pages deployment via the API:
+   ```powershell
+   python trigger_deploy.py
+   ```
+5. Test live deployment at `https://xilust.pages.dev/`. Never mark a task complete without visually checking the live site!
 
 ### Required Environment Variables (Cloudflare Pages Dashboard):
 Set these in **Cloudflare Pages -> Project Settings -> Environment Variables**:
@@ -113,6 +144,7 @@ Set these in **Cloudflare Pages -> Project Settings -> Environment Variables**:
 1. **Sections:**
    - `"lust"`: Western studio releases.
    - `"jax"`: Japanese Adult Video (JAV).
+   - `"fans"`: Premium Creator & Fans leaks (Jolly & Molly servers).
 2. **Taxonomy & Redirection URL Patterns:**
    - Actress / Pornstar: `/?section=<sec>&actor=<name>`
    - Studio / Production: `/?section=<sec>&studio=<name>`
