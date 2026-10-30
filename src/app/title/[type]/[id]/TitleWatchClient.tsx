@@ -31,11 +31,13 @@ function serverIdentity(source: { label?: string; host?: string }, section: Cata
   const key = `${source.host || ""} ${source.label || ""}`.toLowerCase();
   const identities = section === "jax"
     ? [
-        { match: ["streamhihi"], name: "Naruto", icon: "🍥" },
-        { match: ["javlesbian"], name: "Sasuke", icon: "⚡" },
+        { match: ["kamehaus", "kamehameha", "kame"], name: "Goku ⚡", icon: "🐉" },
+        { match: ["vidara", "sugbaioug"], name: "Vegeta 💥", icon: "👑" },
+        { match: ["streamhihi", "lulu"], name: "Naruto", icon: "🍥" },
+        { match: ["javlesbian", "voe"], name: "Sasuke", icon: "⚡" },
         { match: ["maxstream"], name: "Kakashi", icon: "🥷" },
         { match: ["vid0", "vide0"], name: "Sakura 🗑️", icon: "🌸" },
-        { match: ["javclan"], name: "Tsunade", icon: "💮" },
+        { match: ["javclan", "streamtape"], name: "Tsunade", icon: "💮" },
       ]
     : section === "lust"
       ? [
@@ -56,7 +58,7 @@ export function TitleWatchClient({
 }) {
   const rawSources = item.video_sources || [];
 
-  // Sort sources by highest reliability (Streamtape, StreamSB, Vide0, Mixdrop first)
+  // Sort sources by highest reliability (KameHaus, Vidara, Streamtape, StreamSB first)
   const sources = useMemo(() => {
     return [...rawSources].sort((a, b) => {
       const hA = (a.host || a.label || "").toLowerCase();
@@ -65,15 +67,18 @@ export function TitleWatchClient({
       const priority = (h: string) => {
         if (h.includes("jolly") || h.includes("hdplayer")) return 1;
         if (h.includes("molly") || h.includes("hornyleak")) return 2;
-        if (h.includes("streamtape")) return 3;
-        if (h.includes("javclan") || h.includes("sb")) return 4;
-        if (h.includes("vide0") || h.includes("dd")) return 5;
-        if (h.includes("mixdrop")) return 6;
-        if (h.includes("maxstream") || h.includes("jk")) return 7;
-        if (h.includes("streamhihi") || h.includes("lu")) return 8;
-        if (h.includes("javlesbians") || h.includes("vo")) return 9;
+        if (h.includes("kamehaus") || h.includes("kamehameha") || h.includes("kame.upns")) return 3;
+        if (h.includes("vidara") || h.includes("sugbaioug")) return 4;
+        if (h.includes("streamtape")) return 5;
+        if (h.includes("javclan") || h.includes("sb")) return 6;
+        if (h.includes("vide0") || h.includes("dd")) return 7;
+        if (h.includes("mixdrop")) return 8;
+        if (h.includes("maxstream") || h.includes("jk")) return 9;
+        if (h.includes("streamhihi") || h.includes("lulu")) return 10;
+        if (h.includes("javlesbians") || h.includes("voe") || h.includes("vo")) return 11;
+        if (h.includes("turtleviplay")) return 90; // Cloudflare Turnstile blocked, KameHaus/Vidara preferred
         if (h.includes("dood")) return 99; // Dood often deletes older files
-        return 10;
+        return 20;
       };
 
       return priority(hA) - priority(hB);

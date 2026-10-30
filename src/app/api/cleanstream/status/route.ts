@@ -57,6 +57,8 @@ export async function GET() {
 
   // Sample tests for primary hosts
   const testHosts: Record<string, string> = {
+    KameHaus: "https://kamehaus.net/e/oz64qahod5wi",
+    Vidara: "https://vidara.to/e/p9xole2C8HuDv",
     Streamtape: "https://streamtape.com/v/qraxMqwboYcyrR",
     Mixdrop: "https://mxdrop.click/f/4ddrqwwzaolqxl",
     StreamLU: "https://streamhihi.com/e/6ro23a6kc5iz",
