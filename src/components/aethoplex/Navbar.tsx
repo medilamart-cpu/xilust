@@ -105,9 +105,9 @@ export function Navbar({
                   <span className="hidden sm:inline-block">
                     <Wordmark size={28} />
                   </span>
-                  <span className="sm:hidden flex items-center">
+                  <span className="sm:hidden flex items-center gap-1.5">
                     <LogoMark size={26} />
-                    <span className="hidden text-base font-black tracking-wider text-white">
+                    <span className="text-base font-black tracking-wider text-white">
                       Xi<span className="bg-gradient-to-r from-pink-400 to-cyan-300 bg-clip-text text-transparent">Lust</span>
                     </span>
                   </span>
@@ -157,7 +157,7 @@ export function Navbar({
               </div>
 
               {/* Search bar & My list */}
-              <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+              <div className="hidden shrink-0 items-center gap-1.5 sm:flex sm:gap-3">
                 {/* Desktop Search bar */}
                 <div className="hidden sm:block relative">
                   <div
