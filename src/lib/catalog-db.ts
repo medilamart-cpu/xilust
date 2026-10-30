@@ -134,8 +134,12 @@ export async function queryItems(options: {
     }
 
     if (options.category && options.category !== "All") {
-      whereParts.push("EXISTS (SELECT 1 FROM json_each(items.categories) AS taxonomy WHERE taxonomy.value = ?)");
-      params.push(options.category);
+      if (options.category.toLowerCase() === "decnsoredsubbed") {
+        whereParts.push("(EXISTS (SELECT 1 FROM json_each(items.categories) AS taxonomy WHERE LOWER(taxonomy.value) = 'decnsoredsubbed') OR items.thumbnail_url LIKE '%/roshy/%')");
+      } else {
+        whereParts.push("EXISTS (SELECT 1 FROM json_each(items.categories) AS taxonomy WHERE LOWER(taxonomy.value) = LOWER(?))");
+        params.push(options.category);
+      }
     }
 
     if (options.studio) {

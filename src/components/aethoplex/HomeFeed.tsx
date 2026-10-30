@@ -23,6 +23,7 @@ const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
 ];
 
 const JAV_FORMAT_FILTERS: { label: string; type: "category" | "tag"; name: string }[] = [
+  { label: "Decensored Subbed", type: "category", name: "decnsoredsubbed" },
   { label: "Uncensored", type: "category", name: "UNCENSORED" },
   { label: "English Subbed", type: "category", name: "English subbed JAV" },
   { label: "4K", type: "category", name: "4K" },
@@ -80,7 +81,10 @@ export function HomeFeed({
       setCodeInput("");
     }
     if (section === "fans" && taxType === "studio") setTaxType("category");
-  }, [section, taxType]);
+    if (section !== "jax" && activeFilter?.name === "decnsoredsubbed") {
+      setActiveFilter(null);
+    }
+  }, [section, taxType, activeFilter]);
 
   // Movie Feed items & pagination
   const [items, setItems] = useState<CardModel[]>([]);
@@ -396,7 +400,7 @@ export function HomeFeed({
                   <span className="text-xs text-white/50">Viewing {activeFilter.type === "code" ? "JAV code" : activeFilter.type === "premium" ? "studio collection" : activeFilter.type}:</span>
                   <span className="font-bold text-sm text-cyan-300 flex items-center gap-1.5">
                     <span>{activeFilter.type === "actor" ? "🌸" : activeFilter.type === "studio" ? "🎬" : activeFilter.type === "code" ? "🔎" : activeFilter.type === "premium" ? "✨" : "🏷️"}</span>
-                    <span>{activeFilter.type === "studio" ? formatStudioLabel(activeFilter.name) : activeFilter.name}</span>
+                    <span>{activeFilter.name === "decnsoredsubbed" ? "Decensored Subbed" : activeFilter.type === "studio" ? formatStudioLabel(activeFilter.name) : activeFilter.name}</span>
                   </span>
                   <button
                     type="button"
@@ -494,17 +498,19 @@ export function HomeFeed({
             <div className="flex flex-col gap-3">
               <div className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.015] p-3 sm:p-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Popular JAV formats</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Featured JAV formats</p>
                   <p className="mt-1 text-[11px] text-white/45">Choose a format to narrow the catalog</p>
                 </div>
-                <div className="flex max-w-full flex-wrap gap-2.5" role="group" aria-label="Popular JAV formats">
+                <div className="flex max-w-full flex-wrap gap-2.5" role="group" aria-label="Featured JAV formats">
                   {JAV_FORMAT_FILTERS.map((preset) => {
                     const active = activeFilter?.type === preset.type && activeFilter.name === preset.name;
-                    const tone = preset.label === "Uncensored"
-                      ? "border-fuchsia-300/35 bg-gradient-to-r from-fuchsia-500/20 to-violet-500/15 text-fuchsia-100"
-                      : preset.label === "English Subbed"
-                        ? "border-cyan-300/35 bg-gradient-to-r from-cyan-500/20 to-blue-500/15 text-cyan-100"
-                        : "border-amber-300/35 bg-gradient-to-r from-amber-500/20 to-orange-500/15 text-amber-100";
+                    const tone = preset.label === "Decensored Subbed"
+                      ? "border-emerald-300/40 bg-gradient-to-r from-emerald-500/25 to-teal-500/20 text-emerald-100 shadow-emerald-500/10"
+                      : preset.label === "Uncensored"
+                        ? "border-fuchsia-300/35 bg-gradient-to-r from-fuchsia-500/20 to-violet-500/15 text-fuchsia-100"
+                        : preset.label === "English Subbed"
+                          ? "border-cyan-300/35 bg-gradient-to-r from-cyan-500/20 to-blue-500/15 text-cyan-100"
+                          : "border-amber-300/35 bg-gradient-to-r from-amber-500/20 to-orange-500/15 text-amber-100";
                     return (
                       <button
                         key={preset.label}
@@ -523,7 +529,7 @@ export function HomeFeed({
                             : `${tone} hover:border-white/45 hover:brightness-110`
                         }`}
                       >
-                        {preset.label}
+                        {preset.label === "Decensored Subbed" ? "⚡ Decensored Subbed" : preset.label}
                       </button>
                     );
                   })}
@@ -608,6 +614,27 @@ export function HomeFeed({
                   }`}
                 >
                   ✦ Premium Studios
+                </button>
+              )}
+
+              {section === "jax" && taxType === "category" && (
+                <button
+                  type="button"
+                  aria-pressed={activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"}
+                  onClick={() => {
+                    onQueryChange?.("");
+                    const nextFilter = activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"
+                      ? null
+                      : { type: "category" as const, name: "decnsoredsubbed" };
+                    handleSetFilter(nextFilter);
+                  }}
+                  className={`min-h-11 shrink-0 rounded-lg border px-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 ${
+                    activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"
+                      ? "border-emerald-300 bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-400/20"
+                      : "border-emerald-400/30 bg-gradient-to-r from-emerald-500/20 to-teal-500/15 text-emerald-100 hover:border-emerald-300/60 hover:from-emerald-500/30"
+                  }`}
+                >
+                  ⚡ Decensored Subbed
                 </button>
               )}
 
