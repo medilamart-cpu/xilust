@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
     const tab = (searchParams.get("tab") as any) || "trending";
     const sort = (searchParams.get("sort") as any) || undefined;
     const movies = searchParams.get("movies") === "1";
+    const subfilter = searchParams.get("subfilter") || undefined;
 
     const offset = (page - 1) * limit;
 
@@ -80,6 +81,7 @@ export async function GET(req: NextRequest) {
         tab,
         sort,
         movies,
+        subfilter,
       });
       items = result.items;
       total = result.total;

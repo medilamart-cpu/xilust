@@ -103,6 +103,7 @@ export async function queryItems(options: {
   tab?: "trending" | "top" | "new" | "random";
   sort?: "newest" | "popular" | "views";
   movies?: boolean;
+  subfilter?: string;
 }): Promise<{ items: CatalogItem[]; total: number }> {
   const db = getLocalDb();
 
@@ -153,6 +154,17 @@ export async function queryItems(options: {
       whereParts.push("(duration_seconds >= 3600 OR section = 'jax' OR title LIKE '%movie%' OR title LIKE '%feature%')");
     }
 
+    if (options.subfilter) {
+      const sf = options.subfilter.toLowerCase();
+      if (sf === "4k") {
+        whereParts.push("(categories LIKE '%4K%' OR title LIKE '%4K%')");
+      } else if (sf === "subbed") {
+        whereParts.push("(categories LIKE '%subbed%' OR tags LIKE '%sub%' OR categories LIKE '%subtitle%')");
+      } else if (sf === "uncensored") {
+        whereParts.push("(tags LIKE '%uncensored%' OR categories LIKE '%uncen%' OR categories LIKE '%fc2%')");
+      }
+    }
+
     if (options.query) {
       const q = options.query.trim();
       if (q) {
@@ -197,6 +209,7 @@ export async function queryItems(options: {
     if (options.tag) params.set("tag", options.tag);
     if (options.code) params.set("code", options.code);
     if (options.movies) params.set("movies", "1");
+    if (options.subfilter) params.set("subfilter", options.subfilter);
     if (options.query) params.set("search", options.query);
     if (options.tab) params.set("tab", options.tab);
     if (options.sort) params.set("sort", options.sort);

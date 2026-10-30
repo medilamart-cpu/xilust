@@ -196,13 +196,7 @@ export function HomeFeed({
         }
 
         if (section === "jax" && jaxSubFilter) {
-          if (jaxSubFilter === "4K") {
-            params.set("category", "4K");
-          } else if (jaxSubFilter === "Uncensored") {
-            params.set("category", "UNCENSORED");
-          } else if (jaxSubFilter === "Subbed") {
-            params.set("category", "English subbed JAV");
-          }
+          params.set("subfilter", jaxSubFilter.toLowerCase());
         }
 
         if (query && activeFilter?.type !== "studio" && activeFilter?.type !== "premium") {

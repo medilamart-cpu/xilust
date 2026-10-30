@@ -4,7 +4,7 @@ import { ArrowLeft, Star, Film, Server, Eye, Tag, Share2, Sparkles, AlertCircle 
 import { getItemBySlug, queryItems, type CatalogItem } from "@/lib/catalog-db";
 import { getCatalogThumbnailUrls } from "@/lib/catalog-thumbnail";
 import { formatStudioLabel } from "@/lib/studio-label";
-import { TileCard } from "@/components/aethoplex/PosterCard";
+import { TileCard, extractCleanTitleAndDate, formatVideoDuration } from "@/components/aethoplex/PosterCard";
 import { TitleWatchClient } from "./TitleWatchClient";
 
 export const dynamic = "force-dynamic";
@@ -33,9 +33,10 @@ export default async function TitlePage({
 
   const cleanstreamUrl =
     process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
-  const uploadedAt = item.published_at && !Number.isNaN(Date.parse(item.published_at))
-    ? new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" }).format(new Date(item.published_at))
-    : null;
+  
+  const { cleanTitle, originalYear, originalDate } = extractCleanTitleAndDate(item.title, item.year);
+  const duration = formatVideoDuration(item.duration_seconds, item.title, item.id, section);
+  const jaxRating = section === "jax" ? Math.round(((item.views % 30) / 10 + 7.0) * 10) / 10 : null;
 
   return (
     <div className="min-h-screen bg-[#080a0f] text-[#f4f5f8]">
@@ -71,12 +72,25 @@ export default async function TitlePage({
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="flex items-center gap-1 rounded bg-black/50 px-2 py-0.5 text-xs font-semibold text-cyan-300 border border-white/10">
-                  <Star className="h-3 w-3 fill-cyan-400 text-cyan-400" />
-                  8.5 / 10
+                {jaxRating && (
+                  <>
+                    <span className="flex items-center gap-1 rounded bg-black/50 px-2 py-0.5 text-xs font-semibold text-cyan-300 border border-white/10">
+                      <Star className="h-3 w-3 fill-cyan-400 text-cyan-400" />
+                      {jaxRating} / 10
+                    </span>
+                    <span className="text-sm text-white/40">•</span>
+                  </>
+                )}
+                {originalYear && (
+                  <>
+                    <span className="text-sm font-medium text-white/70">{originalYear}</span>
+                    <span className="text-sm text-white/40">•</span>
+                  </>
+                )}
+                <span className="rounded bg-black/50 px-2 py-0.5 text-xs font-semibold text-white/80 border border-white/10 flex items-center gap-1">
+                  <span>⏱</span>
+                  <span>{duration}</span>
                 </span>
-                <span className="text-sm text-white/40">•</span>
-                <span className="text-sm font-medium text-white/70">{item.year || "2026"}</span>
                 <span className="text-sm text-white/40">•</span>
                 <span className="rounded bg-cyan-500/20 px-2 py-0.5 text-[11px] font-bold text-cyan-300">
                   CleanStream Protected
@@ -84,7 +98,7 @@ export default async function TitlePage({
               </div>
 
               <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white leading-snug">
-                {item.title}
+                {cleanTitle}
               </h1>
             </div>
 
@@ -191,16 +205,21 @@ export default async function TitlePage({
               )}
 
               <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
-                <span className="text-white/50">Release Year</span>
-                <span className="font-medium text-white/90">{item.year || "—"}</span>
+                <span className="text-white/50">Runtime / Length</span>
+                <span className="font-medium text-white/90">{duration}</span>
               </div>
 
-              {uploadedAt && (
-                <div className="flex items-center justify-between gap-3 text-xs border-b border-white/5 pb-2.5">
-                  <span className="shrink-0 text-white/50">Uploaded</span>
-                  <time dateTime={item.published_at} className="text-right font-medium text-white/90">{uploadedAt}</time>
+              {originalDate ? (
+                <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
+                  <span className="text-white/50">Release Date</span>
+                  <span className="font-medium text-white/90">{originalDate}</span>
                 </div>
-              )}
+              ) : originalYear ? (
+                <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
+                  <span className="text-white/50">Release Year</span>
+                  <span className="font-medium text-white/90">{originalYear}</span>
+                </div>
+              ) : null}
 
               <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
                 <span className="text-white/50">Streaming Mirrors</span>

@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
-import type { CardModel } from "./PosterCard";
+import { Sparkles, Clock } from "lucide-react";
+import { type CardModel, extractCleanTitleAndDate, formatVideoDuration } from "./PosterCard";
 import { GeneratedArt } from "./GeneratedArt";
 
 export function Hero({ section }: { section: "lust" | "jax" }) {
@@ -113,6 +113,8 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
   };
 
   const isJax = (cur?.section || section) === "jax";
+  const { cleanTitle, originalYear } = extractCleanTitleAndDate(cur?.name || "", cur?.year);
+  const duration = formatVideoDuration(cur?.durationSeconds, cur?.name, cur?.id, cur?.section || section);
   const titleHref = `/title/${cur.section || section}/${encodeURIComponent(cur.slug || String(cur.id || cur.key))}`;
 
   // Mobile touch swipe support
@@ -191,12 +193,17 @@ export function Hero({ section }: { section: "lust" | "jax" }) {
 
           {/* Title */}
           <h1 className="line-clamp-2 break-words text-lg sm:text-3xl md:text-4xl font-black leading-tight text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.9)]">
-            {cur.name}
+            {cleanTitle}
           </h1>
 
           {/* Meta Line - cleaned: no rating, no upload date */}
           <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-white/70">
-            <span className="font-semibold text-white/90">{cur.year || "2026"}</span>
+            {originalYear && <span className="font-semibold text-white/90">{originalYear}</span>}
+            {originalYear && <span className="text-white/30">•</span>}
+            <span className="flex items-center gap-1 rounded bg-black/60 px-2 py-0.5 text-[11px] font-bold text-white border border-white/10">
+              <Clock className="h-3 w-3 text-cyan-300" />
+              {duration}
+            </span>
             <span className="text-white/30">•</span>
             <span className="rounded bg-white/10 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase text-cyan-300 border border-white/10">1080p HD</span>
             {cur.studios && cur.studios.length > 0 && (
