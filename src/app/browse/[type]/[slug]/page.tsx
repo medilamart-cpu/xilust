@@ -87,7 +87,7 @@ export default async function TaxonomyDetailPage({
         </div>
         {cards.length ? (
           <>
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">{cards.map((item) => <TileCard key={item.key} item={item} />)}</div>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">{cards.map((item) => <TileCard key={item.key} item={item} />)}</div>
             {totalPages > 1 && <nav aria-label="Browse pagination" className="mt-8 flex items-center justify-center gap-4">
               <Link aria-disabled={page <= 1} href={hrefFor(Math.max(1, page - 1))} className={"inline-flex min-h-11 items-center rounded-xl border border-white/10 px-4 text-sm " + (page <= 1 ? "pointer-events-none opacity-40" : "")}>Previous</Link>
               <span aria-live="polite" className="text-sm text-white/60">{page} / {totalPages}</span>

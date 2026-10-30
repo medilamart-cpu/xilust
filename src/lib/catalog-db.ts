@@ -159,11 +159,11 @@ export async function queryItems(options: {
     }
 
     if (options.movies) {
-      whereParts.push("(duration_seconds >= 3600 OR section = 'jax' OR title LIKE '%movie%' OR title LIKE '%feature%')");
+      whereParts.push("(section = 'jax' OR title LIKE '%movie%' OR title LIKE '%feature%' OR categories LIKE '%Movie%' OR categories LIKE '%Feature%')");
     }
 
     if (options.longform) {
-      whereParts.push("duration_seconds > 3600");
+      whereParts.push("(section = 'jax' OR title LIKE '%compilation%' OR title LIKE '%feature%' OR title LIKE '%movie%' OR title LIKE '%best of%' OR title LIKE '%full length%' OR title LIKE '% 1h%' OR title LIKE '% 2h%' OR title LIKE '%hour%' OR categories LIKE '%compilation%' OR categories LIKE '%feature%' OR categories LIKE '%movie%' OR categories LIKE '%full length%' OR tags LIKE '%compilation%' OR tags LIKE '%feature%')");
     }
 
     if (options.subfilter) {

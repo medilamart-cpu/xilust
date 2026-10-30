@@ -260,19 +260,19 @@ export function TileCard({ item }: { item: CardModel }) {
           </div>
 
           {/* Badge: 4K / HD */}
-          {!isFans && <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] backdrop-blur-md ${
+          <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] backdrop-blur-md ${
             item.categories?.some(c => c.toLowerCase() === "4k") || item.name.toLowerCase().includes("4k")
               ? "bg-amber-500/80 text-black border border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.5)] font-black"
               : "bg-black/75 text-cyan-300 border border-cyan-500/30"
           }`}>
             {item.categories?.some(c => c.toLowerCase() === "4k") || item.name.toLowerCase().includes("4k") ? "4K UHD" : "HD"}
-          </span>}
+          </span>
 
           {/* Actual Video Duration Badge on Card (e.g. 45:32, 1:25:10) */}
-          {!isFans && <span className="absolute right-1.5 sm:right-2 bottom-3 inline-flex items-center gap-1 rounded bg-black/85 px-1.5 py-0.5 text-[9.5px] sm:text-[10px] font-bold text-white tracking-wide border border-white/10 shadow-lg backdrop-blur-md z-10">
+          <span className="absolute right-1.5 sm:right-2 bottom-3 inline-flex items-center gap-1 rounded bg-black/85 px-1.5 py-0.5 text-[9.5px] sm:text-[10px] font-bold text-white tracking-wide border border-white/10 shadow-lg backdrop-blur-md z-10">
             <Clock aria-hidden="true" className="h-2.5 w-2.5 text-cyan-300" />
             <span>{durationLabel}</span>
-          </span>}
+          </span>
 
           {/* Code badge if present on top left (when not hovered) */}
           {!isFans && item.code && art && !isHovered && (
@@ -293,11 +293,11 @@ export function TileCard({ item }: { item: CardModel }) {
           )}
 
           {/* Section pill on bottom left */}
-          {!isFans && <span className={`absolute bottom-3 left-1.5 sm:left-2 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-white shadow backdrop-blur-md z-10 ${
-            isJax ? "bg-pink-500/80" : "bg-purple-600/80"
+          <span className={`absolute bottom-3 left-1.5 sm:left-2 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-white shadow backdrop-blur-md z-10 ${
+            isJax ? "bg-pink-500/80" : isFans ? "bg-cyan-600/85" : "bg-purple-600/80"
           }`}>
-            {isJax ? "JAX" : "LUST"}
-          </span>}
+            {isJax ? "JAX" : isFans ? "FANS" : "LUST"}
+          </span>
 
           {/* Rating pill: shown only for JAX; hidden on Lust */}
           {isJax && item.rating > 0 && (
@@ -315,7 +315,7 @@ export function TileCard({ item }: { item: CardModel }) {
           <div className="min-h-[2.6rem] sm:min-h-[2.85rem] flex items-start">
             <p
               title={cleanTitle}
-              className={`${isFans ? "truncate whitespace-nowrap" : "line-clamp-2"} text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300`}
+              className="line-clamp-2 text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300"
             >
               {cleanTitle}
             </p>

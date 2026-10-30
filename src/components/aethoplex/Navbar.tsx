@@ -117,7 +117,10 @@ export function Navbar({
                 <div className="flex min-w-0 flex-1 items-center justify-between p-0.5 sm:flex-none sm:justify-start sm:p-1 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-md">
                   <button
                     type="button"
-                    onClick={() => onSectionChange("lust")}
+                    onClick={() => {
+                      onSectionChange("lust");
+                      if (query) onQueryChange("");
+                    }}
                     className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "lust"
                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-pink-500/20"
                         : "text-white/60 hover:text-white/90"
@@ -130,7 +133,10 @@ export function Navbar({
 
                   <button
                     type="button"
-                    onClick={() => onSectionChange("jax")}
+                    onClick={() => {
+                      onSectionChange("jax");
+                      if (query) onQueryChange("");
+                    }}
                     className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "jax"
                         ? "bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-lg shadow-rose-500/20"
                         : "text-white/60 hover:text-white/90"
@@ -143,7 +149,10 @@ export function Navbar({
 
                   <button
                     type="button"
-                    onClick={() => onSectionChange("fans")}
+                    onClick={() => {
+                      onSectionChange("fans");
+                      if (query) onQueryChange("");
+                    }}
                     className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "fans"
                         ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
                         : "text-white/60 hover:text-white/90"
@@ -228,6 +237,7 @@ export function Navbar({
             type="button"
             onClick={() => {
               onSectionChange("lust");
+              if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "lust" ? "text-pink-400 font-bold" : "text-white/50 hover:text-white/80"
@@ -241,6 +251,7 @@ export function Navbar({
             type="button"
             onClick={() => {
               onSectionChange("jax");
+              if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "jax" ? "text-rose-400 font-bold" : "text-white/50 hover:text-white/80"
@@ -254,6 +265,7 @@ export function Navbar({
             type="button"
             onClick={() => {
               onSectionChange("fans");
+              if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "fans" ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"

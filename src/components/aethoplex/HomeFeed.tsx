@@ -132,6 +132,7 @@ export function HomeFeed({
   activeSectionRef.current = section;
 
   const handleSetFilter = (newFilter: { type: FilterType; name: string } | null) => {
+    if (query) onQueryChange?.("");
     setActiveFilter(newFilter);
     setJaxSubFilter(null);
     if (newFilter && (newFilter.type === 'actor' || newFilter.type === 'studio')) {
@@ -153,6 +154,7 @@ export function HomeFeed({
   };
 
   const changeTaxType = (type: TaxonomyType) => {
+    if (query) onQueryChange?.("");
     setTaxType(type);
     setTaxSearch("");
   };
@@ -290,7 +292,10 @@ export function HomeFeed({
               return (
                 <button
                   key={t.id}
-                  onClick={() => setTab(t.id)}
+                  onClick={() => {
+                    if (query) onQueryChange?.("");
+                    setTab(t.id);
+                  }}
                   className={`shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold tracking-wide transition-all ${
                     active
                       ? "bg-white text-black shadow-lg"
@@ -457,6 +462,24 @@ export function HomeFeed({
                     <span>Random</span>
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Active search query banner with one-click dismiss */}
+            {query && (
+              <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-cyan-500/[0.08] border border-cyan-400/25 backdrop-blur-md">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xs text-white/50 shrink-0">Search query:</span>
+                  <span className="font-bold text-sm text-cyan-300 truncate">"{query}"</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onQueryChange?.("")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold shrink-0 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5 text-cyan-300" />
+                  <span>Clear Search</span>
+                </button>
               </div>
             )}
           </div>
@@ -654,7 +677,7 @@ export function HomeFeed({
           )}
         </div>
       ) : items.length > 0 ? (
-        <div ref={gridTopRef} className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 scroll-mt-20">
+        <div ref={gridTopRef} className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 scroll-mt-20">
           {items.map((item) => (
             <TileCard key={item.key} item={item} />
           ))}
