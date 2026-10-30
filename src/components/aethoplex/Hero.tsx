@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Sparkles, Clock } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { type CardModel } from "./PosterCard";
-import { extractCleanTitleAndDate, formatVideoDuration } from "@/lib/video-utils";
+import { extractCleanTitleAndDate } from "@/lib/video-utils";
 import { GeneratedArt } from "./GeneratedArt";
 
 export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
@@ -114,8 +114,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   };
 
   const isJax = (cur?.section || section) === "jax";
-  const { cleanTitle, originalYear } = extractCleanTitleAndDate(cur?.name || "", cur?.year);
-  const duration = formatVideoDuration(cur?.durationSeconds, cur?.name, cur?.id, cur?.section || section);
+  const { cleanTitle } = extractCleanTitleAndDate(cur?.name || "", cur?.year);
   const titleHref = `/title/${cur.section || section}/${encodeURIComponent(cur.slug || String(cur.id || cur.key))}`;
 
   // Mobile touch swipe support
@@ -185,7 +184,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
               FEATURED IN {section.toUpperCase()}
             </span>
 
-            {cur.code && (
+            {section !== "fans" && cur.code && (
               <span className="rounded-full bg-cyan-500/20 border border-cyan-400/40 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-black tracking-widest text-cyan-300 backdrop-blur-md">
                 {cur.code}
               </span>
@@ -196,34 +195,6 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           <h1 className="line-clamp-2 break-words text-lg sm:text-3xl md:text-4xl font-black leading-tight text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.9)]">
             {cleanTitle}
           </h1>
-
-          {/* Meta Line - cleaned: no rating, no upload date */}
-          <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-white/70">
-            {originalYear && <span className="font-semibold text-white/90">{originalYear}</span>}
-            {originalYear && <span className="text-white/30">•</span>}
-            <span className="flex items-center gap-1 rounded bg-black/60 px-2 py-0.5 text-[11px] font-bold text-white border border-white/10">
-              <Clock className="h-3 w-3 text-cyan-300" />
-              {duration}
-            </span>
-            <span className="text-white/30">•</span>
-            <span className="rounded bg-white/10 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase text-cyan-300 border border-white/10">1080p HD</span>
-            {cur.studios && cur.studios.length > 0 && (
-              <>
-                <span className="text-white/30">•</span>
-                <span className="text-white/80 font-medium truncate max-w-[150px]">
-                  {cur.studios[0]}
-                </span>
-              </>
-            )}
-            {cur.actors && cur.actors.length > 0 && (
-              <>
-                <span className="text-white/30">•</span>
-                <span className="text-pink-300 font-medium truncate max-w-[160px] sm:max-w-none">
-                  ✨ {cur.actors.slice(0, 2).join(", ")}
-                </span>
-              </>
-            )}
-          </div>
 
         </div>
 

@@ -97,7 +97,7 @@ export function Navbar({
           ) : (
             <>
               {/* Brand and Section Tabs */}
-              <div className="flex items-center gap-2.5 sm:gap-6 min-w-0">
+              <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:flex-none sm:gap-6">
                 <a
                   href="/xilust"
                   className="shrink-0 flex items-center"
@@ -105,20 +105,20 @@ export function Navbar({
                   <span className="hidden sm:inline-block">
                     <Wordmark size={28} />
                   </span>
-                  <span className="sm:hidden flex items-center gap-1.5">
+                  <span className="sm:hidden flex items-center">
                     <LogoMark size={26} />
-                    <span className="text-base font-black tracking-wider text-white">
+                    <span className="hidden text-base font-black tracking-wider text-white">
                       Xi<span className="bg-gradient-to-r from-pink-400 to-cyan-300 bg-clip-text text-transparent">Lust</span>
                     </span>
                   </span>
                 </a>
 
                 {/* Section Switcher Tabs */}
-                <div className="flex items-center p-0.5 sm:p-1 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-md">
+                <div className="flex min-w-0 flex-1 items-center justify-between p-0.5 sm:flex-none sm:justify-start sm:p-1 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-md">
                   <button
                     type="button"
                     onClick={() => onSectionChange("lust")}
-                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "lust"
+                    className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "lust"
                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-pink-500/20"
                         : "text-white/60 hover:text-white/90"
                       }`}
@@ -131,7 +131,7 @@ export function Navbar({
                   <button
                     type="button"
                     onClick={() => onSectionChange("jax")}
-                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "jax"
+                    className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "jax"
                         ? "bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-lg shadow-rose-500/20"
                         : "text-white/60 hover:text-white/90"
                       }`}
@@ -144,7 +144,7 @@ export function Navbar({
                   <button
                     type="button"
                     onClick={() => onSectionChange("fans")}
-                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "fans"
+                    className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "fans"
                         ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
                         : "text-white/60 hover:text-white/90"
                       }`}
@@ -157,7 +157,7 @@ export function Navbar({
               </div>
 
               {/* Search bar & My list */}
-              <div className="flex items-center gap-1.5 sm:gap-3">
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
                 {/* Desktop Search bar */}
                 <div className="hidden sm:block relative">
                   <div
@@ -202,12 +202,12 @@ export function Navbar({
                 <a
                   href="/#mylist"
                   aria-label="View saved list"
-                  className="flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-white/[0.05] border border-white/10 hover:border-white/20 text-xs font-medium text-white/80 hover:text-white transition-colors"
+                  className="flex h-9 w-9 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] px-0 text-xs font-medium text-white/80 transition-colors hover:border-white/20 sm:h-10 sm:w-auto sm:justify-start sm:px-3"
                 >
                   <Bookmark className="h-3.5 w-3.5 text-cyan-300" />
                   <span className="hidden md:inline">My List</span>
                   {listCount > 0 && (
-                    <span className="rounded-full bg-cyan-500/20 px-1.5 py-0.2 text-[10px] font-bold text-cyan-300">
+                    <span className="hidden rounded-full bg-cyan-500/20 px-1.5 py-0.2 text-[10px] font-bold text-cyan-300 sm:inline">
                       {listCount}
                     </span>
                   )}
