@@ -361,7 +361,7 @@ export function TileCard({ item }: { item: CardModel }) {
                 <span className="truncate max-w-[80px] sm:max-w-[120px]">{formatStudioLabel(item.studios[0])}</span>
               </>
             )}
-            {item.sourcesCount && item.sourcesCount > 0 && (
+            {Boolean(item.sourcesCount && item.sourcesCount > 0) && (
               <>
                 <span className="text-white/20 hidden xs:inline">·</span>
                 <span className="text-cyan-400 font-medium hidden xs:inline">{item.sourcesCount} Mirrors</span>
