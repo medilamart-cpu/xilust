@@ -20,12 +20,68 @@ function toDirectEmbedUrl(url: string): string {
     return clean.replace(/\/f\//i, "/e/");
   }
 
+  // Kamehamehaa: /v/ID -> /embed/ID
+  if (/kamehamehaa\.xyz\/v\/([A-Za-z0-9_-]+)/i.test(clean)) {
+    return clean.replace(/\/v\//i, "/embed/");
+  }
+
+  // Kamehaus: /v/ID -> /e/ID
+  if (/kamehaus\.net\/v\/([A-Za-z0-9_-]+)/i.test(clean)) {
+    return clean.replace(/\/v\//i, "/e/");
+  }
+
+  // StreamSB (sbthe, streamsb, tubesb, sbcloud): /d/ or /v/ -> /e/
+  if (/(?:sbthe|streamsb|tubesb|sbcloud|sbembed|cloudemb)\.[a-z0-9]+\/(?:d|v)\/([A-Za-z0-9_.-]+)/i.test(clean)) {
+    return clean.replace(/\/(?:d|v)\//i, "/e/");
+  }
+
+  // Filemoon: /d/ID -> /e/ID
+  if (/filemoon\.[a-z0-9]+\/d\/([A-Za-z0-9_-]+)/i.test(clean)) {
+    return clean.replace(/\/d\//i, "/e/");
+  }
+
+  // VOE: /d/ID -> /e/ID
+  if (/(?:voe\.sx|jamespatterncamera\.com)\/d\/([A-Za-z0-9_-]+)/i.test(clean)) {
+    return clean.replace(/\/d\//i, "/e/");
+  }
+
   // Doodstream / Playmogo: /d/ID -> /e/ID
   if (/(?:dood|playmogo|ds2play|d000d|do0od)\.[a-z0-9]+\/d\/([A-Za-z0-9_-]+)/i.test(clean)) {
     return clean.replace(/\/d\//i, "/e/");
   }
 
   return clean;
+}
+
+function isCleanStreamSupported(url: string): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  const supportedKeywords = [
+    "kamehaus",
+    "kamehameha",
+    "kame.upns",
+    "vidara",
+    "sugbaioug",
+    "streamtape",
+    "streamta.pe",
+    "strtape",
+    "mixdrop",
+    "mxdrop",
+    "voe",
+    "javlesbians",
+    "dood",
+    "playmogo",
+    "streamhihi",
+    "lulu",
+    "maxstream",
+    "vide0",
+    "javclan",
+    "jolly",
+    "molly",
+    "hornyleak",
+    "hdplayer"
+  ];
+  return supportedKeywords.some((k) => lower.includes(k));
 }
 
 function serverIdentity(source: { label?: string; host?: string }, section: CatalogItem["section"]) {
@@ -133,11 +189,30 @@ export function TitleWatchClient({
   const activeSource = sources[activeIdx];
   const targetUrl = activeSource?.url || activeSource?.embed_url || "";
 
+  // Auto-switch to direct mode if targetUrl is unsupported by CleanStream
+  useEffect(() => {
+    if (targetUrl && !isCleanStreamSupported(targetUrl)) {
+      setPlayerMode("direct");
+    }
+  }, [targetUrl]);
+
+  // Listen for fallback messages from CleanStream iframe
+  useEffect(() => {
+    const handleMsg = (e: MessageEvent) => {
+      if (e.data && (e.data.type === "CLEANSTREAM_FALLBACK_DIRECT" || e.data.type === "CLEANSTREAM_ERROR")) {
+        console.warn("CleanStream requested fallback to direct mode.");
+        setPlayerMode("direct");
+      }
+    };
+    window.addEventListener("message", handleMsg);
+    return () => window.removeEventListener("message", handleMsg);
+  }, []);
+
   // Build embed URL
   const embedUrl = useMemo(() => {
     if (!targetUrl) return "";
     const directEmbed = toDirectEmbedUrl(targetUrl);
-    if (playerMode === "direct") {
+    if (playerMode === "direct" || !isCleanStreamSupported(targetUrl)) {
       return directEmbed;
     }
     // CleanStream ad-free player with unmuted audio enabled (&autoplay=1&muted=0)
@@ -154,8 +229,14 @@ export function TitleWatchClient({
     setPlayerLoading(true);
     playerTimeoutRef.current = window.setTimeout(() => {
       setPlayerLoading(false);
-      setPlayerError(true);
-    }, 20000);
+      if (playerMode === "clean") {
+        // Automatic fallback to Direct Version if CleanStream takes > 10s
+        console.warn("CleanStream timeout reached. Auto-falling back to Direct Version.");
+        setPlayerMode("direct");
+      } else {
+        setPlayerError(true);
+      }
+    }, 10000);
 
     return () => {
       if (playerTimeoutRef.current !== null) {
@@ -163,7 +244,7 @@ export function TitleWatchClient({
         playerTimeoutRef.current = null;
       }
     };
-  }, [embedUrl, key]);
+  }, [embedUrl, key, playerMode]);
 
   const handleEmbedLoaded = () => {
     if (playerTimeoutRef.current !== null) {
