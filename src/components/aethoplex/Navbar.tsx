@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Search, Flame, Bookmark, X, User as UserIcon } from "lucide-react";
+import { Search, Flame, Bookmark, X, User as UserIcon, FolderHeart } from "lucide-react";
 import { Wordmark, LogoMark } from "./Logo";
 import { useAuth } from "@/lib/auth-context";
 
@@ -237,6 +237,20 @@ export function Navbar({
                       {listCount}
                     </span>
                   )}
+                </a>
+
+                {/* Playlists shortcut */}
+                <a
+                  href="/playlists"
+                  onClick={() => {
+                    setMobileSearchOpen(false);
+                    if (query) onQueryChange("");
+                  }}
+                  aria-label="View playlists"
+                  className="hidden md:flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] border border-white/5 px-2.5 sm:px-3 text-xs font-medium text-white/80 transition-colors hover:border-purple-500/30 hover:bg-white/[0.08]"
+                >
+                  <FolderHeart className="h-3.5 w-3.5 text-purple-400" />
+                  <span className="hidden lg:inline">Playlists</span>
                 </a>
 
                 {/* Profile / Sign In shortcut */}

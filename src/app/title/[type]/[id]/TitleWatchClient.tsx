@@ -408,7 +408,7 @@ export function TitleWatchClient({
 
             <AddToPlaylistModal
               item={{
-                id: item.id,
+                id: String(item.id),
                 title: item.title,
                 slug: item.slug,
                 section: item.section,

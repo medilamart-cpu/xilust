@@ -3,16 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User, MessageSquare, Bookmark, LogOut, Settings, Sparkles, Shield, Calendar, Film } from "lucide-react";
+import { ArrowLeft, User, MessageSquare, Bookmark, LogOut, Settings, Sparkles, Shield, Calendar, Film, FolderHeart, Plus, Play, ExternalLink } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { getPlaylists, Playlist } from "@/lib/playlists";
 
 const AVATAR_OPTIONS = ["💋", "👑", "⚡", "🌸", "🔥", "💎", "🐉", "🦊", "⭐", "🖤"];
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, logout, updateAvatar, updateUsername } = useAuth();
-  const [activeTab, setActiveTab] = useState<"saved" | "comments" | "settings">("saved");
+  const [activeTab, setActiveTab] = useState<"saved" | "playlists" | "comments" | "settings">("saved");
   const [bookmarkedItems, setBookmarkedItems] = useState<any[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [myComments, setMyComments] = useState<any[]>([]);
   const [newUsername, setNewUsername] = useState("");
   const [savedNotice, setSavedNotice] = useState(false);
@@ -23,7 +25,7 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  // Load user bookmarks & comments
+  // Load user bookmarks, playlists & comments
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -31,6 +33,7 @@ export default function ProfilePage() {
         if (rawList) {
           setBookmarkedItems(JSON.parse(rawList));
         }
+        setPlaylists(getPlaylists());
         const rawComments = localStorage.getItem("xilust_my_comments_history");
         if (rawComments) {
           setMyComments(JSON.parse(rawComments));
@@ -139,6 +142,11 @@ export default function ProfilePage() {
               </div>
               <div className="w-px h-8 bg-white/10" />
               <div className="text-center px-3">
+                <div className="text-lg font-black text-purple-300">{playlists.length}</div>
+                <div className="text-[10px] uppercase font-bold text-white/40">Playlists</div>
+              </div>
+              <div className="w-px h-8 bg-white/10" />
+              <div className="text-center px-3">
                 <div className="text-lg font-black text-pink-300">{myComments.length}</div>
                 <div className="text-[10px] uppercase font-bold text-white/40">Comments</div>
               </div>
@@ -147,10 +155,10 @@ export default function ProfilePage() {
         </div>
 
         {/* Tab Selector */}
-        <div className="mt-8 flex items-center gap-2 border-b border-white/10 pb-4">
+        <div className="mt-8 flex items-center gap-2 border-b border-white/10 pb-4 overflow-x-auto">
           <button
             onClick={() => setActiveTab("saved")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "saved"
                 ? "bg-white text-black shadow-lg"
                 : "text-white/60 hover:text-white hover:bg-white/5"
@@ -161,8 +169,20 @@ export default function ProfilePage() {
           </button>
 
           <button
+            onClick={() => setActiveTab("playlists")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              activeTab === "playlists"
+                ? "bg-white text-black shadow-lg"
+                : "text-white/60 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <FolderHeart className="h-3.5 w-3.5 text-purple-400" />
+            <span>My Playlists ({playlists.length})</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("comments")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "comments"
                 ? "bg-white text-black shadow-lg"
                 : "text-white/60 hover:text-white hover:bg-white/5"
@@ -174,7 +194,7 @@ export default function ProfilePage() {
 
           <button
             onClick={() => setActiveTab("settings")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "settings"
                 ? "bg-white text-black shadow-lg"
                 : "text-white/60 hover:text-white hover:bg-white/5"
@@ -242,7 +262,69 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Tab 2: Comments History */}
+        {/* Tab 2: Custom Playlists */}
+        {activeTab === "playlists" && (
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-white/50">
+                Organize your custom collections, late-night picks, and favorite series.
+              </p>
+              <Link
+                href="/playlists"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/30 border border-purple-500/40 text-xs font-bold text-purple-200 hover:bg-purple-600/50 transition-all"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Create / Manage</span>
+              </Link>
+            </div>
+
+            {playlists.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {playlists.map((pl) => (
+                  <Link
+                    key={pl.id}
+                    href="/playlists"
+                    className="group flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/[0.03] hover:border-purple-500/50 hover:bg-white/[0.06] transition-all shadow-md"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 text-2xl border border-white/10 group-hover:scale-105 transition-transform">
+                        {pl.emoji || "🎬"}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-white truncate group-hover:text-purple-300 transition-colors">
+                          {pl.name}
+                        </h4>
+                        <p className="text-xs text-white/40">
+                          {pl.items.length} {pl.items.length === 1 ? "video" : "videos"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-purple-400 group-hover:bg-purple-500/20 transition-all">
+                      <Play className="h-3.5 w-3.5 fill-current" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
+                <FolderHeart className="h-8 w-8 text-purple-400/40 mx-auto mb-2" />
+                <p className="text-sm font-semibold text-white/70">No playlists created yet</p>
+                <p className="text-xs text-white/40 mt-1 max-w-sm mx-auto">
+                  Create custom playlists with your own emoji icons to group your favorite videos.
+                </p>
+                <Link
+                  href="/playlists"
+                  className="inline-flex mt-4 items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 text-xs font-bold text-white hover:bg-purple-500 shadow-lg shadow-purple-600/30"
+                >
+                  Create First Playlist
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: Comments History */}
         {activeTab === "comments" && (
           <div className="mt-6 space-y-3">
             {myComments.length > 0 ? (
