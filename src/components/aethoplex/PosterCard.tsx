@@ -352,7 +352,7 @@ export function TileCard({ item }: { item: CardModel }) {
       {/* Info footer with consistent title height and relative upload time */}
       <div className="mt-2 sm:mt-2.5 flex items-start justify-between gap-1.5 sm:gap-2">
         <Link href={href} className="flex-1 min-w-0">
-          <div className="min-h-[2.6rem] sm:min-h-[2.85rem] flex items-start">
+          <div className={`${isFans ? "min-h-0" : "min-h-[2.1rem] sm:min-h-[2.35rem]"} flex items-start`}>
             <p
               title={cleanTitle}
               className="line-clamp-2 text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300"
@@ -361,13 +361,19 @@ export function TileCard({ item }: { item: CardModel }) {
             </p>
           </div>
           <p className="mt-0.5 flex flex-wrap items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-white/50">
-            {relativeUploadTime && <span>{relativeUploadTime}</span>}
             {!isFans && item.studios && item.studios.length > 0 && (
               <>
+                <span
+                  className={`truncate max-w-[85px] sm:max-w-[125px] font-semibold tracking-wide ${
+                    isJax ? "text-pink-400 hover:text-pink-300" : "text-sky-400 hover:text-sky-300"
+                  }`}
+                >
+                  {formatStudioLabel(item.studios[0])}
+                </span>
                 {relativeUploadTime && <span className="text-white/20">·</span>}
-                <span className="truncate max-w-[80px] sm:max-w-[120px]">{formatStudioLabel(item.studios[0])}</span>
               </>
             )}
+            {relativeUploadTime && <span>{relativeUploadTime}</span>}
             {Boolean(item.sourcesCount && item.sourcesCount > 0) && (
               <>
                 <span className="text-white/20 hidden xs:inline">·</span>
