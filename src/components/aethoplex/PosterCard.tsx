@@ -226,7 +226,7 @@ export function TileCard({ item }: { item: CardModel }) {
     item.tags
   );
 
-  const { cleanTitle } = extractCleanTitleAndDate(rawName, item.year);
+  const { cleanTitle } = extractCleanTitleAndDate(rawName, item.year, item.section);
   const relativeUploadTime = formatRelativeUploadTime(item.uploadedAt || (item as any).published_at);
 
   const isFans = item.section === "fans";

@@ -55,7 +55,7 @@ export default async function TitlePage({
   const cleanstreamUrl =
     process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
   
-  const { cleanTitle, originalYear, originalDate } = extractCleanTitleAndDate(item.title, item.year);
+  const { cleanTitle, originalYear, originalDate } = extractCleanTitleAndDate(item.title, item.year, section);
   const duration = formatVideoDuration(item.duration_seconds, item.title, item.id, section, item.categories, item.tags);
   const uploadDate = formatUploadDate(item.published_at);
   const jaxRating = section === "jax" ? Math.round(((item.views % 30) / 10 + 7.0) * 10) / 10 : null;

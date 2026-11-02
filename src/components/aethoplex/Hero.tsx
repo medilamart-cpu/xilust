@@ -149,7 +149,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
 
   const isJax = (cur?.section || section) === "jax";
   const rawHeroName = cur?.name || (cur as any)?.title || "";
-  const { cleanTitle } = extractCleanTitleAndDate(rawHeroName, cur?.year);
+  const { cleanTitle } = extractCleanTitleAndDate(rawHeroName, cur?.year, cur?.section || section);
   const titleHref = `/title/${cur?.section || section}/${encodeURIComponent(cur?.slug || String(cur?.id || cur?.key || ""))}`;
 
   // Mobile touch swipe support

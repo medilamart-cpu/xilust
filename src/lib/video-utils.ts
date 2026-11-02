@@ -105,12 +105,24 @@ export function formatUploadDate(timestamp?: string | null): string | null {
   }).format(date);
 }
 
-/** Clean title string and extract actual original release date */
-export function extractCleanTitleAndDate(rawTitle: string, rawYear?: number | null) {
+/** Clean title string, strip redundant studio names, and extract actual original release date */
+export function extractCleanTitleAndDate(rawTitle: string, rawYear?: number | null, section?: string) {
   let title = rawTitle || "";
 
   // Clean decoded question marks like ??? in JAV titles
   title = title.replace(/\?{2,}/g, "—").replace(/â€“/g, "–").replace(/â€œ|â€/g, '"');
+
+  // Strip leading studio names in brackets e.g. [ATKGirlfriends], [PornFidelity], [TagTeamPOV]
+  // In lust / fans, all leading bracketed tags represent studio/site tags.
+  // In jax, preserve JAV video codes (e.g. [JUL-627], [KV-323], [FC2-PPV-...]) and censor badges.
+  const sec = (section || "").toLowerCase();
+  if (sec === "lust" || sec === "fans") {
+    title = title.replace(/^\s*\[[^\]]+\]\s*/, "");
+  } else if (sec === "jax") {
+    title = title.replace(/^\s*\[(?![A-Z0-9]{2,10}-\d+|Decensored|Uncensored|FC2|VR|4K)[^\]]+\]\s*/i, "");
+  } else {
+    title = title.replace(/^\s*\[(?![A-Z0-9]{2,10}-\d+|Decensored|Uncensored|FC2|VR|4K)[^\]]+\]\s*/i, "");
+  }
 
   // Look for date in title e.g. / 10.24.2026 or (2018) or 2014.05.12
   let originalDate: string | null = null;
@@ -142,7 +154,11 @@ export function extractCleanTitleAndDate(rawTitle: string, rawYear?: number | nu
   title = title
     .replace(/\b(?:19|20)\d{2}\b/g, " ")
     .replace(/[([]\s*[)\]]/g, " ")
-    .replace(/\s*\/\s*(?=[),]|$)/g, " ")
+    .replace(/\s*\/\s*(?=[)\]]|$)/g, " ")
+    .replace(/\(\s+/g, "(")
+    .replace(/\s+\)/g, ")")
+    .replace(/\[\s+/g, "[")
+    .replace(/\s+\]/g, "]")
     .replace(/\s{2,}/g, " ")
     .trim();
 
