@@ -194,6 +194,8 @@ export function TileCard({ item }: { item: CardModel }) {
   const handleImgError = () => {
     if (imgSrc && imgSrc !== fallbackThumb && fallbackThumb) {
       setImgSrc(fallbackThumb);
+    } else if (item.slug && imgSrc && !imgSrc.endsWith(`/${item.slug}.webp`)) {
+      setImgSrc(`https://xithumbs.duckdns.org/${item.slug}.webp`);
     } else {
       setImageLoaded(false);
       setImgError(true);

@@ -32,8 +32,9 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
     }
     setImgError(false);
 
-    // For JAX and Lust, always feature newest releases so old titles never get featured
-    fetch(`/api/catalog?section=${section}&tab=new&limit=6`, {
+    // For Lust feature the top trending leaderboards; for JAX feature newest releases
+    const heroTab = section === "lust" ? "trending" : "new";
+    fetch(`/api/catalog?section=${section}&tab=${heroTab}&limit=6`, {
       signal: controller.signal,
     })
       .then((r) => r.json())
@@ -141,6 +142,8 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   const handleHeroImgError = () => {
     if (imgSrc && imgSrc !== fallbackHeroThumb && fallbackHeroThumb) {
       setImgSrc(fallbackHeroThumb);
+    } else if (cur?.slug && imgSrc && !imgSrc.endsWith(`/${cur.slug}.webp`)) {
+      setImgSrc(`https://xithumbs.duckdns.org/${cur.slug}.webp`);
     } else {
       setImageLoaded(false);
       setImgError(true);
