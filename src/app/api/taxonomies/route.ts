@@ -120,9 +120,7 @@ export async function GET(req: NextRequest) {
 
     let items = await getTaxonomies(section, type, type === "category" ? limit + 80 : limit, search);
 
-    // Fans records currently have no performer metadata; the upstream Fans
-    // taxonomy endpoint incorrectly aliases tags into its actor response.
-    if (section === "fans" && type === "actor") items = [];
+    // Fans section only suppresses studios (since creators are independent)
     if (section === "fans" && type === "studio") items = [];
 
     // Keep category, studio, and cast vocabularies distinct within each section.

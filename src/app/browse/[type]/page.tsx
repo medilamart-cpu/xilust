@@ -30,7 +30,7 @@ export default async function TaxonomyIndexPage({
   const type = rawType as TaxonomyType;
   const section = rawSection === "jax" || rawSection === "fans" ? rawSection : "lust";
   const pageTitle = type === "actor" ? (section === "jax" ? "Actresses" : section === "fans" ? "Creators" : "Pornstars") : titles[type];
-  let items = section === "fans" && (type === "actor" || type === "studio") ? [] : await getTaxonomies(section, type, 100, q);
+  let items = section === "fans" && type === "studio" ? [] : await getTaxonomies(section, type, 100, q);
   if (type === "category") {
     const [studios, actors] = await Promise.all([
       section === "fans" ? Promise.resolve([] as TaxonomyItem[]) : getTaxonomies(section, "studio", 500),
@@ -82,11 +82,16 @@ export default async function TaxonomyIndexPage({
         </form>
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {featured.map(({ entry, video }) => {
-            const image = video ? getCatalogThumbnailUrls(video, process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org") : { posterUrl: null, fallbackUrl: null };
+            const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
+            const creatorAvatar = section === "fans" && type === "actor" ? `${vpsBase}/thumbs/fans/models/${entry.slug}.webp` : null;
+            const image = video ? getCatalogThumbnailUrls(video, vpsBase) : { posterUrl: null, fallbackUrl: null };
+            const primaryPoster = creatorAvatar || image.posterUrl;
+            const fallbackPoster = creatorAvatar ? (image.posterUrl || image.fallbackUrl) : image.fallbackUrl;
+
             return (
               <Link key={entry.id} href={"/browse/" + type + "/" + encodeURIComponent(entry.slug) + "?section=" + section + "&name=" + encodeURIComponent(entry.name)} className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] transition hover:border-cyan-300/35 hover:bg-white/[0.06]">
                 <div className="relative aspect-video overflow-hidden bg-[#111620]">
-                  {image.posterUrl || image.fallbackUrl ? <TaxonomyThumbnail src={image.posterUrl} fallbackSrc={image.fallbackUrl} alt="" fallbackLabel={entry.name} /> : <div className="flex h-full items-center justify-center text-2xl text-white/30">{entry.name.slice(0, 1).toUpperCase()}</div>}
+                  {primaryPoster || fallbackPoster ? <TaxonomyThumbnail src={primaryPoster} fallbackSrc={fallbackPoster} alt="" fallbackLabel={entry.name} /> : <div className="flex h-full items-center justify-center text-2xl text-white/30">{entry.name.slice(0, 1).toUpperCase()}</div>}
                   <span className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] text-white/70">{entry.count.toLocaleString()} videos</span>
                 </div>
                 <div className="flex min-h-12 items-center justify-between gap-2 px-3 py-2">
