@@ -210,9 +210,16 @@ export function TitleWatchClient({
             src={embedUrl}
             title={item.title}
             className="absolute inset-0 h-full w-full border-0 object-contain"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allow="accelerometer; autoplay *; clipboard-write; encrypted-media *; gyroscope; picture-in-picture *; fullscreen *"
             allowFullScreen
-            onLoad={handleEmbedLoaded}
+            onLoad={(e) => {
+              handleEmbedLoaded();
+              try {
+                const el = e.currentTarget;
+                el.setAttribute("webkitallowfullscreen", "true");
+                el.setAttribute("mozallowfullscreen", "true");
+              } catch (_) {}
+            }}
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
