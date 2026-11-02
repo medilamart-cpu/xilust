@@ -158,10 +158,10 @@ export default async function TaxonomyIndexPage({
             )}
           </form>
         {isActor ? (
-          /* Models layout: portrait cards for JAX & Lust, horizontal cards for Fans */
+          /* Models layout: vertical full-length portrait cards for Fans, standard portrait for JAX & Lust */
           <div className={`mt-6 grid gap-3 sm:gap-4 ${
             section === "fans"
-              ? "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+              ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
               : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
           }`}>
             {featured.map(({ entry, video }) => {
@@ -174,7 +174,7 @@ export default async function TaxonomyIndexPage({
               return (
                 <Link key={entry.id} href={"/browse/" + type + "/" + encodeURIComponent(entry.slug) + "?section=" + section + "&name=" + encodeURIComponent(entry.name)} className={"group overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] transition " + cardBorderHover}>
                   <div className={`relative overflow-hidden bg-gradient-to-b from-[#12161f] to-[#0b0e14] ${
-                    section === "fans" ? "aspect-[16/10] sm:aspect-[4/3]" : "aspect-[3/4]"
+                    section === "fans" ? "aspect-[9/16]" : "aspect-[3/4]"
                   }`}>
                     {primaryPoster || fallbackPoster ? (
                       <TaxonomyThumbnail src={primaryPoster} fallbackSrc={fallbackPoster} alt="" fallbackLabel={entry.name} />

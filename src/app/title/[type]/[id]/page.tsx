@@ -46,13 +46,71 @@ export default async function TitlePage({
     );
   }
 
-  // Get similar recommendations from the same category or studio
+  // Get similar recommendations from the same category, actor, or section (18+ videos)
   const category = item.categories[0];
-  const { items: recs } = await queryItems({
-    section,
-    category: category || undefined,
-    limit: 8,
-  }).catch(() => ({ items: [], total: 0 }));
+  const actor = item.actors[0];
+  const studio = item.studios[0];
+
+  let recPool: any[] = [];
+  if (category) {
+    const catRes = await queryItems({
+      section,
+      category,
+      limit: 24,
+    }).catch(() => ({ items: [] }));
+    recPool = catRes.items || [];
+  }
+
+  // Supplement with same model/actor if fewer than 20
+  if (recPool.length < 20 && actor) {
+    const cleanActor = actor.replace(/\s+[a-f0-9]{10,}$/i, "").trim();
+    const actorRes = await queryItems({
+      section,
+      actor: cleanActor,
+      limit: 20,
+    }).catch(() => ({ items: [] }));
+    const ids = new Set(recPool.map((r) => r.id));
+    for (const it of actorRes.items || []) {
+      if (!ids.has(it.id)) {
+        recPool.push(it);
+        ids.add(it.id);
+      }
+    }
+  }
+
+  // Supplement with same studio if still fewer than 20
+  if (recPool.length < 20 && studio && section !== "fans") {
+    const studioRes = await queryItems({
+      section,
+      studio,
+      limit: 20,
+    }).catch(() => ({ items: [] }));
+    const ids = new Set(recPool.map((r) => r.id));
+    for (const it of studioRes.items || []) {
+      if (!ids.has(it.id)) {
+        recPool.push(it);
+        ids.add(it.id);
+      }
+    }
+  }
+
+  // Fill with latest popular releases from the same section if still fewer than 20
+  if (recPool.length < 20) {
+    const latestRes = await queryItems({
+      section,
+      limit: 24,
+    }).catch(() => ({ items: [] }));
+    const ids = new Set(recPool.map((r) => r.id));
+    for (const it of latestRes.items || []) {
+      if (!ids.has(it.id)) {
+        recPool.push(it);
+        ids.add(it.id);
+      }
+    }
+  }
+
+  // Exclude current video and take 18 recommendations
+  const recs = recPool.filter((r) => r.id !== item.id && r.slug !== item.slug).slice(0, 18);
 
   const cleanstreamUrl =
     process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
@@ -275,8 +333,8 @@ export default async function TitlePage({
         {recs.length > 0 && (
           <div className="mt-12 sm:mt-16 border-t border-white/10 pt-8 sm:pt-10">
             <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">More Like This</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-              {recs.slice(0, 4).map((rec) => {
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+              {recs.map((rec) => {
                 const vpsBase =
                   process.env.NEXT_PUBLIC_THUMBS_CDN ||
                   "https://xithumbs.duckdns.org";

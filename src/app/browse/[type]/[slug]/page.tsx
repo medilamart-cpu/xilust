@@ -126,10 +126,10 @@ export default async function TaxonomyDetailPage({
           {/* Profile / Studio Header */}
           {type === "actor" ? (
             <div className="relative mt-6 flex flex-col items-center text-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.05] via-white/[0.02] to-transparent p-6 sm:p-10 backdrop-blur-xl shadow-2xl">
-              {/* Center Model Portrait (horizontal for fans, portrait card for jax/lust) */}
+              {/* Center Model Portrait (vertical full-length for fans, portrait card for jax/lust) */}
               <div className={`relative overflow-hidden border-2 border-white/20 bg-gradient-to-b from-[#181d27] to-[#0b0e14] shadow-2xl ring-4 ring-white/5 ${
                 section === "fans"
-                  ? "w-64 sm:w-80 md:w-96 aspect-[16/10] rounded-2xl"
+                  ? "w-44 sm:w-56 md:w-64 aspect-[9/16] rounded-2xl"
                   : "w-36 h-48 sm:w-44 sm:h-56 md:w-52 md:h-64 rounded-2xl"
               }`}>
                 {profileImage || profileFallback ? (

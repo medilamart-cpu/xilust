@@ -21,7 +21,7 @@ export function TaxonomyThumbnail({
       src={currentSrc}
       alt={alt}
       loading="lazy"
-      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+      className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-105"
       onError={() => {
         if (fallbackSrc && currentSrc !== fallbackSrc) setCurrentSrc(fallbackSrc);
         else setCurrentSrc(null);

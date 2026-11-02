@@ -184,22 +184,62 @@ export function TileCard({ item }: { item: CardModel }) {
   // Video Preview & Timeline scrubber states
   const [isHovered, setIsHovered] = useState(false);
 
+  const [retryCount, setRetryCount] = useState(0);
+
   useEffect(() => {
     setImgSrc(resolveThumb());
     setImgError(false);
     setImageLoaded(false);
+    setRetryCount(0);
   }, [item.backdropUrl, item.posterUrl, item.fallbackUrl, (item as any).thumbnail_url, (item as any).cover_url]);
 
   const fallbackThumb = item.fallbackUrl || (item as any).cover_url || null;
 
   const handleImgError = () => {
-    if (imgSrc && imgSrc !== fallbackThumb && fallbackThumb) {
-      setImgSrc(fallbackThumb);
-    } else if (item.slug && imgSrc && !imgSrc.endsWith(`/${item.slug}.webp`)) {
-      setImgSrc(`https://xithumbs.duckdns.org/${item.slug}.webp`);
-    } else {
-      setImageLoaded(false);
+    if (retryCount >= 2) {
       setImgError(true);
+      setImageLoaded(true);
+      return;
+    }
+
+    setRetryCount((c) => c + 1);
+
+    // Fans section: check VPS fans thumb first
+    if (item.section === "fans") {
+      if (item.slug && imgSrc && !imgSrc.includes(`/thumbs/fans/${item.slug}.webp`)) {
+        setImgSrc(`${vpsBase}/thumbs/fans/${item.slug}.webp`);
+        return;
+      }
+      if (fallbackThumb && imgSrc !== fallbackThumb) {
+        setImgSrc(fallbackThumb);
+        return;
+      }
+      setImgError(true);
+      setImageLoaded(true);
+      return;
+    }
+
+    // Lust section
+    if (item.section === "lust") {
+      if (item.slug && imgSrc && !imgSrc.endsWith(`/${item.slug}.webp`)) {
+        setImgSrc(`${vpsBase}/${item.slug}.webp`);
+        return;
+      }
+      if (fallbackThumb && imgSrc !== fallbackThumb) {
+        setImgSrc(fallbackThumb);
+        return;
+      }
+      setImgError(true);
+      setImageLoaded(true);
+      return;
+    }
+
+    // Other / JAX
+    if (fallbackThumb && imgSrc !== fallbackThumb) {
+      setImgSrc(fallbackThumb);
+    } else {
+      setImgError(true);
+      setImageLoaded(true);
     }
   };
 
@@ -264,8 +304,8 @@ export function TileCard({ item }: { item: CardModel }) {
         >
           {art ? (
             <>
-              {!imageLoaded && (
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0d1017] animate-pulse motion-reduce:animate-none pointer-events-none transition-opacity duration-300">
+              {!imageLoaded && !imgError && (
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/40 via-slate-900 to-[#0d1017] pointer-events-none transition-opacity duration-300">
                   <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
                 </div>
               )}
