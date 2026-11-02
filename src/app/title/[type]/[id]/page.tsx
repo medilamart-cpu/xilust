@@ -134,13 +134,22 @@ export default async function TitlePage({
                 <div className="flex flex-wrap gap-2">
                   {item.actors.map((actor, idx) => {
                     const cleanActor = actor.replace(/\s+[a-f0-9]{10,}$/i, "").trim();
+                    const actorSlug = cleanActor.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "performer";
+                    const isJax = section === "jax";
+                    const isFans = section === "fans";
                     return (
                       <Link
                         key={idx}
-                        href={`/?section=${section}&actor=${encodeURIComponent(cleanActor)}`}
-                        className="rounded-lg bg-pink-500/15 border border-pink-500/30 px-3 py-1.5 text-xs font-medium text-pink-200 hover:bg-pink-500/30 transition-all active:scale-95 flex items-center gap-1.5"
+                        href={`/browse/actor/${encodeURIComponent(actorSlug)}?section=${section}&name=${encodeURIComponent(cleanActor)}`}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all active:scale-95 flex items-center gap-1.5 ${
+                          isJax
+                            ? "bg-pink-500/15 border border-pink-500/30 text-pink-200 hover:bg-pink-500/30"
+                            : isFans
+                              ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-200 hover:bg-cyan-500/30"
+                              : "bg-purple-500/15 border border-purple-500/30 text-purple-200 hover:bg-purple-500/30"
+                        }`}
                       >
-                        <span>🌸</span>
+                        <span>{isJax ? "🌸" : isFans ? "⭐" : "✨"}</span>
                         <span>{cleanActor}</span>
                       </Link>
                     );

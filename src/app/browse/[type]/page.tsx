@@ -27,9 +27,21 @@ export default async function TaxonomyIndexPage({
   const { type: rawType } = await params;
   const { section: rawSection, q = "" } = await searchParams;
   if (!["category", "actor", "studio", "tag"].includes(rawType)) notFound();
-  const type = rawType as TaxonomyType;
-  const section = rawSection === "jax" || rawSection === "fans" ? rawSection : "lust";
-  const pageTitle = type === "actor" ? (section === "jax" ? "Actresses" : section === "fans" ? "Creators" : "Pornstars") : titles[type];
+  const isActor = type === "actor";
+  const pageTitle = isActor
+    ? (section === "jax" ? "AV Actresses & Idols" : section === "fans" ? "Creators & Leaks" : "Pornstars & Models")
+    : titles[type];
+  const sectionBadge = isActor
+    ? (section === "jax" ? "🌸 JAX AV IDOLS" : section === "fans" ? "⭐ VERIFIED CREATORS" : "🔥 WESTERN MODELS")
+    : section.toUpperCase();
+  const pageSubtitle = isActor
+    ? (section === "jax"
+        ? "Browse Japanese adult video performers, exclusive idol debuts, and full video series."
+        : section === "fans"
+          ? "Browse verified creator profiles, OnlyFans leaks, and premium video channels."
+          : "Browse top-ranked Western pornstars, studio models, and complete scene filmographies.")
+    : `Browse ${pageTitle.toLowerCase()} and recent releases.`;
+
   let items = section === "fans" && type === "studio" ? [] : await getTaxonomies(section, type, 100, q);
   if (type === "category") {
     const [studios, actors] = await Promise.all([
@@ -41,7 +53,9 @@ export default async function TaxonomyIndexPage({
     const separateNames = new Set([...knownStudios.map(normalize), ...studios.map((item) => normalize(item.name)), ...actors.map((item) => normalize(item.name))]);
     items = items.filter((item) => !separateNames.has(normalize(item.name || item.slug || "")));
   }
-  const previews = await Promise.all(items.slice(0, 12).map(async (entry: TaxonomyItem) => {
+
+  // Fetch preview images for up to 48 performers/entries
+  const previews = await Promise.all(items.slice(0, 48).map(async (entry: TaxonomyItem) => {
     const result = await queryItems({
       section,
       limit: 1,
@@ -55,6 +69,19 @@ export default async function TaxonomyIndexPage({
   }));
   const previewBySlug = new Map(previews);
   const featured = items.map((entry) => ({ entry, video: previewBySlug.get(entry.slug) }));
+
+  const activePillStyle = (brand: string) => {
+    if (section !== brand) return "border-white/10 bg-white/[0.03] text-white/55 hover:text-white";
+    if (brand === "jax") return "border-pink-500/50 bg-pink-500/20 text-pink-100 shadow-md shadow-pink-500/20";
+    if (brand === "fans") return "border-cyan-400/50 bg-cyan-400/20 text-cyan-100 shadow-md shadow-cyan-500/20";
+    return "border-purple-500/50 bg-purple-500/20 text-purple-100 shadow-md shadow-purple-500/20";
+  };
+
+  const cardBorderHover = section === "jax"
+    ? "hover:border-pink-400/50 hover:shadow-[0_8px_24px_rgba(244,114,182,0.18)]"
+    : section === "fans"
+      ? "hover:border-cyan-400/50 hover:shadow-[0_8px_24px_rgba(6,182,212,0.18)]"
+      : "hover:border-purple-400/50 hover:shadow-[0_8px_24px_rgba(168,85,247,0.18)]";
 
   return (
     <main className="min-h-screen bg-[#080a0f] px-3 py-8 pb-20 text-[#f4f5f8] sm:px-6 sm:py-12 lg:px-8">

@@ -119,9 +119,20 @@ export function extractCleanTitleAndDate(rawTitle: string, rawYear?: number | nu
   if (sec === "lust" || sec === "fans") {
     title = title.replace(/^\s*\[[^\]]+\]\s*/, "");
   } else if (sec === "jax") {
-    title = title.replace(/^\s*\[(?![A-Z0-9]{2,10}-\d+|Decensored|Uncensored|FC2|VR|4K)[^\]]+\]\s*/i, "");
+    // 1. If code bracket has -SUBS suffix (e.g. [ATID-690-SUBS]), keep [SUBS] in title
+    title = title.replace(/^\s*\[[A-Z0-9]+-[A-Z0-9]+-(?:SUBS?|SUBBED)\]\s*/i, "[SUBS] ");
+
+    // 2. Remove standard JAV code bracket since it is already rendered in the thumbnail badge
+    // Preserves format tags like [4K], [Decensored], [Uncensored], [VR], [SUBS]
+    title = title.replace(/^\s*\[(?:FC2-?PPV-\d+|[A-Z0-9]{2,10}-\d+[A-Z0-9-]*)\]\s*/i, "");
+
+    // 3. Clean leading "Title: " prefix if present (e.g. [CRNX-274] Title: [4K] ...)
+    title = title.replace(/^\s*Title:\s*/i, "");
   } else {
-    title = title.replace(/^\s*\[(?![A-Z0-9]{2,10}-\d+|Decensored|Uncensored|FC2|VR|4K)[^\]]+\]\s*/i, "");
+    title = title.replace(/^\s*\[[A-Z0-9]+-[A-Z0-9]+-(?:SUBS?|SUBBED)\]\s*/i, "[SUBS] ");
+    title = title.replace(/^\s*\[(?:FC2-?PPV-\d+|[A-Z0-9]{2,10}-\d+[A-Z0-9-]*)\]\s*/i, "");
+    title = title.replace(/^\s*Title:\s*/i, "");
+    title = title.replace(/^\s*\[(?![A-Z0-9]{2,10}-\d+|Decensored|Uncensored|FC2|VR|4K|SUBS)[^\]]+\]\s*/i, "");
   }
 
   // Look for date in title e.g. / 10.24.2026 or (2018) or 2014.05.12
