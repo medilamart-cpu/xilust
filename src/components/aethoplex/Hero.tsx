@@ -34,7 +34,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
 
     // For Lust feature the top trending leaderboards; for JAX feature newest releases
     const heroTab = section === "lust" ? "trending" : "new";
-    fetch(`/api/catalog?section=${section}&tab=${heroTab}&limit=6`, {
+    fetch(`/api/catalog?section=${section}&tab=${heroTab}&limit=10`, {
       signal: controller.signal,
     })
       .then((r) => r.json())
@@ -155,6 +155,29 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   const { cleanTitle } = extractCleanTitleAndDate(rawHeroName, cur?.year, cur?.section || section);
   const titleHref = `/title/${cur?.section || section}/${encodeURIComponent(cur?.slug || String(cur?.id || cur?.key || ""))}`;
 
+  // Smart title extraction for Studio / Performer (Scene Title) structure
+  const sceneMatch = rawHeroName.match(/\((.*?)(?:\s*\/\s*\d{2}\.\d{2}\.\d{4})?\)/);
+  const studioMatch = rawHeroName.match(/^\[([^\]]+)\]/);
+  const studioName = studioMatch ? studioMatch[1].trim() : (cur?.studios?.[0] || null);
+
+  let heroHeadline = cleanTitle;
+  let heroCast: string | null = null;
+
+  if (sceneMatch && sceneMatch[1]) {
+    const rawScene = sceneMatch[1].replace(/^["']|["']$/g, "").trim();
+    if (rawScene.length > 2) {
+      heroHeadline = rawScene;
+      const performerPrefix = rawHeroName.replace(/^\[[^\]]+\]\s*/, "").split("(")[0].trim();
+      if (performerPrefix && performerPrefix !== rawScene) {
+        heroCast = performerPrefix;
+      }
+    }
+  }
+
+  if (!heroCast && (cur as any)?.actors && Array.isArray((cur as any).actors) && (cur as any).actors.length > 0) {
+    heroCast = (cur as any).actors.join(" • ");
+  }
+
   // Mobile touch swipe support
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -194,6 +217,14 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
                 </div>
               )}
+              {/* Dual-layer Ambient Backdrop */}
+              <img
+                src={imgSrc}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover blur-3xl opacity-35 scale-110 pointer-events-none"
+              />
+              {/* Crisp Foreground Master Image */}
               <img
                 ref={(img) => {
                   if (img && img.complete && img.naturalWidth > 0 && !imageLoaded) {
@@ -204,7 +235,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                 alt=""
                 onLoad={() => setImageLoaded(true)}
                 onError={handleHeroImgError}
-                className="absolute inset-0 h-full w-full rounded-2xl object-cover object-top sm:rounded-3xl sm:object-center transition-[opacity,transform,filter] duration-700 brightness-100"
+                className="absolute inset-0 h-full w-full rounded-2xl object-cover object-[center_20%] sm:object-center sm:rounded-3xl transition-[opacity,transform,filter] duration-700 brightness-100"
               />
             </>
           ) : (
@@ -214,17 +245,26 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           )}
         </Link>
 
-        {/* Clear thumbnail presentation without heavy shadows or unfocused veils */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-28 sm:h-36 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        {/* Dual-Scrim Cinematic Gradients (Netflix / Apple TV+ style) */}
+        {/* Left-to-Right Scrim for Text Readability */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/75 to-transparent w-full sm:w-3/4 z-[1]" />
+        {/* Bottom-to-Top Fade */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-44 sm:h-56 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent z-[1]" />
 
         {/* Content Box */}
-        <div className="pointer-events-none relative z-[1] flex min-h-[340px] sm:min-h-[460px] max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
-          {/* Eyebrow badge */}
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-            <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md">
-              <Sparkles className="h-3 w-3" />
-              FEATURED IN {section.toUpperCase()}
+        <div className="pointer-events-none relative z-[2] flex min-h-[340px] sm:min-h-[460px] max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
+          {/* Eyebrow badge row */}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-2.5">
+            <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-rose-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md uppercase">
+              <Sparkles className="h-3 w-3 text-pink-400" />
+              {section === "lust" ? `TRENDING #${safeIdx + 1}` : `FEATURED IN ${section.toUpperCase()}`}
             </span>
+
+            {studioName && (
+              <span className="rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-semibold tracking-wider text-zinc-200 uppercase backdrop-blur-md">
+                {studioName}
+              </span>
+            )}
 
             {section !== "fans" && cur?.code && (
               <span className="rounded-full bg-cyan-500/20 border border-cyan-400/40 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-black tracking-widest text-cyan-300 backdrop-blur-md">
@@ -233,10 +273,18 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
             )}
           </div>
 
-          {/* Title */}
-          <h1 className="line-clamp-2 break-words text-lg sm:text-3xl md:text-4xl font-black leading-tight text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.95),0_1px_4px_rgba(0,0,0,0.9)]">
-            {cleanTitle}
+          {/* Headline Title */}
+          <h1 className="line-clamp-2 break-words text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.1] mb-2 sm:mb-2.5 drop-shadow-md">
+            {heroHeadline}
           </h1>
+
+          {/* Starring Cast Subline */}
+          {heroCast && (
+            <p className="line-clamp-1 text-xs sm:text-sm font-medium text-pink-300/90 mb-2 sm:mb-3">
+              <span className="text-zinc-400 text-xs font-normal">Starring: </span>
+              {heroCast}
+            </p>
+          )}
 
         </div>
 
