@@ -397,7 +397,6 @@ export function HomeFeed({
                 <span>{actorLabel}</span>
               </button>
 
-              {section !== "fans" && (
               <button
                 type="button"
                 onClick={() => changeTaxType("studio")}
@@ -408,7 +407,6 @@ export function HomeFeed({
                 <Film className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-purple-400" />
                 <span>Studios</span>
               </button>
-              )}
 
               <button
                 type="button"

@@ -26,6 +26,7 @@ export interface CardModel {
   studios?: string[];
   actors?: string[];
   categories?: string[];
+  tags?: string[];
   sourcesCount?: number;
   uploadedAt?: string;
   durationSeconds?: number | null;
@@ -352,7 +353,7 @@ export function TileCard({ item }: { item: CardModel }) {
       {/* Info footer with consistent title height and relative upload time */}
       <div className="mt-2 sm:mt-2.5 flex items-start justify-between gap-1.5 sm:gap-2">
         <Link href={href} className="flex-1 min-w-0">
-          <div className={`${isFans ? "min-h-0" : "min-h-[2.1rem] sm:min-h-[2.35rem]"} flex items-start`}>
+          <div className={`${isFans || sec === "lust" ? "min-h-0" : "min-h-[2.1rem] sm:min-h-[2.35rem]"} flex items-start`}>
             <p
               title={cleanTitle}
               className="line-clamp-2 text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300"
