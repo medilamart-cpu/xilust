@@ -162,20 +162,38 @@ export function TileCard({ item }: { item: CardModel }) {
   const saved = has(item.key || String(item.id || ""));
   const [imgError, setImgError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imgSrc, setImgSrc] = useState<string | null>(item.backdropUrl ?? item.posterUrl ?? item.fallbackUrl ?? null);
+
+  const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
+  const resolveThumb = () => {
+    return (
+      item.backdropUrl ||
+      item.posterUrl ||
+      item.fallbackUrl ||
+      ((item as any).thumbnail_url
+        ? ((item as any).thumbnail_url.startsWith("http")
+            ? (item as any).thumbnail_url
+            : `${vpsBase}/${(item as any).thumbnail_url.replace(/^\/+/, "")}`)
+        : null) ||
+      (item as any).cover_url ||
+      null
+    );
+  };
+  const [imgSrc, setImgSrc] = useState<string | null>(resolveThumb);
 
   // Video Preview & Timeline scrubber states
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    setImgSrc(item.backdropUrl ?? item.posterUrl ?? item.fallbackUrl ?? null);
+    setImgSrc(resolveThumb());
     setImgError(false);
     setImageLoaded(false);
-  }, [item.backdropUrl, item.posterUrl, item.fallbackUrl]);
+  }, [item.backdropUrl, item.posterUrl, item.fallbackUrl, (item as any).thumbnail_url, (item as any).cover_url]);
+
+  const fallbackThumb = item.fallbackUrl || (item as any).cover_url || null;
 
   const handleImgError = () => {
-    if (imgSrc && imgSrc !== item.fallbackUrl && item.fallbackUrl) {
-      setImgSrc(item.fallbackUrl);
+    if (imgSrc && imgSrc !== fallbackThumb && fallbackThumb) {
+      setImgSrc(fallbackThumb);
     } else {
       setImageLoaded(false);
       setImgError(true);
@@ -198,15 +216,23 @@ export function TileCard({ item }: { item: CardModel }) {
   const isJax = item.section === "jax";
   const primaryStudio = item.studios?.[0] || "";
   const studioLabel = formatStudioLabel(primaryStudio);
-  const durationLabel = formatVideoDuration(item.durationSeconds, item.name, item.id, item.section, item.categories, item.tags);
+  const rawName = item.name || (item as any).title || "";
+  const durationLabel = formatVideoDuration(
+    item.durationSeconds ?? (item as any).duration_seconds ?? null,
+    rawName,
+    item.id,
+    item.section,
+    item.categories,
+    item.tags
+  );
 
-  const { cleanTitle } = extractCleanTitleAndDate(item.name || "", item.year);
-  const relativeUploadTime = formatRelativeUploadTime(item.uploadedAt);
+  const { cleanTitle } = extractCleanTitleAndDate(rawName, item.year);
+  const relativeUploadTime = formatRelativeUploadTime(item.uploadedAt || (item as any).published_at);
 
   const isFans = item.section === "fans";
   const is4k = Boolean(
     item.categories?.some((c) => typeof c === "string" && c.toLowerCase().includes("4k")) ||
-    (typeof item.name === "string" && item.name.toLowerCase().includes("4k"))
+    (typeof rawName === "string" && rawName.toLowerCase().includes("4k"))
   );
 
   return (

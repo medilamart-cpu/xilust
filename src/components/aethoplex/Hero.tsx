@@ -77,6 +77,23 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   const safeIdx = slides.length > 0 ? ((idx % slides.length) + slides.length) % slides.length : 0;
   const cur = slides[safeIdx];
 
+  const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
+  const resolveHeroThumb = () => {
+    if (!cur) return null;
+    return (
+      cur.backdropUrl ||
+      cur.posterUrl ||
+      cur.fallbackUrl ||
+      ((cur as any).thumbnail_url
+        ? ((cur as any).thumbnail_url.startsWith("http")
+            ? (cur as any).thumbnail_url
+            : `${vpsBase}/${(cur as any).thumbnail_url.replace(/^\/+/, "")}`)
+        : null) ||
+      (cur as any).cover_url ||
+      null
+    );
+  };
+
   useEffect(() => {
     if (!cur) {
       setImgSrc(null);
@@ -85,10 +102,10 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       return;
     }
 
-    setImgSrc(cur.backdropUrl ?? cur.posterUrl ?? cur.fallbackUrl ?? null);
+    setImgSrc(resolveHeroThumb());
     setImgError(false);
     setImageLoaded(false);
-  }, [cur?.id, cur?.key, cur?.backdropUrl, cur?.posterUrl, cur?.fallbackUrl]);
+  }, [cur?.id, cur?.key, cur?.backdropUrl, cur?.posterUrl, cur?.fallbackUrl, (cur as any)?.thumbnail_url, (cur as any)?.cover_url]);
 
   const go = useCallback(
     (n: number) => {
@@ -119,9 +136,11 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
     );
   }
 
+  const fallbackHeroThumb = cur?.fallbackUrl || (cur as any)?.cover_url || null;
+
   const handleHeroImgError = () => {
-    if (imgSrc && imgSrc !== cur?.fallbackUrl && cur?.fallbackUrl) {
-      setImgSrc(cur.fallbackUrl);
+    if (imgSrc && imgSrc !== fallbackHeroThumb && fallbackHeroThumb) {
+      setImgSrc(fallbackHeroThumb);
     } else {
       setImageLoaded(false);
       setImgError(true);
@@ -129,7 +148,8 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   };
 
   const isJax = (cur?.section || section) === "jax";
-  const { cleanTitle } = extractCleanTitleAndDate(cur?.name || "", cur?.year);
+  const rawHeroName = cur?.name || (cur as any)?.title || "";
+  const { cleanTitle } = extractCleanTitleAndDate(rawHeroName, cur?.year);
   const titleHref = `/title/${cur?.section || section}/${encodeURIComponent(cur?.slug || String(cur?.id || cur?.key || ""))}`;
 
   // Mobile touch swipe support

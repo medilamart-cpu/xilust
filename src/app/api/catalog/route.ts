@@ -63,7 +63,38 @@ export async function GET(req: NextRequest) {
           if (r2Res.ok) {
             const data = await r2Res.json();
             if (data && Array.isArray(data.items) && data.items.length > 0) {
-              return NextResponse.json(data, {
+              const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
+              const formattedItems = data.items.map((it: any) => {
+                if (it.name && it.posterUrl) return it;
+                const { posterUrl, fallbackUrl } = getCatalogThumbnailUrls(it, vpsBase);
+                return {
+                  key: it.key || `${it.section || section}-${it.id}`,
+                  id: it.id,
+                  section: it.section || section,
+                  slug: it.slug || "",
+                  code: it.code || "",
+                  uploadedAt: it.uploadedAt || it.published_at || "",
+                  name: it.name || it.title || "",
+                  kind: it.kind || "FILM",
+                  year: it.year || 2026,
+                  rating: it.rating || Math.round((((it.views || 0) % 30) / 10 + 7.0) * 10) / 10,
+                  popularity: it.popularity || Math.max(it.views || 0, 150),
+                  posterUrl: it.posterUrl || posterUrl,
+                  backdropUrl: it.backdropUrl || posterUrl,
+                  fallbackUrl: it.fallbackUrl || fallbackUrl,
+                  studios: Array.isArray(it.studios) ? it.studios.filter((s: any) => typeof s === "string" && s.trim()) : [],
+                  actors: Array.isArray(it.actors) ? it.actors.filter((a: any) => typeof a === "string" && a.trim()) : [],
+                  categories: Array.isArray(it.categories) ? it.categories.filter((c: any) => typeof c === "string" && c.trim()) : [],
+                  tags: Array.isArray(it.tags) ? it.tags.filter((t: any) => typeof t === "string" && t.trim()) : [],
+                  sourcesCount: it.sourcesCount ?? (Array.isArray(it.video_sources) ? it.video_sources.length : (it.sources_count || 0)),
+                  durationSeconds: it.durationSeconds ?? it.duration_seconds ?? null,
+                };
+              });
+
+              return NextResponse.json({
+                ...data,
+                items: formattedItems,
+              }, {
                 headers: {
                   "Cache-Control": "public, max-age=60, s-maxage=120, stale-while-revalidate=600",
                   "X-Catalog-Source": "r2",
