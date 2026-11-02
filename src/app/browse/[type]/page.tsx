@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, X } from "lucide-react";
 import { getTaxonomies, queryItems, type TaxonomyItem } from "@/lib/catalog-db";
 import { getCatalogThumbnailUrls } from "@/lib/catalog-thumbnail";
 import { formatStudioLabel } from "@/lib/studio-label";
 import { TaxonomyThumbnail } from "@/components/aethoplex/TaxonomyThumbnail";
+import { MyListProvider } from "@/components/aethoplex/PosterCard";
 
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
 const titles: Record<TaxonomyType, string> = {
@@ -87,29 +88,35 @@ export default async function TaxonomyIndexPage({
       : "hover:border-purple-400/60 hover:shadow-[0_8px_24px_rgba(168,85,247,0.18)]";
 
   return (
-    <main className="min-h-screen bg-[#080a0f] px-3 py-8 pb-20 text-[#f4f5f8] sm:px-6 sm:py-12 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <Link href="/xilust" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white">
-          <ArrowLeft className="h-4 w-4" /> Xilust home
-        </Link>
-        <div className="mt-6 border-b border-white/10 pb-4">
-          <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${section === "jax" ? "text-pink-300/85" : section === "fans" ? "text-cyan-300/85" : "text-purple-300/85"}`}>{sectionBadge}</p>
-          <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{pageTitle}</h1>
-          <p className="mt-1 text-sm text-white/50">{pageSubtitle}</p>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {(["lust", "jax", "fans"] as const).map((brand) => (
-            <Link key={brand} href={"/browse/" + type + "?section=" + brand} aria-current={section === brand ? "page" : undefined} className={"inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-semibold uppercase transition " + activePillStyle(brand)}>
-              {brand}
-            </Link>
-          ))}
-        </div>
-        <form action={"/browse/" + type} method="get" className="mt-4 flex max-w-xl gap-2">
-          <input type="hidden" name="section" value={section} />
-          <label className="sr-only" htmlFor="taxonomy-search">Search {pageTitle}</label>
-          <input id="taxonomy-search" name="q" defaultValue={q} placeholder={"Search " + pageTitle.toLowerCase()} className="min-h-11 min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-cyan-300/50" />
-          <button type="submit" className="min-h-11 rounded-lg border border-cyan-300/25 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">Search</button>
-        </form>
+    <MyListProvider>
+      <main className="min-h-screen bg-[#080a0f] px-3 py-8 pb-20 text-[#f4f5f8] sm:px-6 sm:py-12 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Link href={"/?section=" + section} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white">
+            <ArrowLeft className="h-4 w-4" /> Home ({section.toUpperCase()})
+          </Link>
+          <div className="mt-6 border-b border-white/10 pb-4">
+            <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${section === "jax" ? "text-pink-300/85" : section === "fans" ? "text-cyan-300/85" : "text-purple-300/85"}`}>{sectionBadge}</p>
+            <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{pageTitle}</h1>
+            <p className="mt-1 text-sm text-white/50">{pageSubtitle}</p>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {(type === "studio" ? (["lust", "jax"] as const) : (["lust", "jax", "fans"] as const)).map((brand) => (
+              <Link key={brand} href={"/browse/" + type + "?section=" + brand} aria-current={section === brand ? "page" : undefined} className={"inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-semibold uppercase transition " + activePillStyle(brand)}>
+                {brand}
+              </Link>
+            ))}
+          </div>
+          <form action={"/browse/" + type} method="get" className="mt-4 flex max-w-xl items-center gap-2">
+            <input type="hidden" name="section" value={section} />
+            <label className="sr-only" htmlFor="taxonomy-search">Search {pageTitle}</label>
+            <input id="taxonomy-search" name="q" defaultValue={q} placeholder={"Search " + pageTitle.toLowerCase()} className="min-h-11 min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-cyan-300/50" />
+            <button type="submit" className="min-h-11 rounded-lg border border-cyan-300/25 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">Search</button>
+            {q && (
+              <Link href={"/browse/" + type + "?section=" + section} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-medium text-white/60 hover:text-white">
+                <X className="h-3.5 w-3.5" /> Clear
+              </Link>
+            )}
+          </form>
         {isActor ? (
           /* Models layout: portrait cards for JAX & Lust, horizontal cards for Fans */
           <div className={`mt-6 grid gap-3 sm:gap-4 ${
@@ -171,5 +178,6 @@ export default async function TaxonomyIndexPage({
         {featured.length === 0 && <p className="mt-6 rounded-xl border border-white/10 bg-white/[0.035] p-5 text-sm text-white/55">{section === "fans" && type === "studio" ? "Fans catalog entries do not include studio labels." : "No matches found."}</p>}
       </div>
     </main>
-  );
+  </MyListProvider>
+);
 }

@@ -158,13 +158,13 @@ export async function queryItems(options: {
     }
 
     if (options.studio) {
-      whereParts.push("EXISTS (SELECT 1 FROM json_each(items.studios) AS taxonomy WHERE taxonomy.value = ?)");
-      params.push(options.studio);
+      whereParts.push("(EXISTS (SELECT 1 FROM json_each(items.studios) AS taxonomy WHERE LOWER(taxonomy.value) = LOWER(?) OR LOWER(REPLACE(taxonomy.value, ' ', '')) = LOWER(REPLACE(?, ' ', ''))))");
+      params.push(options.studio, options.studio);
     }
 
     if (options.actor) {
-      whereParts.push("EXISTS (SELECT 1 FROM json_each(items.actors) AS taxonomy WHERE taxonomy.value = ?)");
-      params.push(options.actor);
+      whereParts.push("(EXISTS (SELECT 1 FROM json_each(items.actors) AS taxonomy WHERE LOWER(taxonomy.value) = LOWER(?) OR LOWER(REPLACE(taxonomy.value, ' ', '')) = LOWER(REPLACE(?, ' ', ''))))");
+      params.push(options.actor, options.actor);
     }
 
     if (options.tag) {
@@ -321,15 +321,15 @@ export async function getTaxonomies(
 
   if (db) {
     try {
+      const qClean = search.trim().toLowerCase().replace(/[\s-]/g, "");
       const sql = `
         SELECT id, section, type, name, slug, count
         FROM taxonomies
-        WHERE section = ? AND type = ? AND (? = '' OR LOWER(REPLACE(name, ' ', '')) LIKE '%' || LOWER(REPLACE(?, ' ', '')) || '%')
+        WHERE section = ? AND type = ? AND (? = '' OR LOWER(REPLACE(REPLACE(name, ' ', ''), '-', '')) LIKE '%' || ? || '%' OR LOWER(REPLACE(slug, '-', '')) LIKE '%' || ? || '%')
         ORDER BY count DESC
         LIMIT ?
       `;
-      const q = search.trim();
-      const rows = db.prepare(sql).all(section, type, q, `%${q}%`, Math.min(Math.max(limit, 1), 500));
+      const rows = db.prepare(sql).all(section, type, search.trim(), qClean, qClean, Math.min(Math.max(limit, 1), 500));
       return rows as unknown as TaxonomyItem[];
     } catch (err) {
       console.error("Taxonomy query error:", err);
