@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Star, Film, Server, Eye, Tag, Share2, Sparkles, AlertCircle } from "lucide-react";
+import { ArrowLeft, Star, Film, Server, Eye, Tag, Share2, Sparkles, AlertCircle, UserCheck } from "lucide-react";
 import { getItemBySlug, queryItems, type CatalogItem } from "@/lib/catalog-db";
 import { getCatalogThumbnailUrls } from "@/lib/catalog-thumbnail";
 import { formatStudioLabel } from "@/lib/studio-label";
@@ -149,7 +149,7 @@ export default async function TitlePage({
                               : "bg-purple-500/15 border border-purple-500/30 text-purple-200 hover:bg-purple-500/30"
                         }`}
                       >
-                        <span>{isJax ? "🌸" : isFans ? "⭐" : "✨"}</span>
+                        <UserCheck className={`h-3 w-3 shrink-0 ${isJax ? "text-pink-400" : isFans ? "text-cyan-400" : "text-purple-400"}`} />
                         <span>{cleanActor}</span>
                       </Link>
                     );

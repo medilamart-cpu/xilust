@@ -34,7 +34,7 @@ export default async function TaxonomyIndexPage({
     ? (section === "jax" ? "AV Actresses & Idols" : section === "fans" ? "Creators & Leaks" : "Pornstars & Models")
     : titles[type];
   const sectionBadge = isActor
-    ? (section === "jax" ? "🌸 JAX AV MODELS" : section === "fans" ? "⭐ VERIFIED CREATORS" : "🔥 WESTERN MODELS")
+    ? (section === "jax" ? "JAX AV MODELS" : section === "fans" ? "VERIFIED CREATORS" : "WESTERN MODELS")
     : section.toUpperCase();
   const pageSubtitle = isActor
     ? (section === "jax"
@@ -115,7 +115,8 @@ export default async function TaxonomyIndexPage({
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
             {featured.map(({ entry, video }) => {
               const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
-              const creatorAvatar = section === "fans" ? `${vpsBase}/thumbs/fans/models/${entry.slug}.webp` : null;
+              const modelSlug = (entry.slug || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+              const creatorAvatar = `${vpsBase}/thumbs/fans/models/${modelSlug}.webp`;
               const image = video ? getCatalogThumbnailUrls(video, vpsBase) : { posterUrl: null, fallbackUrl: null };
               const primaryPoster = creatorAvatar || image.posterUrl;
               const fallbackPoster = creatorAvatar ? (image.posterUrl || image.fallbackUrl) : image.fallbackUrl;
