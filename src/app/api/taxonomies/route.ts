@@ -97,8 +97,8 @@ export async function GET(req: NextRequest) {
       searchParams.get("refresh") === "1" ||
       req.headers.get("x-bypass-r2") === "1";
 
-    // Fast-path: Check R2 edge cache for default taxonomies
-    if (!bypassR2 && !search && limit <= 40) {
+    // R2 edge cache fast-path disabled: directly query live VPS database
+    if (false && !bypassR2 && !search && limit <= 40) {
       try {
         const r2Url = `https://pub-2e7c05ee5cd1414784641924f34316da.r2.dev/taxonomies/${section}_${type}.json`;
         const r2Res = await fetch(r2Url, { next: { revalidate: 300 }, signal: AbortSignal.timeout(3000) });

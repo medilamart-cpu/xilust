@@ -32,20 +32,8 @@ export async function GET(req: NextRequest) {
       searchParams.get("refresh") === "1" ||
       req.headers.get("x-bypass-r2") === "1";
 
-    // Fast-path: Check R2 edge cache for standard top feeds & hero carousels
-    const isStandardFeed =
-      !bypassR2 &&
-      !category &&
-      !studio &&
-      !actor &&
-      !tag &&
-      !code &&
-      !year &&
-      !query &&
-      !subfilter &&
-      !premium &&
-      tab !== "random" &&
-      page <= 5;
+    // R2 edge cache fast-path disabled: directly query live VPS database so new scraped videos reflect immediately
+    const isStandardFeed = false;
 
     if (isStandardFeed) {
       let r2Key: string | null = null;
