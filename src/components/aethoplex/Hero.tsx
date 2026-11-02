@@ -69,8 +69,13 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
     return () => reducedMotion.removeEventListener("change", handleMotionPreference);
   }, []);
 
+  useEffect(() => {
+    setIdx(0);
+  }, [section]);
+
   const count = Math.max(slides.length, 1);
-  const cur = slides[idx];
+  const safeIdx = slides.length > 0 ? ((idx % slides.length) + slides.length) % slides.length : 0;
+  const cur = slides[safeIdx];
 
   useEffect(() => {
     if (!cur) {
@@ -108,7 +113,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
     setImageLoaded(false);
   }, [slides[idx]?.backdropUrl]);
 
-  if (loading || slides.length === 0) {
+  if (loading || slides.length === 0 || !cur) {
     return (
       <div className="relative mx-auto mt-2 h-[360px] sm:h-[420px] max-w-7xl animate-pulse rounded-3xl bg-white/[0.03] border border-white/5" />
     );
@@ -125,7 +130,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
 
   const isJax = (cur?.section || section) === "jax";
   const { cleanTitle } = extractCleanTitleAndDate(cur?.name || "", cur?.year);
-  const titleHref = `/title/${cur.section || section}/${encodeURIComponent(cur.slug || String(cur.id || cur.key))}`;
+  const titleHref = `/title/${cur?.section || section}/${encodeURIComponent(cur?.slug || String(cur?.id || cur?.key || ""))}`;
 
   // Mobile touch swipe support
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -156,7 +161,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
         {/* The whole featured artwork opens its title; controls stay above this link. */}
         <Link
           href={titleHref}
-          aria-label={`Open ${cur.name}`}
+          aria-label={`Open ${cur?.name || "Featured video"}`}
           className="absolute inset-0 z-0 rounded-2xl sm:rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300"
         >
           {imgSrc && !imgError ? (
@@ -176,7 +181,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
             </>
           ) : (
             <div className="absolute inset-0 h-full w-full">
-              <GeneratedArt name={cur.name} kind={cur.kind} wide />
+              <GeneratedArt name={cur?.name || ""} kind={cur?.kind || "FILM"} wide />
             </div>
           )}
         </Link>
@@ -194,7 +199,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
               FEATURED IN {section.toUpperCase()}
             </span>
 
-            {section !== "fans" && cur.code && (
+            {section !== "fans" && cur?.code && (
               <span className="rounded-full bg-cyan-500/20 border border-cyan-400/40 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-black tracking-widest text-cyan-300 backdrop-blur-md">
                 {cur.code}
               </span>

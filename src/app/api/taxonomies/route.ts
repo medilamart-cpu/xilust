@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
     if (!bypassR2 && !search && limit <= 40) {
       try {
         const r2Url = `https://pub-2e7c05ee5cd1414784641924f34316da.r2.dev/taxonomies/${section}_${type}.json`;
-        const r2Res = await fetch(r2Url, { next: { revalidate: 300 } });
+        const r2Res = await fetch(r2Url, { next: { revalidate: 300 }, signal: AbortSignal.timeout(3000) });
         if (r2Res.ok) {
           const data = await r2Res.json();
           if (data && Array.isArray(data.items)) {

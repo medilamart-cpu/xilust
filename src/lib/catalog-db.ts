@@ -235,6 +235,7 @@ export async function queryItems(options: {
     const res = await fetch(`${CATALOG_API_URL}/api/catalog?${params.toString()}`, {
       next: isCacheable ? { revalidate: 60 } : undefined,
       cache: isCacheable ? undefined : "no-store",
+      signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) {
       console.warn(`Catalog API responded with ${res.status}`);
@@ -284,7 +285,7 @@ export async function getItemBySlug(section: "lust" | "jax" | "fans", slug: stri
   try {
     const res = await fetch(
       `${CATALOG_API_URL}/api/title?section=${encodeURIComponent(section)}&slug=${encodeURIComponent(slug)}`,
-      { next: { revalidate: 300 } }
+      { next: { revalidate: 300 }, signal: AbortSignal.timeout(6000) }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -325,7 +326,7 @@ export async function getTaxonomies(
   try {
     const res = await fetch(
       `${CATALOG_API_URL}/api/taxonomies?section=${encodeURIComponent(section)}&type=${encodeURIComponent(type)}&limit=${Math.min(Math.max(limit, 1), 500)}&q=${encodeURIComponent(search.trim())}`,
-      { next: { revalidate: 300 } }
+      { next: { revalidate: 300 }, signal: AbortSignal.timeout(6000) }
     );
     if (!res.ok) {
       console.warn(`Taxonomy API responded with ${res.status}`);

@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
       if (r2Key) {
         try {
           const r2Url = `https://pub-2e7c05ee5cd1414784641924f34316da.r2.dev/${r2Key}`;
-          const r2Res = await fetch(r2Url, { next: { revalidate: 120 } });
+          const r2Res = await fetch(r2Url, { next: { revalidate: 120 }, signal: AbortSignal.timeout(3000) });
           if (r2Res.ok) {
             const data = await r2Res.json();
             if (data && Array.isArray(data.items) && data.items.length > 0) {
