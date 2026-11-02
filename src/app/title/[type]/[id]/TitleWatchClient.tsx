@@ -116,6 +116,8 @@ export function TitleWatchClient({
   }, [showStatusModal, serverHealth]);
 
   const playerTimeoutRef = useRef<number | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const playerContainerRef = useRef<HTMLDivElement | null>(null);
 
   const activeSource = sources[activeIdx];
   const targetUrl = activeSource?.url || activeSource?.embed_url || "";
@@ -166,6 +168,28 @@ export function TitleWatchClient({
     setKey((k) => k + 1);
   };
 
+  const handleNativeFullscreen = () => {
+    // 1. Post message to CleanStream embed inside the iframe
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: "CLEANSTREAM_NATIVE_FULLSCREEN" }, "*");
+    }
+
+    // 2. Direct device check for fallback
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (typeof navigator !== "undefined" && navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    if (!isIOS && playerContainerRef.current) {
+      const doc = document as any;
+      if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+        const cont = playerContainerRef.current as any;
+        const req = cont.requestFullscreen || cont.webkitRequestFullscreen;
+        if (req) {
+          req.call(cont).catch(() => {});
+        }
+      }
+    }
+  };
+
   const handleNextMirror = () => {
     if (sources.length < 2) return;
     setPlayerError(false);
@@ -175,9 +199,13 @@ export function TitleWatchClient({
   return (
     <div className="space-y-3 sm:space-y-4 max-w-full">
       {/* Centered Cinema Video Player Container */}
-      <div className="w-full max-w-full mx-auto relative aspect-video bg-black overflow-hidden rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]">
+      <div
+        ref={playerContainerRef}
+        className="w-full max-w-full mx-auto relative aspect-video bg-black overflow-hidden rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]"
+      >
         {targetUrl ? (
           <iframe
+            ref={iframeRef}
             key={`${key}-${playerMode}-${activeIdx}`}
             src={embedUrl}
             title={item.title}
@@ -348,6 +376,16 @@ export function TitleWatchClient({
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>Reload</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNativeFullscreen}
+              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs font-medium text-cyan-300 hover:bg-cyan-500/20 transition-colors active:scale-95"
+              title="Open video in device native player"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+              <span>Fullscreen</span>
             </button>
 
             {targetUrl && (
