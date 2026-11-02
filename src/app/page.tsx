@@ -30,7 +30,25 @@ export default function Home() {
   const [filter, setFilter] = useState<{
     type: "category" | "actor" | "studio" | "tag" | "code" | "premium";
     name: string;
-  } | null>(null);
+  } | null>(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const s = sp.get("section") as Section | null;
+      const premium = sp.get("premium") === "1";
+      const actor = sp.get("actor");
+      const studio = sp.get("studio");
+      const category = sp.get("category");
+      const tag = sp.get("tag");
+      const code = sp.get("code");
+      if (premium && (s === "lust" || !s)) return { type: "premium", name: "Premium Studios" };
+      if (actor) return { type: "actor", name: actor };
+      if (studio) return { type: "studio", name: studio };
+      if (category) return { type: "category", name: category };
+      if (tag) return { type: "tag", name: tag };
+      if (code) return { type: "code", name: code.toUpperCase() };
+    }
+    return null;
+  });
 
   // Restore section, query, actor, studio, category from URL query params on navigation
   const syncFromUrl = () => {
@@ -53,7 +71,8 @@ export default function Home() {
     }
     setQuery(q || "");
 
-    if (premium && s === "lust") {
+    const activeSec = s || "lust";
+    if (premium && activeSec === "lust") {
       setFilter({ type: "premium", name: "Premium Studios" });
     } else if (actor) {
       setFilter({ type: "actor", name: actor });
@@ -142,8 +161,12 @@ export default function Home() {
       url.searchParams.delete("code");
       url.searchParams.delete("premium");
       if (newFilter) {
-        if (newFilter.type === "premium") url.searchParams.set("premium", "1");
-        else url.searchParams.set(newFilter.type, newFilter.name);
+        if (newFilter.type === "premium") {
+          url.searchParams.set("section", "lust");
+          url.searchParams.set("premium", "1");
+        } else {
+          url.searchParams.set(newFilter.type, newFilter.name);
+        }
       }
       window.history.pushState({}, "", url.toString());
     }

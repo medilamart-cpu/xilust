@@ -187,16 +187,21 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           {imgSrc && !imgError ? (
             <>
               {!imageLoaded && (
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0a0d14] animate-pulse motion-reduce:animate-none">
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0a0d14] animate-pulse motion-reduce:animate-none pointer-events-none transition-opacity duration-300">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
                 </div>
               )}
               <img
+                ref={(img) => {
+                  if (img && img.complete && img.naturalWidth > 0 && !imageLoaded) {
+                    setImageLoaded(true);
+                  }
+                }}
                 src={imgSrc}
                 alt=""
                 onLoad={() => setImageLoaded(true)}
                 onError={handleHeroImgError}
-                className={`absolute inset-0 h-full w-full rounded-2xl object-cover object-top sm:rounded-3xl sm:object-center transition-[opacity,transform,filter] duration-700 brightness-100 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                className="absolute inset-0 h-full w-full rounded-2xl object-cover object-top sm:rounded-3xl sm:object-center transition-[opacity,transform,filter] duration-700 brightness-100"
               />
             </>
           ) : (

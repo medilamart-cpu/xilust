@@ -250,14 +250,19 @@ export function TileCard({ item }: { item: CardModel }) {
           {art ? (
             <>
               {!imageLoaded && (
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0d1017] animate-pulse motion-reduce:animate-none">
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0d1017] animate-pulse motion-reduce:animate-none pointer-events-none transition-opacity duration-300">
                   <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
                 </div>
               )}
               <img
+                ref={(img) => {
+                  if (img && img.complete && img.naturalWidth > 0 && !imageLoaded) {
+                    setImageLoaded(true);
+                  }
+                }}
                 src={art}
                 alt={cleanTitle}
-                className={`h-full w-full object-cover ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                className="h-full w-full object-cover transition-opacity duration-300"
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 onError={handleImgError}
