@@ -149,7 +149,7 @@ export default async function TitlePage({
                               : "bg-purple-500/15 border border-purple-500/30 text-purple-200 hover:bg-purple-500/30"
                         }`}
                       >
-                        <UserCheck className={`h-3 w-3 shrink-0 ${isJax ? "text-pink-400" : isFans ? "text-cyan-400" : "text-purple-400"}`} />
+                        <span className="text-sm shrink-0">💋</span>
                         <span>{cleanActor}</span>
                       </Link>
                     );

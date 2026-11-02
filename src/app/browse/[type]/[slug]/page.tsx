@@ -110,8 +110,12 @@ export default async function TaxonomyDetailPage({
         {/* Profile / Studio Header */}
         {type === "actor" ? (
           <div className="relative mt-6 flex flex-col items-center text-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.05] via-white/[0.02] to-transparent p-6 sm:p-10 backdrop-blur-xl shadow-2xl">
-            {/* Center Model Portrait */}
-            <div className="relative h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 overflow-hidden rounded-full border-2 border-white/20 bg-gradient-to-b from-[#181d27] to-[#0b0e14] shadow-2xl ring-4 ring-white/5">
+            {/* Center Model Portrait (horizontal for fans, portrait card for jax/lust) */}
+            <div className={`relative overflow-hidden border-2 border-white/20 bg-gradient-to-b from-[#181d27] to-[#0b0e14] shadow-2xl ring-4 ring-white/5 ${
+              section === "fans"
+                ? "w-64 sm:w-80 md:w-96 aspect-[16/10] rounded-2xl"
+                : "w-36 h-48 sm:w-44 sm:h-56 md:w-52 md:h-64 rounded-2xl"
+            }`}>
               {profileImage || profileFallback ? (
                 <TaxonomyThumbnail
                   src={profileImage}
@@ -135,7 +139,7 @@ export default async function TaxonomyDetailPage({
                     ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-200"
                     : "bg-purple-500/15 border border-purple-500/30 text-purple-200"
               }`}>
-                <UserCheck className="h-3.5 w-3.5 shrink-0" />
+                <span className="text-sm">💋</span>
                 <span>{sectionBadge}</span>
               </span>
 
@@ -231,14 +235,22 @@ export default async function TaxonomyDetailPage({
           )}
         </div>
 
-        {/* Video Cards Grid: responsive grid with seamless single-page presentation */}
+        {/* Video Cards Grid: single column for models, responsive grid for studios */}
         {cards.length ? (
           <>
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-              {cards.map((item) => (
-                <TileCard key={item.key} item={item} />
-              ))}
-            </div>
+            {type === "actor" ? (
+              <div className="mt-8 mx-auto max-w-2xl flex flex-col gap-6">
+                {cards.map((item) => (
+                  <TileCard key={item.key} item={item} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+                {cards.map((item) => (
+                  <TileCard key={item.key} item={item} />
+                ))}
+              </div>
+            )}
 
             {/* Pagination Controls only if exceeds single page size */}
             {totalPages > 1 && (
