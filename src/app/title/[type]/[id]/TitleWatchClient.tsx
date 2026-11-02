@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles, Activity, X, CheckCircle2, Clock } from "lucide-react";
 import type { CatalogItem } from "@/lib/catalog-db";
+import { AddToPlaylistModal } from "@/components/aethoplex/AddToPlaylistModal";
 
 function toDirectEmbedUrl(url: string): string {
   if (!url) return "";
@@ -33,11 +34,14 @@ function serverIdentity(source: { label?: string; host?: string }, section: Cata
     ? [
         { match: ["kamehaus", "kamehameha", "kame"], name: "Goku ⚡", icon: "🐉" },
         { match: ["vidara", "sugbaioug"], name: "Vegeta 💥", icon: "👑" },
+        { match: ["streamtape", "streamta.pe"], name: "Tsunade", icon: "💮" },
+        { match: ["mixdrop", "mxdrop"], name: "Jiraiya 🐸", icon: "📜" },
         { match: ["streamhihi", "lulu"], name: "Naruto", icon: "🍥" },
         { match: ["javlesbian", "voe"], name: "Sasuke", icon: "⚡" },
+        { match: ["javclan", "streamsb", "sbthe", "sb"], name: "Itachi 👁️", icon: "🌙" },
+        { match: ["filemoon"], name: "Gaara ⏳", icon: "🏜️" },
         { match: ["maxstream"], name: "Kakashi", icon: "🥷" },
         { match: ["vid0", "vide0"], name: "Sakura 🗑️", icon: "🌸" },
-        { match: ["javclan", "streamtape"], name: "Tsunade", icon: "💮" },
       ]
     : section === "lust"
       ? [
@@ -60,29 +64,36 @@ export function TitleWatchClient({
 
   // Sort sources by highest reliability (KameHaus, Vidara, Streamtape, StreamSB first)
   const sources = useMemo(() => {
-    return [...rawSources].sort((a, b) => {
-      const hA = (a.host || a.label || "").toLowerCase();
-      const hB = (b.host || b.label || "").toLowerCase();
+    return [...rawSources]
+      .filter((s) => {
+        const h = (s.host || s.label || "").toLowerCase();
+        return !h.includes("listeamed") && !h.includes("parking");
+      })
+      .sort((a, b) => {
+        const hA = (a.host || a.label || "").toLowerCase();
+        const hB = (b.host || b.label || "").toLowerCase();
 
-      const priority = (h: string) => {
-        if (h.includes("jolly") || h.includes("hdplayer")) return 1;
-        if (h.includes("molly") || h.includes("hornyleak")) return 2;
-        if (h.includes("kamehaus") || h.includes("kamehameha") || h.includes("kame.upns")) return 3;
-        if (h.includes("vidara") || h.includes("sugbaioug")) return 4;
-        if (h.includes("streamtape")) return 5;
-        if (h.includes("javclan") || h.includes("sb")) return 6;
-        if (h.includes("vide0") || h.includes("dd")) return 7;
-        if (h.includes("mixdrop")) return 8;
-        if (h.includes("maxstream") || h.includes("jk")) return 9;
-        if (h.includes("streamhihi") || h.includes("lulu")) return 10;
-        if (h.includes("javlesbians") || h.includes("voe") || h.includes("vo")) return 11;
-        if (h.includes("turtleviplay")) return 90; // Cloudflare Turnstile blocked, KameHaus/Vidara preferred
-        if (h.includes("dood")) return 99; // Dood often deletes older files
-        return 20;
-      };
+        const priority = (h: string) => {
+          if (h.includes("jolly") || h.includes("hdplayer")) return 1;
+          if (h.includes("molly") || h.includes("hornyleak")) return 2;
+          if (h.includes("kamehaus") || h.includes("kamehameha") || h.includes("kame.upns")) return 3;
+          if (h.includes("vidara") || h.includes("sugbaioug")) return 4;
+          if (h.includes("streamtape")) return 5;
+          if (h.includes("mixdrop")) return 6;
+          if (h.includes("javclan") || h.includes("streamsb") || h.includes("sbthe") || h.includes("sb")) return 7;
+          if (h.includes("filemoon")) return 8;
+          if (h.includes("vide0") || h.includes("dd")) return 9;
+          if (h.includes("maxstream") || h.includes("jk")) return 10;
+          if (h.includes("streamhihi") || h.includes("lulu")) return 11;
+          if (h.includes("javlesbians") || h.includes("voe") || h.includes("vo")) return 12;
+          if (h.includes("cherrycams")) return 15;
+          if (h.includes("turtleviplay")) return 90; // Cloudflare Turnstile blocked, KameHaus/Vidara preferred
+          if (h.includes("dood")) return 99; // Dood often deletes older files
+          return 20;
+        };
 
-      return priority(hA) - priority(hB);
-    });
+        return priority(hA) - priority(hB);
+      });
   }, [rawSources]);
 
   const [activeIdx, setActiveIdx] = useState(0);
@@ -394,6 +405,18 @@ export function TitleWatchClient({
               <Maximize2 className="h-3.5 w-3.5" />
               <span>Fullscreen</span>
             </button>
+
+            <AddToPlaylistModal
+              item={{
+                id: item.id,
+                title: item.title,
+                slug: item.slug,
+                section: item.section,
+                thumbnailUrl: item.thumbnail_url,
+                coverUrl: item.cover_url,
+              }}
+              compact
+            />
 
             {targetUrl && (
               <a
