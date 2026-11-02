@@ -76,21 +76,36 @@ function getLocalDb() {
 
 export function parseItem(row: any): CatalogItem {
   const durationSeconds = Number(row.duration_seconds);
+  const parseArray = (val: any): string[] => {
+    if (!val) return [];
+    let arr = val;
+    if (typeof val === "string") {
+      try {
+        arr = JSON.parse(val);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === "string" && Boolean(x.trim())) : [];
+  };
+
   return {
     id: row.id,
     section: row.section,
-    slug: row.slug,
-    title: row.title,
+    slug: row.slug || "",
+    title: row.title || "",
     code: row.code || "",
     year: row.year ?? null,
     views: row.views || 0,
     cover_url: row.cover_url || "",
     thumbnail_url: row.thumbnail_url || "",
-    studios: typeof row.studios === "string" ? JSON.parse(row.studios) : (row.studios || []),
-    actors: typeof row.actors === "string" ? JSON.parse(row.actors) : (row.actors || []),
-    categories: typeof row.categories === "string" ? JSON.parse(row.categories) : (row.categories || []),
-    tags: typeof row.tags === "string" ? JSON.parse(row.tags) : (row.tags || []),
-    video_sources: typeof row.video_sources === "string" ? JSON.parse(row.video_sources) : (row.video_sources || []),
+    studios: parseArray(row.studios),
+    actors: parseArray(row.actors),
+    categories: parseArray(row.categories),
+    tags: parseArray(row.tags),
+    video_sources: typeof row.video_sources === "string" ? (() => {
+      try { return JSON.parse(row.video_sources) || []; } catch { return []; }
+    })() : (row.video_sources || []),
     published_at: row.published_at || "",
     duration_seconds: Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : null,
   };

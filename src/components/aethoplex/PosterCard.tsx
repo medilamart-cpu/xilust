@@ -157,8 +157,9 @@ export function viewsLabel(pop?: number): string | null {
 /* ---------- Tile Card with Hover Video Preview & Timeline Scrubber ---------- */
 
 export function TileCard({ item }: { item: CardModel }) {
+  if (!item) return null;
   const { has, toggle } = useMyList();
-  const saved = has(item.key);
+  const saved = has(item.key || String(item.id || ""));
   const [imgError, setImgError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState<string | null>(item.backdropUrl ?? item.posterUrl ?? item.fallbackUrl ?? null);
@@ -199,10 +200,14 @@ export function TileCard({ item }: { item: CardModel }) {
   const studioLabel = formatStudioLabel(primaryStudio);
   const durationLabel = formatVideoDuration(item.durationSeconds, item.name, item.id, item.section, item.categories, item.tags);
 
-  const { cleanTitle } = extractCleanTitleAndDate(item.name, item.year);
+  const { cleanTitle } = extractCleanTitleAndDate(item.name || "", item.year);
   const relativeUploadTime = formatRelativeUploadTime(item.uploadedAt);
 
   const isFans = item.section === "fans";
+  const is4k = Boolean(
+    item.categories?.some((c) => typeof c === "string" && c.toLowerCase().includes("4k")) ||
+    (typeof item.name === "string" && item.name.toLowerCase().includes("4k"))
+  );
 
   return (
     <div className="group block shrink-0 rounded-xl text-left">
@@ -261,11 +266,11 @@ export function TileCard({ item }: { item: CardModel }) {
 
           {/* Badge: 4K / HD */}
           <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] backdrop-blur-md ${
-            item.categories?.some(c => c.toLowerCase() === "4k") || item.name.toLowerCase().includes("4k")
+            is4k
               ? "bg-amber-500/80 text-black border border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.5)] font-black"
               : "bg-black/75 text-cyan-300 border border-cyan-500/30"
           }`}>
-            {item.categories?.some(c => c.toLowerCase() === "4k") || item.name.toLowerCase().includes("4k") ? "4K UHD" : "HD"}
+            {is4k ? "4K UHD" : "HD"}
           </span>
 
           {/* Actual Video Duration Badge on Card (e.g. 45:32, 1:25:10) */}

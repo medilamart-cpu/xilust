@@ -744,8 +744,8 @@ export function HomeFeed({
         </div>
       ) : items.length > 0 ? (
         <div ref={gridTopRef} className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 scroll-mt-20">
-          {items.map((item) => (
-            <TileCard key={item.key} item={item} />
+          {items.filter(Boolean).map((item) => (
+            <TileCard key={item.key || item.id || String(Math.random())} item={item} />
           ))}
         </div>
       ) : null}
