@@ -122,9 +122,25 @@ export function extractCleanTitleAndDate(rawTitle: string, rawYear?: number | nu
     // 1. If code bracket has -SUBS suffix (e.g. [ATID-690-SUBS]), keep [SUBS] in title
     title = title.replace(/^\s*\[[A-Z0-9]+-[A-Z0-9]+-(?:SUBS?|SUBBED)\]\s*/i, "[SUBS] ");
 
-    // 2. Remove standard JAV code bracket since it is already rendered in the thumbnail badge
-    // Preserves format tags like [4K], [Decensored], [Uncensored], [VR], [SUBS]
-    title = title.replace(/^\s*\[(?:FC2-?PPV-\d+|[A-Z0-9]{2,10}-\d+[A-Z0-9-]*)\]\s*/i, "");
+    // 2. Sweep leading bracket tags: remove code / studio-name / descriptor tags since the code
+    // already renders as the thumbnail badge, while preserving visual tags like
+    // [4K], [Decensored], [Uncensored], [VR], [SUBS].
+    // Handles standard codes [CRNX-274], short codes [C-2450], two-digit codes [LOVE-38],
+    // code variants [MMR-AM002], duplicated codes [DANDY-349] [DANDY-350], site codes
+    // [Caribbeancom-011021-001] and site names [Caribbeancom] / [HEYZO], plus FC2 tags [First Shoot].
+    // Subsequent scan-order variants like [4K] [CRNX-274] are handled too.
+    const JAX_KEEP_TOKEN_RE = /^(?:4k|decensored|uncensored|vr|subs?|subbed)\b/i;
+    let keptTokens: string[] = [];
+    let scan = title;
+    for (let sweep = 0; sweep < 6; sweep++) {
+      const tagMatch = scan.match(/^(\s*)\[([^\]]+)\]/);
+      if (!tagMatch) break;
+      const raw = tagMatch[0];
+      const token = tagMatch[2].trim();
+      if (JAX_KEEP_TOKEN_RE.test(token)) keptTokens.push(`[${token}]`);
+      scan = scan.slice(raw.length).replace(/^\s+/, "");
+    }
+    title = ((keptTokens.length ? keptTokens.join(" ") + " " : "") + scan).trim();
 
     // 3. Clean leading "Title: " prefix if present (e.g. [CRNX-274] Title: [4K] ...)
     title = title.replace(/^\s*Title:\s*/i, "");
