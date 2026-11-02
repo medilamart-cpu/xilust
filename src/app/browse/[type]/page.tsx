@@ -127,7 +127,7 @@ export default async function TaxonomyIndexPage({
             {featured.map(({ entry, video }) => {
               const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
               const modelSlug = (entry.slug || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-              const creatorAvatar = `${vpsBase}/thumbs/fans/models/${modelSlug}.webp`;
+              const creatorAvatar = `${vpsBase}/thumbs/${section}/models/${modelSlug}.webp`;
               const image = video ? getCatalogThumbnailUrls(video, vpsBase) : { posterUrl: null, fallbackUrl: null };
               const primaryPoster = creatorAvatar || image.posterUrl;
               const fallbackPoster = creatorAvatar ? (image.posterUrl || image.fallbackUrl) : image.fallbackUrl;

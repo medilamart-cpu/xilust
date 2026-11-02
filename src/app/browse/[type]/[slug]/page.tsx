@@ -90,10 +90,10 @@ export default async function TaxonomyDetailPage({
   };
 
   // Profile image for model pages:
-  // 1. Scraped headshot from /thumbs/fans/models/{slug}.webp (522+ models)
+  // 1. Scraped headshot from /thumbs/{section}/models/{slug}.webp
   // 2. Fallback to newest video cover artwork
   const cleanModelSlug = (taxonomy?.slug || slug).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  const modelHeadshot = type === "actor" ? `${vpsBase}/thumbs/fans/models/${cleanModelSlug}.webp` : null;
+  const modelHeadshot = type === "actor" ? `${vpsBase}/thumbs/${section}/models/${cleanModelSlug}.webp` : null;
   const latestThumb = type === "actor" && result.items[0] ? getCatalogThumbnailUrls(result.items[0], vpsBase) : null;
   const profileImage = modelHeadshot || latestThumb?.posterUrl || null;
   const profileFallback = latestThumb?.posterUrl || latestThumb?.fallbackUrl || null;
