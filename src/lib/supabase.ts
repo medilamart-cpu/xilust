@@ -20,3 +20,4 @@ export const supabase = isSupabaseConfigured
       },
     })
   : (null as any);
+

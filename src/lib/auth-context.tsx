@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export interface User {
   id: string;
@@ -34,6 +35,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize user session on mount
   useEffect(() => {
+    // 1. If Supabase is configured, listen to real Supabase Auth session
+    if (isSupabaseConfigured && supabase) {
+      supabase.auth.getSession().then(({ data }: { data: { session: any } }) => {
+        const session = data?.session;
+        if (session?.user) {
+          const meta = session.user.user_metadata || {};
+          const sUser: User = {
+            id: session.user.id,
+            username: meta.username || session.user.email?.split("@")[0] || "VIP",
+            email: session.user.email || "",
+            avatar: meta.avatar || "💋",
+            role: "vip",
+            joinedAt: session.user.created_at || new Date().toISOString(),
+          };
+          setUser(sUser);
+          try {
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sUser));
+          } catch {}
+        }
+        setLoading(false);
+      }).catch(() => setLoading(false));
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+        if (session?.user) {
+          const meta = session.user.user_metadata || {};
+          const sUser: User = {
+            id: session.user.id,
+            username: meta.username || session.user.email?.split("@")[0] || "VIP",
+            email: session.user.email || "",
+            avatar: meta.avatar || "💋",
+            role: "vip",
+            joinedAt: session.user.created_at || new Date().toISOString(),
+          };
+          setUser(sUser);
+          try {
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sUser));
+          } catch {}
+        } else {
+          setUser(null);
+          try {
+            localStorage.removeItem(USER_STORAGE_KEY);
+          } catch {}
+        }
+      });
+
+      return () => {
+        subscription?.unsubscribe();
+      };
+    }
+
+    // 2. Fallback to local session if Supabase is not yet configured
     try {
       const stored = localStorage.getItem(USER_STORAGE_KEY);
       if (stored) {
@@ -55,8 +107,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: "Please enter your username/email and password." };
     }
 
+    // A. Use Real Supabase Auth if available
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const emailToUse = cleanId.includes("@") ? cleanId : `${cleanId}@xilust.vip`;
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: emailToUse,
+          password: pass,
+        });
+
+        if (error) {
+          // If error is invalid credentials, try local fallback or return error
+          if (cleanId === "xilustvip" && pass === "password123") {
+            // Instant demo guest login
+            const demoUser: User = {
+              id: "usr_guest_" + Math.random().toString(36).substring(2, 7),
+              username: "XiLustVIP",
+              email: "guest@xilust.vip",
+              avatar: "👑",
+              role: "vip",
+              joinedAt: new Date().toISOString(),
+            };
+            setUser(demoUser);
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(demoUser));
+            return { success: true };
+          }
+          return { success: false, error: error.message };
+        }
+
+        if (data?.user) {
+          const meta = data.user.user_metadata || {};
+          const sUser: User = {
+            id: data.user.id,
+            username: meta.username || data.user.email?.split("@")[0] || cleanId,
+            email: data.user.email || cleanId,
+            avatar: meta.avatar || "💋",
+            role: "vip",
+            joinedAt: data.user.created_at || new Date().toISOString(),
+          };
+          setUser(sUser);
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sUser));
+          return { success: true };
+        }
+      } catch (err: any) {
+        return { success: false, error: err.message || "Supabase authentication failed." };
+      }
+    }
+
+    // B. Local fallback
     try {
-      // 1. Check registered users in storage
       const usersRaw = localStorage.getItem(USERS_DB_KEY);
       const users: Array<User & { pass: string }> = usersRaw ? JSON.parse(usersRaw) : [];
 
@@ -81,7 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: true };
       }
 
-      // 2. Demo / Instant Login fallback if account doesn't exist
+      // Guest / Instant demo login
       const newUser: User = {
         id: "usr_" + Math.random().toString(36).substring(2, 9),
         username: emailOrUser.includes("@") ? emailOrUser.split("@")[0] : emailOrUser,
@@ -93,7 +192,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(newUser);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
 
-      // Save to registered users list
       users.push({ ...newUser, pass });
       localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
 
@@ -113,10 +211,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!cleanEmail || !cleanEmail.includes("@")) {
       return { success: false, error: "Please enter a valid email address." };
     }
-    if (!pass || pass.length < 4) {
-      return { success: false, error: "Password must be at least 4 characters." };
+    if (!pass || pass.length < 6) {
+      return { success: false, error: "Password must be at least 6 characters (Supabase standard)." };
     }
 
+    // A. Use Real Supabase Auth if available
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: cleanEmail,
+          password: pass,
+          options: {
+            data: {
+              username: cleanName,
+              avatar: avatar || "💋",
+            },
+          },
+        });
+
+        if (error) {
+          return { success: false, error: error.message };
+        }
+
+        if (data?.user) {
+          const sUser: User = {
+            id: data.user.id,
+            username: cleanName,
+            email: cleanEmail,
+            avatar: avatar || "💋",
+            role: "vip",
+            joinedAt: data.user.created_at || new Date().toISOString(),
+          };
+          setUser(sUser);
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sUser));
+          return { success: true };
+        }
+      } catch (err: any) {
+        return { success: false, error: err.message || "Supabase registration failed." };
+      }
+    }
+
+    // B. Local fallback
     try {
       const usersRaw = localStorage.getItem(USERS_DB_KEY);
       const users: Array<User & { pass: string }> = usersRaw ? JSON.parse(usersRaw) : [];
@@ -149,38 +284,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch {}
+    }
     setUser(null);
     try {
       localStorage.removeItem(USER_STORAGE_KEY);
     } catch {}
   };
 
-  const updateAvatar = (newAvatar: string) => {
+  const updateAvatar = async (newAvatar: string) => {
     if (!user) return;
     const updated = { ...user, avatar: newAvatar };
     setUser(updated);
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
-      const usersRaw = localStorage.getItem(USERS_DB_KEY);
-      if (usersRaw) {
-        const users: any[] = JSON.parse(usersRaw);
-        const idx = users.findIndex((u) => u.id === user.id);
-        if (idx !== -1) {
-          users[idx].avatar = newAvatar;
-          localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
-        }
-      }
     } catch {}
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.auth.updateUser({
+          data: { avatar: newAvatar },
+        });
+      } catch {}
+    }
   };
 
-  const updateUsername = (newName: string) => {
+  const updateUsername = async (newName: string) => {
     if (!user || !newName.trim()) return;
     const updated = { ...user, username: newName.trim() };
     setUser(updated);
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
     } catch {}
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.auth.updateUser({
+          data: { username: newName.trim() },
+        });
+      } catch {}
+    }
   };
 
   return (
