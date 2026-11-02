@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { getTaxonomies, queryItems, type CatalogItem } from "@/lib/catalog-db";
 import { getCatalogThumbnailUrls } from "@/lib/catalog-thumbnail";
 import { formatStudioLabel } from "@/lib/studio-label";
+import { TaxonomyThumbnail } from "@/components/aethoplex/TaxonomyThumbnail";
 import { TileCard, type CardModel } from "@/components/aethoplex/PosterCard";
 
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
@@ -69,14 +70,37 @@ export default async function TaxonomyDetailPage({
   const base = "/browse/" + type + "/" + encodeURIComponent(slug) + "?section=" + section + "&name=" + encodeURIComponent(name);
   const hrefFor = (nextPage: number, nextFilter = subfilter) => base + "&page=" + nextPage + (nextFilter ? "&subfilter=" + nextFilter : "");
 
+  // Profile image for model pages: fans uses dedicated creator avatars, lust/jax use the
+  // cover of the performer's most recent video.
+  const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
+  const creatorAvatar = type === "actor" && section === "fans" ? `${vpsBase}/thumbs/fans/models/${taxonomy?.slug || slug}.webp` : null;
+  const latestThumb = type === "actor" && result.items[0] ? getCatalogThumbnailUrls(result.items[0], vpsBase) : null;
+  const profileImage = creatorAvatar || latestThumb?.posterUrl || null;
+  const profileFallback = latestThumb?.fallbackUrl || null;
+
   return (
     <main className="min-h-screen bg-[#080a0f] px-3 py-8 pb-20 text-[#f4f5f8] sm:px-6 sm:py-12 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Link href={"/browse/" + type + "?section=" + section} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white">
-          <ArrowLeft className="h-4 w-4" /> All {type === "actor" ? "performers" : type + "s"}
+          <ArrowLeft className="h-4 w-4" /> {type === "actor" ? "All models" : "All " + type + "s"}
         </Link>
         <div className="mt-6 flex flex-wrap items-end justify-between gap-3 border-b border-white/10 pb-4">
-          <div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-300/80">{section.toUpperCase()}</p><h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{title}</h1><p className="mt-1 text-sm text-white/50">{result.total.toLocaleString()} videos</p></div>
+          <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+            {type === "actor" && (
+              <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-[#12161f] to-[#0b0e14] sm:h-40 sm:w-32">
+                {profileImage || profileFallback ? (
+                  <TaxonomyThumbnail src={profileImage} fallbackSrc={profileFallback} alt={name} fallbackLabel={name} />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-3xl text-white/25">{name.slice(0, 1).toUpperCase()}</div>
+                )}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${section === "jax" ? "text-pink-300/85" : section === "fans" ? "text-cyan-300/85" : "text-purple-300/85"}`}>{type === "actor" ? (section === "jax" ? "🌸 JAX AV MODEL" : section === "fans" ? "⭐ VERIFIED CREATOR" : "🔥 LUST MODEL") : section.toUpperCase()}</p>
+              <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{title}</h1>
+              <p className="mt-1 text-sm text-white/50">{result.total.toLocaleString()} videos</p>
+            </div>
+          </div>
           {section === "jax" && (type === "actor" || type === "studio") && (
             <div className="flex flex-wrap gap-2" role="group" aria-label="Filter Jax videos">
               {(["uncensored", "4k", "subbed"] as const).map((filter) => (
@@ -87,7 +111,7 @@ export default async function TaxonomyDetailPage({
         </div>
         {cards.length ? (
           <>
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">{cards.map((item) => <TileCard key={item.key} item={item} />)}</div>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">{cards.map((item) => <TileCard key={item.key} item={item} />)}</div>
             {totalPages > 1 && <nav aria-label="Browse pagination" className="mt-8 flex items-center justify-center gap-4">
               <Link aria-disabled={page <= 1} href={hrefFor(Math.max(1, page - 1))} className={"inline-flex min-h-11 items-center rounded-xl border border-white/10 px-4 text-sm " + (page <= 1 ? "pointer-events-none opacity-40" : "")}>Previous</Link>
               <span aria-live="polite" className="text-sm text-white/60">{page} / {totalPages}</span>
