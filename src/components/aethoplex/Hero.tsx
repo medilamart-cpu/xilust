@@ -202,7 +202,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`relative min-h-[340px] sm:min-h-[460px] ${isJax ? "h-[360px] sm:h-[480px]" : "h-auto"} overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl`}
+        className="relative min-h-[300px] sm:min-h-[420px] md:min-h-[460px] lg:min-h-[500px] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl"
       >
         {/* The whole featured artwork opens its title; controls stay above this link. */}
         <Link
@@ -213,7 +213,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           {imgSrc && !imgError ? (
             <>
               {!imageLoaded && (
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-violet-950/70 via-slate-900 to-[#0a0d14] animate-pulse motion-reduce:animate-none pointer-events-none transition-opacity duration-300">
+                <div aria-hidden="true" className="absolute inset-0 bg-[#0a0d14] pointer-events-none transition-opacity duration-300">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
                 </div>
               )}
@@ -224,7 +224,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                 aria-hidden="true"
                 className="absolute inset-0 h-full w-full object-cover blur-3xl opacity-35 scale-110 pointer-events-none"
               />
-              {/* Crisp Foreground Master Image */}
+              {/* Crisp Foreground Master Image with right-weighted positioning */}
               <img
                 ref={(img) => {
                   if (img && img.complete && img.naturalWidth > 0 && !imageLoaded) {
@@ -235,7 +235,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                 alt=""
                 onLoad={() => setImageLoaded(true)}
                 onError={handleHeroImgError}
-                className="absolute inset-0 h-full w-full rounded-2xl object-cover object-[center_20%] sm:object-center sm:rounded-3xl transition-[opacity,transform,filter] duration-700 brightness-100"
+                className="absolute inset-0 h-full w-full rounded-2xl sm:rounded-3xl object-cover object-[center_20%] sm:object-[right_center] transition-[opacity,transform,filter] duration-700 brightness-100"
               />
             </>
           ) : (
@@ -246,13 +246,13 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
         </Link>
 
         {/* Dual-Scrim Cinematic Gradients (Netflix / Apple TV+ style) */}
-        {/* Left-to-Right Scrim for Text Readability */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/75 to-transparent w-full sm:w-3/4 z-[1]" />
+        {/* Left-to-Right Scrim: Covers text area on left while leaving right thumbnail 100% visible */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/80 via-35% to-transparent w-full sm:w-[58%] z-[1]" />
         {/* Bottom-to-Top Fade */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-44 sm:h-56 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent z-[1]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-28 sm:h-40 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/70 to-transparent z-[1]" />
 
         {/* Content Box */}
-        <div className="pointer-events-none relative z-[2] flex min-h-[340px] sm:min-h-[460px] max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
+        <div className="pointer-events-none relative z-[2] flex min-h-[300px] sm:min-h-[420px] md:min-h-[460px] lg:min-h-[500px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
           {/* Eyebrow badge row */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-2.5">
             <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-rose-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md uppercase">
