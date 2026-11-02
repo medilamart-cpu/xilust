@@ -127,6 +127,11 @@ export default function Home() {
       url.searchParams.delete("tag");
       url.searchParams.delete("code");
       url.searchParams.delete("premium");
+      url.searchParams.delete("page");
+      try {
+        sessionStorage.removeItem("xilust_page_" + s);
+        sessionStorage.removeItem("xilust_scroll_" + s);
+      } catch {}
       window.history.pushState({}, "", url.toString());
     }
   };

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Search, Flame, Bookmark, X } from "lucide-react";
+import { Search, Flame, Bookmark, X, User as UserIcon } from "lucide-react";
 import { Wordmark, LogoMark } from "./Logo";
+import { useAuth } from "@/lib/auth-context";
 
 export type Section = "lust" | "jax" | "fans";
 export type View = string;
@@ -23,6 +24,7 @@ export function Navbar({
   onSelectCategory?: (cat: string) => void;
   activeCategory?: string;
 }) {
+  const { user } = useAuth();
   const [focus, setFocus] = useState(false);
   const [listCount, setListCount] = useState(0);
   const [scrolled, setScrolled] = useState(false);
@@ -236,6 +238,31 @@ export function Navbar({
                     </span>
                   )}
                 </a>
+
+                {/* Profile / Sign In shortcut */}
+                <a
+                  href={user ? "/profile" : "/login"}
+                  onClick={() => {
+                    setMobileSearchOpen(false);
+                    if (query) onQueryChange("");
+                  }}
+                  aria-label={user ? "Profile" : "Sign In"}
+                  className="flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] border border-white/10 px-2.5 sm:px-3 text-xs font-semibold text-white/90 transition-colors hover:border-pink-500/40 hover:bg-white/[0.08]"
+                >
+                  {user ? (
+                    <>
+                      <span className="text-sm leading-none">{user.avatar || "👤"}</span>
+                      <span className="hidden md:inline max-w-[80px] truncate text-white">
+                        {user.username}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <UserIcon className="h-3.5 w-3.5 text-pink-400" />
+                      <span className="hidden md:inline text-white/90">Sign In</span>
+                    </>
+                  )}
+                </a>
               </div>
             </>
           )}
@@ -309,15 +336,31 @@ export function Navbar({
               setMobileSearchOpen(false);
               if (query) onQueryChange("");
             }}
-            className="flex flex-col items-center gap-1 min-w-[56px] py-1 text-white/50 hover:text-white/80 transition-all relative"
+            className="flex flex-col items-center gap-1 min-w-[50px] py-1 text-white/50 hover:text-white/80 transition-all relative"
           >
             <Bookmark className="h-4 w-4 text-cyan-300" />
             <span className="text-[10px]">My List</span>
             {listCount > 0 && (
-              <span className="absolute top-0 right-3 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-cyan-400 px-1 text-[9px] font-black text-black">
+              <span className="absolute top-0 right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-cyan-400 px-1 text-[9px] font-black text-black">
                 {listCount}
               </span>
             )}
+          </a>
+
+          <a
+            href={user ? "/profile" : "/login"}
+            onClick={() => {
+              setMobileSearchOpen(false);
+              if (query) onQueryChange("");
+            }}
+            className="flex flex-col items-center gap-1 min-w-[50px] py-1 text-white/50 hover:text-white/80 transition-all"
+          >
+            {user ? (
+              <span className="text-sm leading-none">{user.avatar || "👤"}</span>
+            ) : (
+              <UserIcon className="h-4 w-4 text-pink-400" />
+            )}
+            <span className="text-[10px]">{user ? "Profile" : "Sign In"}</span>
           </a>
         </div>
       </nav>

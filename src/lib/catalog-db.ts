@@ -315,9 +315,17 @@ export async function getTaxonomies(
   section: "lust" | "jax" | "fans",
   type: "actor" | "studio" | "category" | "tag",
   limit: number = 40,
-  search: string = ""
+  search: string = "",
+  sort: "count" | "name" | "recent" = "count"
 ): Promise<TaxonomyItem[]> {
   const db = getLocalDb();
+
+  const orderBy =
+    sort === "name"
+      ? "ORDER BY name COLLATE NOCASE ASC"
+      : sort === "recent"
+        ? "ORDER BY id DESC"
+        : "ORDER BY count DESC, name ASC";
 
   if (db) {
     try {
@@ -326,7 +334,7 @@ export async function getTaxonomies(
         SELECT id, section, type, name, slug, count
         FROM taxonomies
         WHERE section = ? AND type = ? AND (? = '' OR LOWER(REPLACE(REPLACE(name, ' ', ''), '-', '')) LIKE '%' || ? || '%' OR LOWER(REPLACE(slug, '-', '')) LIKE '%' || ? || '%')
-        ORDER BY count DESC
+        ${orderBy}
         LIMIT ?
       `;
       const rows = db.prepare(sql).all(section, type, search.trim(), qClean, qClean, Math.min(Math.max(limit, 1), 500));
@@ -348,7 +356,7 @@ export async function getTaxonomies(
       return [];
     }
     const data = await res.json();
-    return (data.items || []).map((item: any, idx: number) => ({
+    const items = (data.items || []).map((item: any, idx: number) => ({
       id: idx + 1,
       section,
       type,
@@ -356,6 +364,14 @@ export async function getTaxonomies(
       slug: item.slug,
       count: item.count,
     }));
+    if (sort === "name") {
+      items.sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    } else if (sort === "recent") {
+      items.sort((a: any, b: any) => (b.id || 0) - (a.id || 0));
+    } else {
+      items.sort((a: any, b: any) => (b.count || 0) - (a.count || 0));
+    }
+    return items;
   } catch (err) {
     console.error("Failed to fetch taxonomies from remote catalog API:", err);
     return [];

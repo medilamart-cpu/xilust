@@ -93,7 +93,22 @@ export function HomeFeed({
   const [items, setItems] = useState<CardModel[]>([]);
   const premiumPoolRef = useRef<CardModel[] | null>(null);
   const gridTopRef = useRef<HTMLDivElement | null>(null);
-  const [page, setPage] = useState(1);
+  const isInitialMountRef = useRef(true);
+  const hasRestoredScrollRef = useRef(false);
+
+  // Initialize page from URL query param or sessionStorage so returning from a video preserves the exact page
+  const [page, setPage] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const urlPage = parseInt(sp.get("page") || "", 10);
+      if (!isNaN(urlPage) && urlPage >= 1) return urlPage;
+      try {
+        const storedPage = parseInt(sessionStorage.getItem(`xilust_page_${section}`) || "", 10);
+        if (!isNaN(storedPage) && storedPage >= 1) return storedPage;
+      } catch {}
+    }
+    return 1;
+  });
   const [totalPages, setTotalPages] = useState(1);
   const [busy, setBusy] = useState(false);
   const [feedError, setFeedError] = useState<string | null>(null);
@@ -293,20 +308,63 @@ export function HomeFeed({
     [section, query, tab, activeFilter, jaxSubFilter],
   );
 
-  // Reset page & list when section, query, tab, or activeFilter changes
+  // Fetch feed on dependency change, preserving saved page on initial mount
   useEffect(() => {
     if (abortRef.current) abortRef.current.abort();
     premiumPoolRef.current = null;
     setItems([]);
-    setTotalPages(1);
-    setPage(1);
-    fetchPage(1);
+
+    let targetPage = 1;
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      targetPage = page;
+    } else {
+      setPage(1);
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem(`xilust_page_${section}`, "1");
+        } catch {}
+        const url = new URL(window.location.href);
+        url.searchParams.delete("page");
+        window.history.replaceState({}, "", url.toString());
+      }
+    }
+
+    fetchPage(targetPage);
   }, [section, query, tab, activeFilter, jaxSubFilter, fetchPage]);
+
+  // Restore scroll position when returning from video details
+  useEffect(() => {
+    if (items.length > 0 && !hasRestoredScrollRef.current) {
+      hasRestoredScrollRef.current = true;
+      if (typeof window !== "undefined") {
+        try {
+          const savedScroll = sessionStorage.getItem(`xilust_scroll_${section}`);
+          if (savedScroll) {
+            const scrollY = parseInt(savedScroll, 10);
+            if (!isNaN(scrollY) && scrollY > 0) {
+              window.setTimeout(() => {
+                window.scrollTo({ top: scrollY, behavior: "instant" as ScrollBehavior });
+              }, 50);
+            }
+          }
+        } catch {}
+      }
+    }
+  }, [items, section]);
 
   const goToPage = (nextPage: number) => {
     if (busy || nextPage < 1 || nextPage > totalPages || nextPage === page) return;
     setItems([]);
     setPage(nextPage);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(`xilust_page_${section}`, String(nextPage));
+      } catch {}
+      const url = new URL(window.location.href);
+      url.searchParams.set("page", String(nextPage));
+      window.history.replaceState({}, "", url.toString());
+    }
     void fetchPage(nextPage);
     // Smooth scroll directly to the first post / top of grid
     if (gridTopRef.current) {

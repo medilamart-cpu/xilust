@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/catalog";
+import { AuthProvider } from "@/lib/auth-context";
 
 export const viewport: Viewport = {
   themeColor: "#080a0f",
@@ -43,7 +44,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistMono.variable} antialiased bg-[#080a0f] text-[#f4f5f8]`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

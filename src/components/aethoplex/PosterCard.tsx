@@ -244,6 +244,18 @@ export function TileCard({ item }: { item: CardModel }) {
         href={href}
         className="block focusable rounded-xl"
         aria-label={cleanTitle}
+        onClick={() => {
+          if (typeof window !== "undefined") {
+            try {
+              sessionStorage.setItem(`xilust_scroll_${sec}`, String(window.scrollY));
+              const sp = new URLSearchParams(window.location.search);
+              const p = sp.get("page");
+              if (p) {
+                sessionStorage.setItem(`xilust_page_${sec}`, p);
+              }
+            } catch {}
+          }
+        }}
       >
         <div
           onMouseEnter={handleMouseEnter}

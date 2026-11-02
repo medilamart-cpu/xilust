@@ -23,13 +23,14 @@ export default async function TaxonomyIndexPage({
   searchParams,
 }: {
   params: Promise<{ type: string }>;
-  searchParams: Promise<{ section?: string; q?: string }>;
+  searchParams: Promise<{ section?: string; q?: string; sort?: string }>;
 }) {
   const { type: rawType } = await params;
-  const { section: rawSection, q = "" } = await searchParams;
+  const { section: rawSection, q = "", sort: rawSort } = await searchParams;
   if (!["category", "actor", "studio", "tag"].includes(rawType)) notFound();
   const type = rawType as TaxonomyType;
   const section = rawSection === "jax" || rawSection === "fans" ? rawSection : "lust";
+  const sort = rawSort === "name" || rawSort === "recent" || rawSort === "count" ? rawSort : "count";
   const isActor = type === "actor";
   const pageTitle = isActor
     ? (section === "jax" ? "AV Actresses & Idols" : section === "fans" ? "Creators & Leaks" : "Pornstars & Models")
@@ -45,7 +46,7 @@ export default async function TaxonomyIndexPage({
           : "Browse top-ranked Western pornstars, studio models, and complete scene filmographies.")
     : `Browse ${pageTitle.toLowerCase()} and recent releases.`;
 
-  let items = section === "fans" && type === "studio" ? [] : await getTaxonomies(section, type, 100, q);
+  let items = section === "fans" && type === "studio" ? [] : await getTaxonomies(section, type, 120, q, sort);
   if (type === "category") {
     const [studios, actors] = await Promise.all([
       section === "fans" ? Promise.resolve([] as TaxonomyItem[]) : getTaxonomies(section, "studio", 500),
@@ -99,20 +100,59 @@ export default async function TaxonomyIndexPage({
             <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{pageTitle}</h1>
             <p className="mt-1 text-sm text-white/50">{pageSubtitle}</p>
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {(type === "studio" ? (["lust", "jax"] as const) : (["lust", "jax", "fans"] as const)).map((brand) => (
-              <Link key={brand} href={"/browse/" + type + "?section=" + brand} aria-current={section === brand ? "page" : undefined} className={"inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-semibold uppercase transition " + activePillStyle(brand)}>
-                {brand}
+          {/* Controls Bar: Section pills + Sorting buttons */}
+          <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {(type === "studio" ? (["lust", "jax"] as const) : (["lust", "jax", "fans"] as const)).map((brand) => (
+                <Link key={brand} href={"/browse/" + type + "?section=" + brand + (sort !== "count" ? "&sort=" + sort : "")} aria-current={section === brand ? "page" : undefined} className={"inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-semibold uppercase transition " + activePillStyle(brand)}>
+                  {brand}
+                </Link>
+              ))}
+            </div>
+
+            {/* Sorting Tabs */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold overflow-x-auto no-scrollbar touch-scroll">
+              <Link
+                href={`/browse/${type}?section=${section}${q ? `&q=${encodeURIComponent(q)}` : ""}&sort=count`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  sort === "count"
+                    ? "bg-white text-black shadow-md font-extrabold"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <span>👑 Most Videos</span>
               </Link>
-            ))}
+              <Link
+                href={`/browse/${type}?section=${section}${q ? `&q=${encodeURIComponent(q)}` : ""}&sort=name`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  sort === "name"
+                    ? "bg-white text-black shadow-md font-extrabold"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <span>🔤 A — Z</span>
+              </Link>
+              <Link
+                href={`/browse/${type}?section=${section}${q ? `&q=${encodeURIComponent(q)}` : ""}&sort=recent`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  sort === "recent"
+                    ? "bg-white text-black shadow-md font-extrabold"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <span>⚡ Recent</span>
+              </Link>
+            </div>
           </div>
+
           <form action={"/browse/" + type} method="get" className="mt-4 flex max-w-xl items-center gap-2">
             <input type="hidden" name="section" value={section} />
+            {sort !== "count" && <input type="hidden" name="sort" value={sort} />}
             <label className="sr-only" htmlFor="taxonomy-search">Search {pageTitle}</label>
             <input id="taxonomy-search" name="q" defaultValue={q} placeholder={"Search " + pageTitle.toLowerCase()} className="min-h-11 min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-cyan-300/50" />
             <button type="submit" className="min-h-11 rounded-lg border border-cyan-300/25 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">Search</button>
             {q && (
-              <Link href={"/browse/" + type + "?section=" + section} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-medium text-white/60 hover:text-white">
+              <Link href={"/browse/" + type + "?section=" + section + (sort !== "count" ? "&sort=" + sort : "")} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-medium text-white/60 hover:text-white">
                 <X className="h-3.5 w-3.5" /> Clear
               </Link>
             )}

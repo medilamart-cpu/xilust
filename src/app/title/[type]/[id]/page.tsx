@@ -7,6 +7,8 @@ import { formatStudioLabel } from "@/lib/studio-label";
 import { TileCard } from "@/components/aethoplex/PosterCard";
 import { extractCleanTitleAndDate, formatVideoDuration, formatUploadDate } from "@/lib/video-utils";
 import { TitleWatchClient } from "./TitleWatchClient";
+import { BackButton } from "@/components/aethoplex/BackButton";
+import { CommentSection } from "@/components/aethoplex/CommentSection";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -64,13 +66,7 @@ export default async function TitlePage({
     <div className="min-h-screen bg-[#080a0f] text-[#f4f5f8]">
       {/* Top back bar with safe-area support */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#080a0f]/90 backdrop-blur-xl px-3 sm:px-8 py-2.5 sm:py-3.5 pt-[calc(0.625rem+env(safe-area-inset-top))] flex items-center justify-between">
-        <Link
-          href={`/?section=${section}`}
-          className="flex items-center gap-1.5 sm:gap-2 rounded-lg bg-white/5 border border-white/10 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-white/80 hover:text-white hover:bg-white/10 transition-all active:scale-95"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to {section === "jax" ? "🌸 Jax" : section === "fans" ? "⭐ Fans" : "🔥 Lust"}</span>
-        </Link>
+        <BackButton section={section} />
 
         <div className="flex items-center gap-1.5 sm:gap-2">
           {section === "jax" && item.code && (
@@ -271,6 +267,9 @@ export default async function TitlePage({
             </div>
           </div>
         </div>
+
+        {/* Post Comments Section */}
+        <CommentSection postSlug={item.slug || rawId} section={section} postTitle={item.title} />
 
         {/* Recommended Row */}
         {recs.length > 0 && (
