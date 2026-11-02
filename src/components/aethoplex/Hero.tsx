@@ -214,9 +214,8 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           )}
         </Link>
 
-        {/* Cinematic Gradient Overlays: lightened on mobile so cover thumbnail is clearly visible */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#080a0f]/95 via-[#080a0f]/25 sm:via-[#080a0f]/40 to-transparent" />
-        <div aria-hidden="true" className="pointer-events-none hidden sm:block absolute inset-0 bg-gradient-to-r from-[#080a0f]/50 via-[#080a0f]/35 to-transparent" />
+        {/* Clear thumbnail presentation without heavy shadows or unfocused veils */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-28 sm:h-36 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
         {/* Content Box */}
         <div className="pointer-events-none relative z-[1] flex min-h-[340px] sm:min-h-[460px] max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
@@ -235,7 +234,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           </div>
 
           {/* Title */}
-          <h1 className="line-clamp-2 break-words text-lg sm:text-3xl md:text-4xl font-black leading-tight text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.9)]">
+          <h1 className="line-clamp-2 break-words text-lg sm:text-3xl md:text-4xl font-black leading-tight text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.95),0_1px_4px_rgba(0,0,0,0.9)]">
             {cleanTitle}
           </h1>
 
