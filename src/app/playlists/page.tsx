@@ -266,7 +266,7 @@ export default function PlaylistsPage() {
                         <div className="p-3 flex-1 flex flex-col justify-between">
                           <Link
                             href={`/title/${item.section || "lust"}/${item.slug || item.id}`}
-                            className="text-xs sm:text-sm font-bold text-white hover:text-cyan-300 line-clamp-2 transition-colors"
+                            className="font-display text-[13.5px] sm:text-[14.5px] font-bold text-white hover:text-cyan-300 line-clamp-2 transition-colors leading-[1.35]"
                           >
                             {item.title}
                           </Link>

@@ -333,7 +333,7 @@ export function TileCard({ item }: { item: CardModel }) {
                     {item.code}
                   </span>
                   <div className="space-y-1">
-                    <p className="line-clamp-2 text-xs font-semibold text-white/95">{cleanTitle}</p>
+                    <p className="line-clamp-2 font-display text-xs sm:text-[13px] font-bold text-white/95 leading-snug">{cleanTitle}</p>
                     {item.actors && item.actors.length > 0 && (
                       <p className="text-[10px] text-pink-300 font-medium">🌸 {item.actors[0]}</p>
                     )}
@@ -405,10 +405,10 @@ export function TileCard({ item }: { item: CardModel }) {
       {/* Info footer with consistent title height and relative upload time */}
       <div className="mt-2 sm:mt-2.5 flex items-start justify-between gap-1.5 sm:gap-2">
         <Link href={href} className="flex-1 min-w-0">
-          <div className={`${isFans || sec === "lust" ? "min-h-0" : "min-h-[2.1rem] sm:min-h-[2.35rem]"} flex items-start`}>
+          <div className={`${isFans || sec === "lust" ? "min-h-0" : "min-h-[2.35rem] sm:min-h-[2.55rem]"} flex items-start`}>
             <p
               title={cleanTitle}
-              className="line-clamp-2 text-xs sm:text-[13.5px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-cyan-300"
+              className="line-clamp-2 font-display text-[13.5px] sm:text-[14.5px] font-bold leading-[1.35] tracking-[-0.01em] text-white/95 transition-colors group-hover:text-cyan-300"
             >
               {cleanTitle}
             </p>

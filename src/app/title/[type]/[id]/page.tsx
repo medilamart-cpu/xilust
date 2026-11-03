@@ -173,7 +173,7 @@ export default async function TitlePage({
                 </span>
               </div>
 
-              <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white leading-snug">
+              <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight">
                 {cleanTitle}
               </h1>
             </div>
@@ -332,7 +332,7 @@ export default async function TitlePage({
         {/* Recommended Row */}
         {recs.length > 0 && (
           <div className="mt-12 sm:mt-16 border-t border-white/10 pt-8 sm:pt-10">
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">More Like This</h2>
+            <h2 className="font-display text-lg sm:text-xl font-extrabold text-white mb-4 sm:mb-6 tracking-tight">More Like This</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {recs.map((rec) => {
                 const vpsBase =

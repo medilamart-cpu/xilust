@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/catalog";
 import { AuthProvider } from "@/lib/auth-context";
@@ -14,6 +14,12 @@ export const viewport: Viewport = {
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   display: "swap",
 });
@@ -42,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${geistMono.variable} antialiased bg-[#080a0f] text-[#f4f5f8]`}
+        className={`${inter.variable} ${outfit.variable} ${geistMono.variable} antialiased bg-[#080a0f] text-[#f4f5f8]`}
       >
         <AuthProvider>
           {children}

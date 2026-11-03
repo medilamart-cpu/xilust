@@ -274,7 +274,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           </div>
 
           {/* Headline Title */}
-          <h1 className="line-clamp-2 break-words text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.1] mb-2 sm:mb-2.5 drop-shadow-md">
+          <h1 className="line-clamp-2 break-words font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.2] mb-2 sm:mb-2.5 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
             {heroHeadline}
           </h1>
 
