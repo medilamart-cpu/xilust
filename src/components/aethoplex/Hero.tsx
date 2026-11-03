@@ -87,8 +87,8 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       cur.fallbackUrl ||
       ((cur as any).thumbnail_url
         ? ((cur as any).thumbnail_url.startsWith("http")
-            ? (cur as any).thumbnail_url
-            : `${vpsBase}/${(cur as any).thumbnail_url.replace(/^\/+/, "")}`)
+          ? (cur as any).thumbnail_url
+          : `${vpsBase}/${(cur as any).thumbnail_url.replace(/^\/+/, "")}`)
         : null) ||
       (cur as any).cover_url ||
       null

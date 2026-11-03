@@ -333,7 +333,7 @@ export default async function TitlePage({
         {recs.length > 0 && (
           <div className="mt-12 sm:mt-16 border-t border-white/10 pt-8 sm:pt-10">
             <h2 className="font-display text-lg sm:text-xl font-extrabold text-white mb-4 sm:mb-6 tracking-tight">More Like This</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
               {recs.map((rec) => {
                 const vpsBase =
                   process.env.NEXT_PUBLIC_THUMBS_CDN ||

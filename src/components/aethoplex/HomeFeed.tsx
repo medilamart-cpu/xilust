@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock } from "lucide-react";
+import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2 } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
 import type { TaxonomyItem } from "@/lib/catalog-db";
 import { formatStudioLabel } from "@/lib/studio-label";
@@ -61,6 +61,24 @@ export function HomeFeed({
   const [activeFilter, setActiveFilter] = useState<{ type: FilterType; name: string } | null>(
     filter || null
   );
+
+  // View Density: Cinematic (large 3-column HD) vs Compact (4-column grid)
+  const [viewDensity, setViewDensity] = useState<"cinematic" | "compact">(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("xilust_view_density");
+        if (stored === "compact" || stored === "cinematic") return stored;
+      } catch {}
+    }
+    return "cinematic";
+  });
+
+  const handleDensityChange = (density: "cinematic" | "compact") => {
+    setViewDensity(density);
+    try {
+      localStorage.setItem("xilust_view_density", density);
+    } catch {}
+  };
 
   // Sync when filter prop changes (e.g. from URL redirect)
   useEffect(() => {
@@ -408,6 +426,35 @@ export function HomeFeed({
             })}
           </div>
 
+          {/* Density Toggle (Cinematic 3-col HD vs Compact 4-col) */}
+          <div className="flex items-center p-1 rounded-xl bg-white/[0.04] border border-white/10 shrink-0 ml-auto">
+            <button
+              type="button"
+              title="Cinematic HD View (Large 3-Column)"
+              onClick={() => handleDensityChange("cinematic")}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewDensity === "cinematic"
+                  ? "bg-cyan-400 text-black shadow-md shadow-cyan-500/20"
+                  : "text-white/60 hover:text-white"
+              }`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Cinematic</span>
+            </button>
+            <button
+              type="button"
+              title="Compact View (4-Column Grid)"
+              onClick={() => handleDensityChange("compact")}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewDensity === "compact"
+                  ? "bg-cyan-400 text-black shadow-md shadow-cyan-500/20"
+                  : "text-white/60 hover:text-white"
+              }`}
+            >
+              <Grid2X2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Compact</span>
+            </button>
+          </div>
         </div>
 
         {/* Active search query banner with one-click dismiss */}
@@ -799,7 +846,14 @@ export function HomeFeed({
           )}
         </div>
       ) : items.length > 0 ? (
-        <div ref={gridTopRef} className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 scroll-mt-20">
+        <div
+          ref={gridTopRef}
+          className={`mt-6 sm:mt-8 grid gap-4 sm:gap-6 scroll-mt-20 transition-all duration-300 ${
+            viewDensity === "cinematic"
+              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+              : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+          }`}
+        >
           {items.filter(Boolean).map((item) => (
             <TileCard key={item.key || item.id || String(Math.random())} item={item} />
           ))}

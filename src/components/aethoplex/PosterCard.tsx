@@ -300,7 +300,7 @@ export function TileCard({ item }: { item: CardModel }) {
         <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-[#0d1017] shadow-[0_8px_28px_rgba(0,0,0,0.55)] transition-[transform,border-color] duration-300 group-hover:-translate-y-1 group-hover:border-cyan-400/50"
+          className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-[#0d1017] shadow-[0_10px_30px_rgba(0,0,0,0.65)] transition-all duration-500 ease-out group-hover:-translate-y-1.5 group-hover:border-cyan-400/60 group-hover:shadow-[0_20px_45px_rgba(0,0,0,0.8),0_0_28px_rgba(6,182,212,0.22)]"
         >
           {art ? (
             <>
@@ -317,12 +317,14 @@ export function TileCard({ item }: { item: CardModel }) {
                 }}
                 src={art}
                 alt={cleanTitle}
-                className="h-full w-full object-cover transition-opacity duration-300"
+                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108 will-change-transform"
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 onError={handleImgError}
                 draggable={false}
               />
+              {/* Dual-stop vignette scrim to protect bottom text and badges without hiding the 1080p photo */}
+              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#080a0f]/90 via-[#080a0f]/15 via-35% to-transparent pointer-events-none" />
             </>
           ) : (
             <div className="relative h-full w-full">
@@ -343,20 +345,20 @@ export function TileCard({ item }: { item: CardModel }) {
             </div>
           )}
 
-          {/* Interactive Hover Veil + Play Button */}
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none">
-            <span className="flex h-12 w-12 scale-75 items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-400/50 shadow-[0_0_25px_rgba(6,182,212,0.6)] backdrop-blur-md transition-transform duration-300 group-hover:scale-100">
+          {/* Interactive Hover Veil + Play Button with Neon Pulse */}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 backdrop-blur-[2px] transition-all duration-300 group-hover:opacity-100 pointer-events-none">
+            <span className="flex h-12 w-12 sm:h-13 sm:w-13 scale-75 items-center justify-center rounded-full bg-cyan-500/25 border border-cyan-400/60 shadow-[0_0_25px_rgba(6,182,212,0.7)] backdrop-blur-md transition-transform duration-300 group-hover:scale-100">
               <Play className="ml-0.5 h-5 w-5 fill-cyan-300 text-cyan-300" />
             </span>
           </div>
 
-          {/* Badge: 4K / HD */}
-          <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.14em] backdrop-blur-md ${
+          {/* Badge: 4K UHD / 1080p FHD */}
+          <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded-md px-1.5 sm:px-2 py-0.5 text-[8.5px] sm:text-[9.5px] font-black tracking-wider backdrop-blur-md transition-all ${
             is4k
-              ? "bg-amber-500/80 text-black border border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.5)] font-black"
-              : "bg-black/75 text-cyan-300 border border-cyan-500/30"
+              ? "bg-amber-500/85 text-black border border-amber-300/70 shadow-[0_0_12px_rgba(251,191,36,0.5)] font-black"
+              : "bg-gradient-to-r from-cyan-950/80 to-blue-950/80 text-cyan-300 border border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.35)]"
           }`}>
-            {is4k ? "4K UHD" : "HD"}
+            {is4k ? "4K UHD" : "1080p FHD"}
           </span>
 
           {/* Actual Video Duration Badge on Card (e.g. 45:32, 1:25:10) */}
