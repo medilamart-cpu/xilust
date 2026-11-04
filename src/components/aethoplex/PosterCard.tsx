@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Plus, Check, Play, Film, Clock, Sparkles } from "lucide-react";
+import { Star, Plus, Check, Play, Film, Clock, Sparkles, Eye, Heart, Flame } from "lucide-react";
 import React, { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
 import { GeneratedArt } from "./GeneratedArt";
@@ -23,6 +23,11 @@ export interface CardModel {
   fallbackUrl?: string | null;
   overview?: string;
   popularity?: number;
+  views_30d?: number;
+  views_7d?: number;
+  likes_total?: number;
+  likes_30d?: number;
+  trending_score?: number;
   studios?: string[];
   actors?: string[];
   categories?: string[];
@@ -400,6 +405,27 @@ export function TileCard({ item }: { item: CardModel }) {
                 {item.rating.toFixed(1)}
               </span>
             )}
+
+            {/* Monthly Views / Trending pill if available */}
+            {item.views_30d && item.views_30d > 0 ? (
+              <span title={`${item.views_30d.toLocaleString()} views this month`} className="flex items-center gap-0.5 rounded bg-black/75 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-pink-300 border border-pink-500/30 backdrop-blur-md">
+                <Flame className="h-2 w-2 text-pink-400" />
+                {viewsLabel(item.views_30d)}/mo
+              </span>
+            ) : item.popularity && item.popularity > 1000 ? (
+              <span title={`${item.popularity.toLocaleString()} all-time views`} className="flex items-center gap-0.5 rounded bg-black/75 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-white/70 border border-white/10 backdrop-blur-md">
+                <Eye className="h-2 w-2 text-sky-400" />
+                {viewsLabel(item.popularity)}
+              </span>
+            ) : null}
+
+            {/* Likes pill if available */}
+            {item.likes_total && item.likes_total > 0 ? (
+              <span title={`${item.likes_total.toLocaleString()} total likes`} className="flex items-center gap-0.5 rounded bg-black/75 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-rose-300 border border-rose-500/30 backdrop-blur-md">
+                <Heart className="h-2 w-2 fill-rose-400 text-rose-400" />
+                {item.likes_total >= 1000 ? viewsLabel(item.likes_total) : item.likes_total}
+              </span>
+            ) : null}
           </div>
         </div>
       </Link>

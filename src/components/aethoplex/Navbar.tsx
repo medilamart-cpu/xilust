@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Search, Flame, Bookmark, X, User as UserIcon, FolderHeart } from "lucide-react";
 import { Wordmark, LogoMark } from "./Logo";
+import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 
 export type Section = "lust" | "jax" | "fans";
@@ -126,55 +127,39 @@ export function Navbar({
                   </span>
                 </a>
 
-                {/* Section Switcher Tabs */}
+{/* Section Switcher Tabs */}
                 <div className="flex min-w-0 flex-1 items-center justify-between p-0.5 sm:flex-none sm:justify-start sm:p-1 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-md">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSectionChange("lust");
-                      if (query) onQueryChange("");
-                    }}
-                    className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "lust"
-                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-pink-500/20"
-                        : "text-white/60 hover:text-white/90"
+                  {(
+                    [
+                      { id: "lust" as const, label: "LUST", sub: "(Western)", grad: "from-purple-600 to-pink-600", shadow: "shadow-pink-500/20", icon: <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-pink-300" /> },
+                      { id: "jax" as const, label: "JAX", sub: "(JAV)", grad: "from-pink-600 to-rose-500", shadow: "shadow-rose-500/20", icon: <span className="text-xs sm:text-sm leading-none">🌸</span> },
+                      { id: "fans" as const, label: "FANS", sub: "(Leaks)", grad: "from-cyan-600 to-blue-600", shadow: "shadow-cyan-500/20", icon: <span className="text-xs sm:text-sm leading-none">⭐</span> },
+                    ] as const
+                  ).map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        onSectionChange(t.id);
+                        if (query) onQueryChange("");
+                      }}
+                      className={`relative flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-colors z-[1] ${
+                        section === t.id ? "text-white" : "text-white/60 hover:text-white/90"
                       }`}
-                  >
-                    <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-pink-300" />
-                    <span>LUST</span>
-                    <span className="hidden md:inline-block text-[10px] opacity-75 font-normal">(Western)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSectionChange("jax");
-                      if (query) onQueryChange("");
-                    }}
-                    className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "jax"
-                        ? "bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-lg shadow-rose-500/20"
-                        : "text-white/60 hover:text-white/90"
-                      }`}
-                  >
-                    <span className="text-xs sm:text-sm leading-none">🌸</span>
-                    <span>JAX</span>
-                    <span className="hidden md:inline-block text-[10px] opacity-75 font-normal">(JAV)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSectionChange("fans");
-                      if (query) onQueryChange("");
-                    }}
-                    className={`flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-all ${section === "fans"
-                        ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
-                        : "text-white/60 hover:text-white/90"
-                      }`}
-                  >
-                    <span className="text-xs sm:text-sm leading-none">⭐</span>
-                    <span>FANS</span>
-                    <span className="hidden md:inline-block text-[10px] opacity-75 font-normal">(Leaks)</span>
-                  </button>
+                    >
+                      {section === t.id && (
+                        <motion.span
+                          layoutId="section-pill"
+                          className={`absolute inset-0 rounded-lg bg-gradient-to-r ${t.grad} shadow-lg ${t.shadow}`}
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          style={{ zIndex: -1 }}
+                        />
+                      )}
+                      {t.icon}
+                      <span>{t.label}</span>
+                      <span className="hidden md:inline-block text-[10px] opacity-75 font-normal">{t.sub}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 

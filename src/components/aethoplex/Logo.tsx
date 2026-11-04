@@ -24,7 +24,7 @@ export function Wordmark({ size = 32 }: { size?: number }) {
       <LogoMark size={size} />
       <div className="flex items-baseline">
         <span className="text-xl font-black tracking-wider text-white">Xi</span>
-        <span className="text-xl font-black tracking-wider bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent">Lust</span>
+        <span className="text-xl font-black tracking-wider bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent anim-fade-in-up">Lust</span>
       </div>
     </span>
   );

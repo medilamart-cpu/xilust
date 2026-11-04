@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2 } from "lucide-react";
+import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2, Eye, Heart } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
 import type { TaxonomyItem } from "@/lib/catalog-db";
 import { formatStudioLabel } from "@/lib/studio-label";
@@ -12,17 +12,19 @@ const PAGE_SIZE = 20;
 const feedCache = new Map<string, { items: CardModel[]; totalPages: number; time: number }>();
 const taxCache = new Map<string, TaxonomyItem[]>();
 
-type TabId = "trending" | "new" | "top" | "random" | "movies" | "longform";
+type TabId = "trending" | "monthly" | "likes" | "new" | "top" | "random" | "movies" | "longform";
 type TaxonomyType = "category" | "actor" | "studio" | "tag";
 type FilterType = TaxonomyType | "code" | "premium";
 
 const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
-  { id: "new", label: "Newest Releases", icon: Sparkles },
-  { id: "movies", label: "Feature Movies", icon: Film },
-  { id: "longform", label: "Longform (60+ min)", icon: Clock },
-  { id: "top", label: "Most Popular / Views", icon: Trophy },
-  { id: "trending", label: "Trending", icon: Flame },
-  { id: "random", label: "Discover Random", icon: Shuffle },
+  { id: "trending", label: "🔥 Trending Velocity", icon: Flame },
+  { id: "monthly", label: "📅 Monthly Views", icon: Eye },
+  { id: "likes", label: "❤️ Most Liked", icon: Heart },
+  { id: "top", label: "🏆 All-Time Views", icon: Trophy },
+  { id: "new", label: "✨ New Releases", icon: Sparkles },
+  { id: "movies", label: "🎬 Feature Movies", icon: Film },
+  { id: "longform", label: "⏱️ Longform (60+ min)", icon: Clock },
+  { id: "random", label: "🎲 Discover Random", icon: Shuffle },
 ];
 
 const JAV_FORMAT_FILTERS: { label: string; type: "category" | "tag"; name: string }[] = [
@@ -47,7 +49,7 @@ export function HomeFeed({
   onQueryChange?: (query: string) => void;
   onSectionChange?: (section: "lust" | "jax" | "fans") => void;
 }) {
-  const [tab, setTab] = useState<TabId>("new");
+  const [tab, setTab] = useState<TabId>(section === "jax" ? "trending" : "new");
   const [jaxSubFilter, setJaxSubFilter] = useState<"Subbed" | "Uncensored" | "4K" | null>(null);
 
   // Taxonomy navigation
@@ -456,6 +458,47 @@ export function HomeFeed({
             </button>
           </div>
         </div>
+
+        {/* Quick Format Filters Bar for JAX (Subbed, Uncensored, 4K, Decensored) */}
+        {section === "jax" && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scrollbar-none touch-scroll">
+            <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider shrink-0 mr-1">Format:</span>
+            {[
+              { id: null, label: "All Formats" },
+              { id: "subbed", label: "💬 English Subbed" },
+              { id: "uncensored", label: "⚡ Uncensored" },
+              { id: "4k", label: "✨ 4K Ultra HD" },
+              { id: "decensored", label: "🌟 Decensored" },
+            ].map((f) => {
+              const active = f.id === null ? !jaxSubFilter && activeFilter?.name !== "decnsoredsubbed" : (f.id === "decensored" ? activeFilter?.name === "decnsoredsubbed" : jaxSubFilter?.toLowerCase() === f.id);
+              return (
+                <button
+                  key={f.label}
+                  type="button"
+                  onClick={() => {
+                    if (f.id === null) {
+                      setJaxSubFilter(null);
+                      if (activeFilter?.name === "decnsoredsubbed") handleSetFilter(null);
+                    } else if (f.id === "decensored") {
+                      setJaxSubFilter(null);
+                      handleSetFilter({ type: "category", name: "decnsoredsubbed" });
+                    } else {
+                      if (activeFilter?.name === "decnsoredsubbed") handleSetFilter(null);
+                      setJaxSubFilter(active ? null : (f.id === "subbed" ? "Subbed" : f.id === "uncensored" ? "Uncensored" : "4K"));
+                    }
+                  }}
+                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    active
+                      ? "bg-pink-500 text-white shadow-lg shadow-pink-500/25 border border-pink-400"
+                      : "bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/5"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Active search query banner with one-click dismiss */}
         {query && (
