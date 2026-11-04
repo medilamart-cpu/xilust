@@ -6,6 +6,11 @@ export interface CatalogItem {
   code: string;
   year: number | null;
   views: number;
+  views_30d?: number;
+  views_7d?: number;
+  likes_total?: number;
+  likes_30d?: number;
+  trending_score?: number;
   cover_url: string;
   thumbnail_url: string;
   studios: string[];
@@ -97,6 +102,11 @@ export function parseItem(row: any): CatalogItem {
     code: row.code || "",
     year: row.year ?? null,
     views: row.views || 0,
+    views_30d: row.views_30d || 0,
+    views_7d: row.views_7d || 0,
+    likes_total: row.likes_total || 0,
+    likes_30d: row.likes_30d || 0,
+    trending_score: row.trending_score || 0,
     cover_url: row.cover_url || "",
     thumbnail_url: row.thumbnail_url || "",
     studios: parseArray(row.studios),
@@ -122,8 +132,8 @@ export async function queryItems(options: {
   code?: string;
   year?: number;
   query?: string;
-  tab?: "trending" | "top" | "new" | "random";
-  sort?: "newest" | "popular" | "views";
+  tab?: "trending" | "featured" | "top" | "new" | "random";
+  sort?: "trending" | "featured" | "newest" | "popular" | "views";
   movies?: boolean;
   longform?: boolean;
   subfilter?: string;
@@ -207,7 +217,9 @@ export async function queryItems(options: {
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
     let orderBy = "ORDER BY COALESCE(year, 0) DESC, COALESCE(published_at, '') DESC, id DESC";
-    if (options.tab === "top" || options.sort === "popular" || options.sort === "views") {
+    if (options.tab === "trending" || options.tab === "featured" || options.sort === "trending" || options.sort === "featured") {
+      orderBy = "ORDER BY COALESCE(trending_score, 0) DESC, COALESCE(views_30d, 0) DESC, COALESCE(views, 0) DESC, id DESC";
+    } else if (options.tab === "top" || options.sort === "popular" || options.sort === "views") {
       orderBy = "ORDER BY COALESCE(views, 0) DESC, COALESCE(year, 0) DESC, id DESC";
     } else if (options.tab === "new" || options.sort === "newest") {
       orderBy = "ORDER BY COALESCE(year, 0) DESC, COALESCE(published_at, '') DESC, id DESC";
