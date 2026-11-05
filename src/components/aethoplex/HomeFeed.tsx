@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2, Eye, Heart } from "lucide-react";
+import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2, Eye, Heart, Languages, ShieldAlert } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
 import type { TaxonomyItem } from "@/lib/catalog-db";
 import { formatStudioLabel } from "@/lib/studio-label";
@@ -17,14 +17,14 @@ type TaxonomyType = "category" | "actor" | "studio" | "tag";
 type FilterType = TaxonomyType | "code" | "premium";
 
 const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
-  { id: "trending", label: "🔥 Trending Velocity", icon: Flame },
-  { id: "monthly", label: "📅 Monthly Views", icon: Eye },
-  { id: "likes", label: "❤️ Most Liked", icon: Heart },
-  { id: "top", label: "🏆 All-Time Views", icon: Trophy },
-  { id: "new", label: "✨ New Releases", icon: Sparkles },
-  { id: "movies", label: "🎬 Feature Movies", icon: Film },
-  { id: "longform", label: "⏱️ Longform (60+ min)", icon: Clock },
-  { id: "random", label: "🎲 Discover Random", icon: Shuffle },
+  { id: "trending", label: "Trending", icon: Flame },
+  { id: "monthly", label: "Monthly Top", icon: Eye },
+  { id: "likes", label: "Most Liked", icon: Heart },
+  { id: "top", label: "All-Time", icon: Trophy },
+  { id: "new", label: "New Releases", icon: Sparkles },
+  { id: "movies", label: "Feature Films", icon: Film },
+  { id: "longform", label: "Longform", icon: Clock },
+  { id: "random", label: "Discover", icon: Shuffle },
 ];
 
 const JAV_FORMAT_FILTERS: { label: string; type: "category" | "tag"; name: string }[] = [
@@ -404,7 +404,7 @@ export function HomeFeed({
       <div className="flex flex-col gap-4 sm:gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-4 sm:pb-5">
           {/* Tabs */}
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar scrollbar-none touch-scroll max-w-full">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar scrollbar-none touch-scroll max-w-full">
             {TABS.map((t) => {
               const Icon = t.icon;
               const active = tab === t.id;
@@ -415,13 +415,13 @@ export function HomeFeed({
                     if (query) onQueryChange?.("");
                     setTab(t.id);
                   }}
-                  className={`shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold tracking-wide transition-all ${
+                  className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-[13px] font-semibold tracking-normal transition-all duration-150 active:scale-95 ${
                     active
-                      ? "bg-white text-black shadow-lg"
-                      : "bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/5"
+                      ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+                      : "bg-[#0e121a] text-neutral-200 hover:text-white hover:bg-[#151c27] border border-white/[0.08]"
                   }`}
                 >
-                  <Icon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${active ? "text-black" : "text-cyan-400"}`} />
+                  <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 ${active ? "text-black" : "text-cyan-400"}`} />
                   <span>{t.label}</span>
                 </button>
               );
@@ -464,13 +464,14 @@ export function HomeFeed({
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scrollbar-none touch-scroll">
             <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider shrink-0 mr-1">Format:</span>
             {[
-              { id: null, label: "All Formats" },
-              { id: "subbed", label: "💬 English Subbed" },
-              { id: "uncensored", label: "⚡ Uncensored" },
-              { id: "4k", label: "✨ 4K Ultra HD" },
-              { id: "decensored", label: "🌟 Decensored" },
+              { id: null, label: "All Formats", icon: Filter },
+              { id: "subbed", label: "English Subbed", icon: Languages },
+              { id: "uncensored", label: "Uncensored", icon: ShieldAlert },
+              { id: "4k", label: "4K Ultra HD", icon: Film },
+              { id: "decensored", label: "Decensored", icon: Sparkles },
             ].map((f) => {
               const active = f.id === null ? !jaxSubFilter && activeFilter?.name !== "decnsoredsubbed" : (f.id === "decensored" ? activeFilter?.name === "decnsoredsubbed" : jaxSubFilter?.toLowerCase() === f.id);
+              const Icon = f.icon;
               return (
                 <button
                   key={f.label}
@@ -487,13 +488,22 @@ export function HomeFeed({
                       setJaxSubFilter(active ? null : (f.id === "subbed" ? "Subbed" : f.id === "uncensored" ? "Uncensored" : "4K"));
                     }
                   }}
-                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 active:scale-95 ${
                     active
-                      ? "bg-pink-500 text-white shadow-lg shadow-pink-500/25 border border-pink-400"
-                      : "bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/5"
+                      ? f.id === "uncensored"
+                        ? "bg-rose-500/20 text-rose-200 border border-rose-500/50 ring-1 ring-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.25)] font-bold"
+                        : f.id === "subbed"
+                          ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/50 ring-1 ring-cyan-400/30 shadow-[0_0_15px_rgba(6,182,212,0.25)] font-bold"
+                          : f.id === "4k"
+                            ? "bg-amber-500/20 text-amber-200 border border-amber-400/50 ring-1 ring-amber-400/30 shadow-[0_0_15px_rgba(251,191,36,0.25)] font-bold"
+                            : f.id === "decensored"
+                              ? "bg-emerald-500/20 text-emerald-200 border border-emerald-400/50 ring-1 ring-emerald-400/30 shadow-[0_0_15px_rgba(52,211,153,0.25)] font-bold"
+                              : "bg-white text-black font-bold ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+                      : "bg-[#0e121a] text-neutral-300 hover:bg-[#151c27] hover:text-white border border-white/[0.08]"
                   }`}
                 >
-                  {f.label}
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{f.label}</span>
                 </button>
               );
             })}
@@ -573,11 +583,16 @@ export function HomeFeed({
 
             {/* Active filter banner with instant sorting selector */}
             {activeFilter && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-[#0e121a] border border-white/[0.08]">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-white/50">Viewing {activeFilter.type === "code" ? "JAV code" : activeFilter.type === "premium" ? "studio collection" : activeFilter.type}:</span>
                   <span className="font-bold text-sm text-cyan-300 flex items-center gap-1.5">
-                    <span>{activeFilter.type === "actor" ? "🌸" : activeFilter.type === "studio" ? "🎬" : activeFilter.type === "code" ? "🔎" : activeFilter.type === "premium" ? "✨" : "🏷️"}</span>
+                    {activeFilter.type === "actor" && <Star className="h-3.5 w-3.5 text-pink-400" />}
+                    {activeFilter.type === "studio" && <Film className="h-3.5 w-3.5 text-purple-400" />}
+                    {activeFilter.type === "code" && <Filter className="h-3.5 w-3.5 text-cyan-400" />}
+                    {activeFilter.type === "premium" && <Sparkles className="h-3.5 w-3.5 text-amber-400" />}
+                    {activeFilter.type === "category" && <Tag className="h-3.5 w-3.5 text-emerald-400" />}
+                    {activeFilter.type === "tag" && <Tag className="h-3.5 w-3.5 text-emerald-400" />}
                     <span>{activeFilter.name === "decnsoredsubbed" ? "Decensored Subbed" : activeFilter.type === "studio" ? formatStudioLabel(activeFilter.name) : activeFilter.name}</span>
                   </span>
                   <button
@@ -586,7 +601,7 @@ export function HomeFeed({
                       setJaxSubFilter(null);
                       handleSetFilter(null);
                     }}
-                    className="ml-1 rounded-full p-1 bg-white/5 hover:bg-white/15 text-white/60 hover:text-white transition-colors"
+                    className="ml-1 rounded-full p-1 bg-white/5 hover:bg-white/15 text-white/60 hover:text-white transition-colors active:scale-95"
                     title="Clear filter"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -603,13 +618,13 @@ export function HomeFeed({
                           key={fmt}
                           type="button"
                           onClick={() => setJaxSubFilter(active ? null : fmt)}
-                          className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                          className={`shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 ${
                             active
-                              ? "bg-pink-500 text-white font-bold shadow-md shadow-pink-500/30"
+                              ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
                               : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5"
                           }`}
                         >
-                          {fmt === "4K" ? "⚡ 4K" : fmt === "Subbed" ? "💬 Subbed" : "🔓 Uncensored"}
+                          <span>{fmt}</span>
                         </button>
                       );
                     })}
@@ -734,7 +749,7 @@ export function HomeFeed({
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <label htmlFor="taxonomy-search" className="shrink-0 text-xs font-semibold text-white/55">
-              Find {taxType === "actor" ? actorLabel.toLowerCase() : `${taxType}s`}
+              Find {taxType === "category" ? "categories" : taxType === "actor" ? actorLabel.toLowerCase() : `${taxType}s`}
             </label>
             <input
               id="taxonomy-search"
@@ -765,10 +780,10 @@ export function HomeFeed({
               <button
                 type="button"
                 onClick={() => handleSetFilter(null)}
-                className={`shrink-0 rounded-lg px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
+                className={`shrink-0 rounded-full px-3.5 sm:px-4 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
                   !activeFilter
-                    ? "bg-white text-black font-bold shadow"
-                    : "bg-white/[0.04] border border-white/10 text-white/60 hover:text-white"
+                    ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+                    : "bg-[#0e121a] border border-white/[0.08] text-neutral-300 hover:text-white hover:bg-[#151c27]"
                 }`}
               >
                 All
@@ -785,13 +800,14 @@ export function HomeFeed({
                       : { type: "premium" as const, name: "Premium Studios" };
                     handleSetFilter(nextFilter);
                   }}
-                  className={`min-h-11 shrink-0 rounded-lg border px-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 ${
+                  className={`shrink-0 flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 ${
                     activeFilter?.type === "premium"
-                      ? "border-amber-200 bg-amber-100 text-slate-950 shadow-lg shadow-amber-400/15"
-                      : "border-amber-200/25 bg-gradient-to-r from-amber-300/15 to-orange-400/10 text-amber-100 hover:border-amber-100/50 hover:from-amber-300/25"
+                      ? "border-amber-400/60 bg-amber-500/20 text-amber-200 shadow-[0_0_15px_rgba(251,191,36,0.25)] font-bold ring-1 ring-amber-400/30"
+                      : "border-amber-400/30 bg-[#12100a] text-amber-200/90 hover:border-amber-300/50 hover:bg-amber-500/[0.12] hover:text-amber-100"
                   }`}
                 >
-                  ✦ Premium Studios
+                  <Sparkles className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+                  <span>Premium Studios</span>
                 </button>
               )}
 
@@ -806,13 +822,14 @@ export function HomeFeed({
                       : { type: "category" as const, name: "decnsoredsubbed" };
                     handleSetFilter(nextFilter);
                   }}
-                  className={`min-h-11 shrink-0 rounded-lg border px-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 ${
+                  className={`shrink-0 flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 ${
                     activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"
-                      ? "border-emerald-300 bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-400/20"
-                      : "border-emerald-400/30 bg-gradient-to-r from-emerald-500/20 to-teal-500/15 text-emerald-100 hover:border-emerald-300/60 hover:from-emerald-500/30"
+                      ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-200 shadow-[0_0_15px_rgba(52,211,153,0.25)] font-bold ring-1 ring-emerald-400/30"
+                      : "border-emerald-400/30 bg-[#0a120e] text-emerald-200/90 hover:border-emerald-300/50 hover:bg-emerald-500/[0.12] hover:text-emerald-100"
                   }`}
                 >
-                  ⚡ Decensored Subbed
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-300 shrink-0" />
+                  <span>Decensored Subbed</span>
                 </button>
               )}
 

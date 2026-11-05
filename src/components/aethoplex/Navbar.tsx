@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Search, Flame, Bookmark, X, User as UserIcon, FolderHeart } from "lucide-react";
+import { Search, Flame, Bookmark, X, User as UserIcon, FolderHeart, Sparkles, Star } from "lucide-react";
 import { Wordmark, LogoMark } from "./Logo";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
@@ -31,6 +31,19 @@ export function Navbar({
   const [scrolled, setScrolled] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const mobileInputRef = useRef<HTMLInputElement>(null);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
+
+  // Global '/' keyboard shortcut to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "/" && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) {
+        e.preventDefault();
+        desktopInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const sync = () => {
@@ -121,19 +134,19 @@ export function Navbar({
                   </span>
                   <span className="sm:hidden flex items-center gap-1.5">
                     <LogoMark size={26} />
-                    <span className="text-base font-black tracking-wider text-white">
-                      Xi<span className="bg-gradient-to-r from-pink-400 to-cyan-300 bg-clip-text text-transparent">Lust</span>
+                    <span className="text-base font-black tracking-tight text-white">
+                      Xi<span className="text-rose-500">Lust</span>
                     </span>
                   </span>
                 </a>
 
-{/* Section Switcher Tabs */}
-                <div className="flex min-w-0 flex-1 items-center justify-between p-0.5 sm:flex-none sm:justify-start sm:p-1 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-md">
+                {/* Section Switcher Tabs */}
+                <div className="flex min-w-0 flex-1 items-center justify-between p-1 sm:flex-none sm:justify-start rounded-full bg-[#0e121a] border border-white/[0.08]">
                   {(
                     [
-                      { id: "lust" as const, label: "LUST", sub: "(Western)", grad: "from-purple-600 to-pink-600", shadow: "shadow-pink-500/20", icon: <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-pink-300" /> },
-                      { id: "jax" as const, label: "JAX", sub: "(JAV)", grad: "from-pink-600 to-rose-500", shadow: "shadow-rose-500/20", icon: <span className="text-xs sm:text-sm leading-none">🌸</span> },
-                      { id: "fans" as const, label: "FANS", sub: "(Leaks)", grad: "from-cyan-600 to-blue-600", shadow: "shadow-cyan-500/20", icon: <span className="text-xs sm:text-sm leading-none">⭐</span> },
+                      { id: "lust" as const, label: "LUST", sub: "(Western)", icon: <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-rose-400" /> },
+                      { id: "jax" as const, label: "JAX", sub: "(JAV)", icon: <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-pink-400" /> },
+                      { id: "fans" as const, label: "FANS", sub: "(Leaks)", icon: <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-400" /> },
                     ] as const
                   ).map((t) => (
                     <button
@@ -143,21 +156,21 @@ export function Navbar({
                         onSectionChange(t.id);
                         if (query) onQueryChange("");
                       }}
-                      className={`relative flex items-center gap-1 px-1.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold tracking-wide transition-colors z-[1] ${
-                        section === t.id ? "text-white" : "text-white/60 hover:text-white/90"
+                      className={`relative flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide transition-colors z-[1] active:scale-95 ${
+                        section === t.id ? "text-white" : "text-neutral-400 hover:text-white"
                       }`}
                     >
                       {section === t.id && (
                         <motion.span
                           layoutId="section-pill"
-                          className={`absolute inset-0 rounded-lg bg-gradient-to-r ${t.grad} shadow-lg ${t.shadow}`}
-                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          className="absolute inset-0 rounded-full bg-white/15 border border-white/20 shadow-sm"
+                          transition={{ type: "spring", stiffness: 450, damping: 35 }}
                           style={{ zIndex: -1 }}
                         />
                       )}
                       {t.icon}
                       <span>{t.label}</span>
-                      <span className="hidden md:inline-block text-[10px] opacity-75 font-normal">{t.sub}</span>
+                      <span className="hidden md:inline-block text-[10px] opacity-60 font-normal">{t.sub}</span>
                     </button>
                   ))}
                 </div>
@@ -168,22 +181,24 @@ export function Navbar({
                 {/* Desktop Search bar */}
                 <div className="hidden sm:block relative">
                   <div
-                    className={`flex h-10 items-center gap-2.5 rounded-full border bg-white/[0.05] px-3.5 transition-all duration-300 ${focus || query
-                        ? "w-64 lg:w-80 border-cyan-400/50 bg-[#121622] shadow-[0_0_20px_rgba(6,182,212,0.2)]"
-                        : "w-44 lg:w-64 border-white/10 hover:border-white/20"
-                      }`}
+                    className={`flex h-10 items-center gap-2.5 rounded-full border bg-[#0e121a] px-3.5 transition-all duration-200 ${
+                      focus || query
+                        ? "w-64 lg:w-80 border-white/30 bg-[#121622] shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
+                        : "w-44 lg:w-64 border-white/[0.08] hover:border-white/20"
+                    }`}
                   >
                     <Search className="h-4 w-4 shrink-0 text-white/40" />
                     <input
+                      ref={desktopInputRef}
                       type="text"
                       value={query}
                       onChange={(e) => onQueryChange(e.target.value)}
                       onFocus={() => setFocus(true)}
                       onBlur={() => setFocus(false)}
-                      placeholder={section === "jax" ? "Search JAV code (e.g. KNMB-134), title, actress..." : "Search title, pornstar, studio (e.g. Team Skeet)..."}
-                      className="w-full bg-transparent text-base sm:text-xs text-white placeholder-white/40 focus:outline-none"
+                      placeholder={section === "jax" ? "Search JAV code (e.g. KNMB-134), actress..." : "Search title, pornstar, studio..."}
+                      className="w-full bg-transparent text-xs text-white placeholder-white/40 focus:outline-none"
                     />
-                    {query && (
+                    {query ? (
                       <button
                         type="button"
                         onClick={() => onQueryChange("")}
@@ -191,6 +206,10 @@ export function Navbar({
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
+                    ) : (
+                      <kbd className="hidden lg:inline-flex items-center rounded border border-white/10 px-1.5 py-0.5 text-[10px] font-mono text-white/40">
+                        /
+                      </kbd>
                     )}
                   </div>
                 </div>
@@ -282,10 +301,11 @@ export function Navbar({
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "lust" ? "text-pink-400 font-bold" : "text-white/50 hover:text-white/80"
-              }`}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
+              section === "lust" ? "text-rose-400 font-bold" : "text-white/50 hover:text-white/80"
+            }`}
           >
-            <Flame className={`h-4 w-4 ${section === "lust" ? "text-pink-400" : "text-white/40"}`} />
+            <Flame className={`h-4 w-4 ${section === "lust" ? "text-rose-400" : "text-white/40"}`} />
             <span className="text-[10px]">Lust</span>
           </button>
 
@@ -297,10 +317,11 @@ export function Navbar({
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "jax" ? "text-rose-400 font-bold" : "text-white/50 hover:text-white/80"
-              }`}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
+              section === "jax" ? "text-pink-400 font-bold" : "text-white/50 hover:text-white/80"
+            }`}
           >
-            <span className="text-sm leading-none">🌸</span>
+            <Sparkles className={`h-4 w-4 ${section === "jax" ? "text-pink-400" : "text-white/40"}`} />
             <span className="text-[10px]">Jax (JAV)</span>
           </button>
 
@@ -312,20 +333,22 @@ export function Navbar({
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${section === "fans" ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"
-              }`}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
+              section === "fans" ? "text-amber-400 font-bold" : "text-white/50 hover:text-white/80"
+            }`}
           >
-            <span className="text-sm leading-none">⭐</span>
+            <Star className={`h-4 w-4 ${section === "fans" ? "text-amber-400" : "text-white/40"}`} />
             <span className="text-[10px]">Fans</span>
           </button>
 
           <button
             type="button"
             onClick={openMobileSearch}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all ${query || mobileSearchOpen ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"
-              }`}
+            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
+              query || mobileSearchOpen ? "text-white font-bold" : "text-white/50 hover:text-white/80"
+            }`}
           >
-            <Search className="h-4 w-4 text-cyan-400" />
+            <Search className="h-4 w-4 text-white/70" />
             <span className="text-[10px]">Search</span>
           </button>
 
@@ -335,12 +358,12 @@ export function Navbar({
               setMobileSearchOpen(false);
               if (query) onQueryChange("");
             }}
-            className="flex flex-col items-center gap-1 min-w-[50px] py-1 text-white/50 hover:text-white/80 transition-all relative"
+            className="flex flex-col items-center gap-1 min-w-[50px] py-1 text-white/50 hover:text-white/80 transition-all active:scale-95 relative"
           >
-            <Bookmark className="h-4 w-4 text-cyan-300" />
+            <Bookmark className="h-4 w-4 text-white/60" />
             <span className="text-[10px]">My List</span>
             {listCount > 0 && (
-              <span className="absolute top-0 right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-cyan-400 px-1 text-[9px] font-black text-black">
+              <span className="absolute top-0 right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-black text-white tabular-nums">
                 {listCount}
               </span>
             )}

@@ -88,22 +88,22 @@ function serverIdentity(source: { label?: string; host?: string }, section: Cata
   const key = `${source.host || ""} ${source.label || ""}`.toLowerCase();
   const identities = section === "jax"
     ? [
-        { match: ["kamehaus", "kamehameha", "kame"], name: "Goku ⚡", icon: "🐉" },
-        { match: ["vidara", "sugbaioug"], name: "Vegeta 💥", icon: "👑" },
-        { match: ["streamtape", "streamta.pe"], name: "Tsunade", icon: "💮" },
-        { match: ["mixdrop", "mxdrop"], name: "Jiraiya 🐸", icon: "📜" },
-        { match: ["streamhihi", "lulu"], name: "Naruto", icon: "🍥" },
-        { match: ["javlesbian", "voe"], name: "Sasuke", icon: "⚡" },
-        { match: ["javclan", "streamsb", "sbthe", "sb"], name: "Itachi 👁️", icon: "🌙" },
-        { match: ["filemoon"], name: "Gaara ⏳", icon: "🏜️" },
-        { match: ["maxstream"], name: "Kakashi", icon: "🥷" },
-        { match: ["vid0", "vide0"], name: "Sakura 🗑️", icon: "🌸" },
+        { match: ["kamehaus", "kamehameha", "kame"], name: "Server 1 (Kamehaus Fast)", quality: "1080p HD" },
+        { match: ["vidara", "sugbaioug"], name: "Server 2 (Vidara High Speed)", quality: "1080p HD" },
+        { match: ["streamtape", "streamta.pe"], name: "Server 3 (Streamtape)", quality: "720p HD" },
+        { match: ["mixdrop", "mxdrop"], name: "Server 4 (Mixdrop)", quality: "720p HD" },
+        { match: ["streamhihi", "lulu"], name: "Server 5 (Lulu Stream)", quality: "1080p HD" },
+        { match: ["javlesbian", "voe"], name: "Server 6 (VOE Embed)", quality: "1080p HD" },
+        { match: ["javclan", "streamsb", "sbthe", "sb"], name: "Server 7 (StreamSB)", quality: "720p" },
+        { match: ["filemoon"], name: "Server 8 (Filemoon)", quality: "1080p HD" },
+        { match: ["maxstream"], name: "Server 9 (MaxStream)", quality: "1080p HD" },
+        { match: ["vid0", "vide0"], name: "Server 10 (Direct Player)", quality: "720p" },
       ]
     : section === "lust"
       ? [
-          { match: ["streamtape", "streamta.pe"], name: "Naruto", icon: "🍥" },
-          { match: ["mixdrop", "mxdrop", "mixdrp"], name: "Sasuke", icon: "⚡" },
-          { match: ["doodstream", "dood", "d000d"], name: "Sakura 🗑️", icon: "🌸" },
+          { match: ["streamtape", "streamta.pe"], name: "Server 1 (Streamtape HD)", quality: "1080p HD" },
+          { match: ["mixdrop", "mxdrop", "mixdrp"], name: "Server 2 (Mixdrop Fast)", quality: "720p HD" },
+          { match: ["doodstream", "dood", "d000d"], name: "Server 3 (Doodstream)", quality: "720p" },
         ]
       : [];
   return identities.find((identity) => identity.match.some((part) => key.includes(part)));
@@ -347,16 +347,16 @@ export function TitleWatchClient({
                   setPlayerError(false);
                   setKey((k) => k + 1);
                 }}
-                className="min-h-11 rounded-lg bg-purple-500 px-4 text-xs font-bold text-white transition hover:bg-purple-400 sm:text-sm"
+                className="min-h-11 rounded-lg bg-white/10 border border-white/20 px-4 text-xs font-bold text-white transition hover:bg-white/15 active:scale-95 sm:text-sm"
               >
-                🌐 Try Direct Embed
+                Switch to Direct Embed
               </button>
             )}
             {sources.length > 1 && (
               <button
                 type="button"
                 onClick={handleNextMirror}
-                className="min-h-11 rounded-lg bg-cyan-400 px-4 text-xs font-bold text-slate-950 transition hover:bg-cyan-300 sm:text-sm"
+                className="min-h-11 rounded-lg bg-white text-black px-4 text-xs font-bold transition hover:bg-neutral-200 active:scale-95 sm:text-sm"
               >
                 Try next mirror
               </button>
@@ -364,7 +364,7 @@ export function TitleWatchClient({
             <button
               type="button"
               onClick={handleRefresh}
-              className="min-h-11 rounded-lg border border-amber-200/20 bg-white/[0.06] px-4 text-xs font-semibold text-white transition hover:bg-white/10 sm:text-sm"
+              className="min-h-11 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-xs font-semibold text-white transition hover:bg-white/10 active:scale-95 sm:text-sm"
             >
               Retry this mirror
             </button>
@@ -373,11 +373,11 @@ export function TitleWatchClient({
       )}
 
       {/* Player Controls & Mirror Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4 p-2.5 sm:p-4 rounded-2xl bg-[#0e121a] border border-white/[0.08]">
         {/* Mirrors list */}
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scrollbar-none touch-scroll py-1 max-w-full">
-          <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white/60 mr-1 sm:mr-2 shrink-0">
-            <Server className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-cyan-400" />
+          <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white/50 mr-1 sm:mr-2 shrink-0">
+            <Server className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white/60" />
             Mirrors ({sources.length}):
           </span>
 
@@ -387,16 +387,16 @@ export function TitleWatchClient({
             const identity = serverIdentity(s, item.section);
             // Clean up host label for readability
             if (identity) label = identity.name;
-            else if (label.toLowerCase().includes("hdplayer") || label.toLowerCase().includes("jolly")) label = "Jolly";
-            else if (label.toLowerCase().includes("hornyleak") || label.toLowerCase().includes("molly")) label = "Molly";
+            else if (label.toLowerCase().includes("hdplayer") || label.toLowerCase().includes("jolly")) label = "Server (Jolly Fast)";
+            else if (label.toLowerCase().includes("hornyleak") || label.toLowerCase().includes("molly")) label = "Server (Molly HD)";
             else if (label.toLowerCase().includes("streamtape")) label = "Streamtape";
             else if (label.toLowerCase().includes("mixdrop")) label = "Mixdrop";
             else if (label.toLowerCase().includes("dood")) label = "Doodstream";
-            else if (label.toLowerCase().includes("javclan") || label.includes("SB")) label = "JavClan (SB)";
-            else if (label.toLowerCase().includes("vide0") || label.includes("DD")) label = "Vide0 (DD)";
-            else if (label.toLowerCase().includes("maxstream") || label.includes("JK")) label = "MaxStream (JK)";
-            else if (label.toLowerCase().includes("streamhihi") || label.includes("LU")) label = "StreamHiHi (LU)";
-            else if (label.toLowerCase().includes("javlesbians") || label.includes("VO")) label = "JavLesbians (VO)";
+            else if (label.toLowerCase().includes("javclan") || label.includes("SB")) label = "StreamSB";
+            else if (label.toLowerCase().includes("vide0") || label.includes("DD")) label = "Direct 1080p";
+            else if (label.toLowerCase().includes("maxstream") || label.includes("JK")) label = "MaxStream";
+            else if (label.toLowerCase().includes("streamhihi") || label.includes("LU")) label = "Lulu Stream";
+            else if (label.toLowerCase().includes("javlesbians") || label.includes("VO")) label = "VOE Embed";
 
             return (
               <button
@@ -407,14 +407,13 @@ export function TitleWatchClient({
                   setPlayerError(false);
                   setKey((k) => k + 1);
                 }}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold shrink-0 transition-all active:scale-95 ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 ${
                   active
-                    ? "bg-cyan-400 text-black font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-                    : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5"
+                    ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
+                    : "bg-white/[0.04] text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-white/[0.08]"
                 }`}
               >
-                <Play className={`h-2.5 w-2.5 ${active ? "fill-black" : "fill-current"}`} />
-                {identity && <span aria-hidden="true">{identity.icon}</span>}
+                <Play className={`h-2.5 w-2.5 ${active ? "fill-black text-black" : "fill-current text-white/50"}`} />
                 <span>{label}</span>
               </button>
             );
@@ -424,28 +423,30 @@ export function TitleWatchClient({
         {/* Right utility buttons: Mode Switcher, CleanStream status, Reload */}
         <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-2.5 pt-1 sm:pt-0 border-t border-white/5 sm:border-0">
           {/* Player Mode Switcher */}
-          <div className="flex items-center p-0.5 rounded-lg bg-black/40 border border-white/10 text-[10px] sm:text-[11px]">
+          <div className="flex items-center p-0.5 rounded-full bg-black/60 border border-white/10 text-[10px] sm:text-[11px]">
             <button
               type="button"
               onClick={() => setPlayerMode("clean")}
-              className={`px-2 sm:px-2.5 py-1 rounded-md font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold transition-all active:scale-95 ${
                 playerMode === "clean"
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold"
                   : "text-white/50 hover:text-white/80"
               }`}
             >
-              🛡️ CleanStream
+              <ShieldCheck className="h-3 w-3" />
+              <span>CleanStream</span>
             </button>
             <button
               type="button"
               onClick={() => setPlayerMode("direct")}
-              className={`px-2 sm:px-2.5 py-1 rounded-md font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold transition-all active:scale-95 ${
                 playerMode === "direct"
-                  ? "bg-purple-500/20 text-purple-300 border border-purple-400/30"
+                  ? "bg-white/15 text-white border border-white/20 font-bold"
                   : "text-white/50 hover:text-white/80"
               }`}
             >
-              🌐 Direct
+              <ExternalLink className="h-3 w-3" />
+              <span>Direct</span>
             </button>
           </div>
 
@@ -582,7 +583,6 @@ export function TitleWatchClient({
                           ) : (
                             <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                           )}
-                          {identity && <span aria-hidden="true">{identity.icon}</span>}
                           <div>
                             <div className="text-xs font-medium text-white">{identity?.name || s.name}</div>
                             <div className="text-[10px] text-white/40">{s.note || (s.cleanstream_working ? "CleanStream Protected" : "Mirror Unavailable")}</div>

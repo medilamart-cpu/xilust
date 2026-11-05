@@ -28,6 +28,7 @@ export interface CardModel {
   likes_total?: number;
   likes_30d?: number;
   trending_score?: number;
+  previewVideoUrl?: string | null;
   studios?: string[];
   actors?: string[];
   categories?: string[];
@@ -287,7 +288,7 @@ export function TileCard({ item }: { item: CardModel }) {
     <div className="group block shrink-0 rounded-xl text-left">
       <Link
         href={href}
-        className="block focusable rounded-xl"
+        className="block focusable rounded-2xl transition-transform duration-150 active:scale-[0.98]"
         aria-label={cleanTitle}
         onClick={() => {
           if (typeof window !== "undefined") {
@@ -305,7 +306,7 @@ export function TileCard({ item }: { item: CardModel }) {
         <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-[#0d1017] shadow-[0_10px_30px_rgba(0,0,0,0.65)] transition-all duration-500 ease-out group-hover:-translate-y-1.5 group-hover:border-cyan-400/60 group-hover:shadow-[0_20px_45px_rgba(0,0,0,0.8),0_0_28px_rgba(6,182,212,0.22)]"
+          className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-[#0d1017] shadow-[0_10px_30px_rgba(0,0,0,0.65)] transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:border-white/30 group-hover:shadow-[0_16px_36px_rgba(0,0,0,0.8)]"
         >
           {art ? (
             <>
@@ -350,10 +351,10 @@ export function TileCard({ item }: { item: CardModel }) {
             </div>
           )}
 
-          {/* Interactive Hover Veil + Play Button with Neon Pulse */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 backdrop-blur-[2px] transition-all duration-300 group-hover:opacity-100 pointer-events-none">
-            <span className="flex h-12 w-12 sm:h-13 sm:w-13 scale-75 items-center justify-center rounded-full bg-cyan-500/25 border border-cyan-400/60 shadow-[0_0_25px_rgba(6,182,212,0.7)] backdrop-blur-md transition-transform duration-300 group-hover:scale-100">
-              <Play className="ml-0.5 h-5 w-5 fill-cyan-300 text-cyan-300" />
+          {/* Interactive Hover Veil + Play Button with Clean Subtle Scale */}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
+            <span className="flex h-12 w-12 sm:h-13 sm:w-13 scale-90 items-center justify-center rounded-full bg-white text-black shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-transform duration-200 ease-out group-hover:scale-100">
+              <Play className="ml-0.5 h-5 w-5 fill-black text-black" />
             </span>
           </div>
 
@@ -367,7 +368,7 @@ export function TileCard({ item }: { item: CardModel }) {
           </span>
 
           {/* Actual Video Duration Badge on Card (e.g. 45:32, 1:25:10) */}
-          <span className="absolute right-1.5 sm:right-2 bottom-3 inline-flex items-center gap-1 rounded bg-black/85 px-1.5 py-0.5 text-[9.5px] sm:text-[10px] font-bold text-white tracking-wide border border-white/10 shadow-lg backdrop-blur-md z-10">
+          <span className="absolute right-1.5 sm:right-2 bottom-3 inline-flex items-center gap-1 rounded bg-black/85 px-1.5 py-0.5 text-[9.5px] sm:text-[10px] font-bold text-white tracking-wide border border-white/10 shadow-lg backdrop-blur-md z-10 tabular-nums">
             <Clock aria-hidden="true" className="h-2.5 w-2.5 text-cyan-300" />
             <span>{durationLabel}</span>
           </span>

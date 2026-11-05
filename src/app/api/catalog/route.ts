@@ -163,6 +163,14 @@ export async function GET(req: NextRequest) {
       const { posterUrl, fallbackUrl } = getCatalogThumbnailUrls(item, vpsBase);
       const backdropUrl = posterUrl;
 
+      let previewVideoUrl: string | null = null;
+      if (Array.isArray(item.video_sources)) {
+        const mp4 = item.video_sources.find(
+          (s: any) => s.url && (s.url.endsWith(".mp4") || s.url.includes("mediabook") || s.url.includes("trailer") || s.url.includes("preview"))
+        );
+        if (mp4) previewVideoUrl = mp4.url;
+      }
+
       return {
         key: `${item.section}-${item.id}`,
         id: item.id,
@@ -178,6 +186,7 @@ export async function GET(req: NextRequest) {
         posterUrl,
         backdropUrl,
         fallbackUrl,
+        previewVideoUrl,
         studios: Array.isArray(item.studios) ? item.studios.filter((s): s is string => typeof s === "string" && Boolean(s.trim())) : [],
         actors: Array.isArray(item.actors) ? item.actors.filter((a): a is string => typeof a === "string" && Boolean(a.trim())) : [],
         categories: Array.isArray(item.categories) ? item.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim())) : [],

@@ -36,7 +36,7 @@ export default async function TaxonomyIndexPage({
     ? (section === "jax" ? "AV Actresses & Idols" : section === "fans" ? "Creators & Leaks" : "Pornstars & Models")
     : titles[type];
   const sectionBadge = isActor
-    ? (section === "jax" ? "💋 JAX AV MODELS" : section === "fans" ? "💋 VERIFIED CREATORS" : "💋 WESTERN MODELS")
+    ? (section === "jax" ? "JAX AV PERFORMERS" : section === "fans" ? "VERIFIED CREATORS" : "WESTERN PERFORMERS")
     : section.toUpperCase();
   const pageSubtitle = isActor
     ? (section === "jax"
@@ -77,16 +77,10 @@ export default async function TaxonomyIndexPage({
 
   const activePillStyle = (brand: string) => {
     if (section !== brand) return "border-white/10 bg-white/[0.03] text-white/55 hover:text-white";
-    if (brand === "jax") return "border-pink-500/50 bg-pink-500/20 text-pink-100 shadow-md shadow-pink-500/20";
-    if (brand === "fans") return "border-cyan-400/50 bg-cyan-400/20 text-cyan-100 shadow-md shadow-cyan-500/20";
-    return "border-purple-500/50 bg-purple-500/20 text-purple-100 shadow-md shadow-purple-500/20";
+    return "border-white/30 bg-white/15 text-white font-bold ring-1 ring-white/20 shadow-sm";
   };
 
-  const cardBorderHover = section === "jax"
-    ? "hover:border-pink-400/60 hover:shadow-[0_8px_24px_rgba(244,114,182,0.18)]"
-    : section === "fans"
-      ? "hover:border-cyan-400/60 hover:shadow-[0_8px_24px_rgba(6,182,212,0.18)]"
-      : "hover:border-purple-400/60 hover:shadow-[0_8px_24px_rgba(168,85,247,0.18)]";
+  const cardBorderHover = "hover:border-white/30 hover:bg-[#0e121a] transition-all";
 
   return (
     <MyListProvider>

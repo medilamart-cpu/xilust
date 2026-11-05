@@ -30,13 +30,16 @@ export function Footer({ onNavigate }: { onNavigate?: (v: string) => void }) {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Sections</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="/?section=lust" className="hover:text-white transition-colors">🔥 Lust (Western Studio)</a>
+                <a href="/?section=lust" className="hover:text-white transition-colors">Lust (Western Studios)</a>
               </li>
               <li>
-                <a href="/?section=jax" className="hover:text-white transition-colors">🌸 Jax (Japanese Adult Video)</a>
+                <a href="/?section=jax" className="hover:text-white transition-colors">Jax (Japanese Adult Video)</a>
               </li>
               <li>
-                <a href="/#mylist" className="hover:text-white transition-colors">📑 My Saved List</a>
+                <a href="/?section=fans" className="hover:text-white transition-colors">Fans (Creator Leaks)</a>
+              </li>
+              <li>
+                <a href="/#mylist" className="hover:text-white transition-colors">My Saved List</a>
               </li>
             </ul>
           </div>
