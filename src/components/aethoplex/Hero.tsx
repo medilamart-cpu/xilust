@@ -10,6 +10,10 @@ import { ThemedTitle, ThemedThemeBadge } from "./ThemedTitle";
 
 const heroCache = new Map<string, CardModel[]>();
 
+// High-speed, unblocked studio 720p preview clip fallback (Aylo / Project1 Content)
+const DEFAULT_PREVIEW_MP4 =
+  "https://prog-public-ht.project1content.com/862/821/ad6/e48/4ec/da2/c3c/53b/13a/5e0/51/mediabook/mediabook_720p.mp4";
+
 export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   const [slides, setSlides] = useState<CardModel[]>(() => heroCache.get(section) || []);
   const [idx, setIdx] = useState(0);
@@ -102,10 +106,15 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
     );
   };
 
-  // Video preview resolution (from card previewVideoUrl or video_sources MP4 trailer)
+  // Video preview resolution (card previewVideoUrl -> preview_url -> video_sources -> studio CDN fallback)
   const resolvePreviewVideoUrl = (): string | null => {
     if (!cur) return null;
-    if (cur.previewVideoUrl) return cur.previewVideoUrl;
+    if (cur.previewVideoUrl && cur.previewVideoUrl.startsWith("http")) {
+      return cur.previewVideoUrl;
+    }
+    if ((cur as any).preview_url && (cur as any).preview_url.startsWith("http")) {
+      return (cur as any).preview_url;
+    }
     const sources = (cur as any).video_sources;
     if (Array.isArray(sources)) {
       const mp4 = sources.find(
@@ -118,7 +127,8 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       );
       if (mp4?.url) return mp4.url;
     }
-    return null;
+    // High-resolution reliable fallback so background video preview is always playing
+    return DEFAULT_PREVIEW_MP4;
   };
 
   const previewVideoUrl = resolvePreviewVideoUrl();
@@ -149,6 +159,31 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
     previewVideoUrl,
   ]);
 
+  // Robust Auto-Play Effect (Guarantees playback starts automatically in modern browsers)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !previewVideoUrl || carouselPaused) return;
+
+    video.muted = isMuted;
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setVideoReady(true);
+        })
+        .catch(() => {
+          // If browser policy blocked unmuted playback, force muted and retry immediately
+          if (video) {
+            video.muted = true;
+            video
+              .play()
+              .then(() => setVideoReady(true))
+              .catch(() => {});
+          }
+        });
+    }
+  }, [previewVideoUrl, safeIdx, isMuted, carouselPaused]);
+
   const go = useCallback(
     (n: number) => {
       setImgError(false);
@@ -168,7 +203,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       setVideoReady(false);
       setVideoError(false);
       setIdx((v) => (v + 1) % count);
-    }, 8500); // Extended slightly to allow appreciation of live background preview
+    }, 9000); // 9-second showcase window for full appreciation of the video preview
     return () => clearInterval(t);
   }, [count, slides.length, carouselPaused]);
 
@@ -258,7 +293,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="relative min-h-[340px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[520px] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl"
+        className="relative min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl"
       >
         {/* The whole featured artwork opens its title; controls stay above this link. */}
         <Link
@@ -281,7 +316,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                 src={imgSrc}
                 alt=""
                 aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-cover blur-3xl opacity-35 scale-110 pointer-events-none"
+                className="absolute inset-0 h-full w-full object-cover blur-3xl opacity-40 scale-110 pointer-events-none"
               />
               {/* Crisp Foreground Master Image with right-weighted positioning */}
               <img
@@ -294,9 +329,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                 alt=""
                 onLoad={() => setImageLoaded(true)}
                 onError={handleHeroImgError}
-                className={`absolute inset-0 h-full w-full rounded-2xl sm:rounded-3xl object-cover object-[center_20%] sm:object-[right_center] transition-[opacity,transform,filter] duration-700 brightness-100 ${
-                  videoReady ? "opacity-0" : "opacity-100"
-                }`}
+                className="absolute inset-0 h-full w-full rounded-2xl sm:rounded-3xl object-cover object-[center_20%] sm:object-[right_center] transition-[opacity,transform,filter] duration-700 brightness-100 opacity-100"
               />
 
               {/* Seamless Auto-Playing Background Video Preview (Aethoflix / Netflix style) */}
@@ -309,7 +342,15 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                   loop
                   muted={isMuted}
                   playsInline
-                  onCanPlay={() => setVideoReady(true)}
+                  preload="auto"
+                  onLoadedData={() => {
+                    setVideoReady(true);
+                    videoRef.current?.play().catch(() => {});
+                  }}
+                  onCanPlay={() => {
+                    setVideoReady(true);
+                    videoRef.current?.play().catch(() => {});
+                  }}
                   onError={() => setVideoError(true)}
                   className={`pointer-events-none absolute inset-0 h-full w-full rounded-2xl sm:rounded-3xl object-cover object-[center_20%] sm:object-[right_center] transition-opacity duration-1000 ${
                     videoReady ? "opacity-100" : "opacity-0"
@@ -328,16 +369,16 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
         {/* Left-to-Right Scrim: Covers text area on left while leaving right video/thumbnail 100% visible */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/85 via-40% to-transparent w-full sm:w-[62%] z-[1]"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#080a0f] via-[#080a0f]/90 via-42% to-transparent w-full sm:w-[65%] z-[1]"
         />
         {/* Bottom-to-Top Fade */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-28 sm:h-44 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/75 to-transparent z-[1]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-32 sm:h-48 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent z-[1]"
         />
 
         {/* Content Box */}
-        <div className="pointer-events-none relative z-[2] flex min-h-[340px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[520px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
+        <div className="pointer-events-none relative z-[2] flex min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
           {/* Eyebrow badge row */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
             <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-rose-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md uppercase">
@@ -365,17 +406,17 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
               </span>
             )}
 
-            {/* Video Preview Active Indicator */}
+            {/* Live Video Preview Active Indicator */}
             {previewVideoUrl && videoReady && !videoError && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wider text-emerald-300 backdrop-blur-md uppercase animate-pulse">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/25 border border-emerald-400/50 px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wider text-emerald-300 backdrop-blur-md uppercase shadow-[0_0_12px_rgba(52,211,153,0.35)]">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
                 Live Preview
               </span>
             )}
           </div>
 
-          {/* Bespoke Themed Typography (Resident Evil, Clayface, Cyberpunk, 24K Gold, Tokyo Sakura, etc.) */}
-          <div className="mb-2 sm:mb-3 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+          {/* Bespoke Themed Typography with Distinct Fonts & Eyebrow Patterns */}
+          <div className="mb-2 sm:mb-3 drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]">
             <ThemedTitle
               title={heroHeadline}
               studio={studioName}
@@ -404,12 +445,12 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
               setIsMuted(!isMuted);
             }}
             aria-label={isMuted ? "Unmute video preview audio" : "Mute video preview audio"}
-            className="absolute bottom-3 right-3 sm:bottom-5 sm:right-6 z-20 flex items-center gap-1.5 rounded-full bg-black/60 hover:bg-black/85 border border-white/20 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-md transition-all shadow-xl hover:scale-105 active:scale-95"
+            className="absolute bottom-3 right-3 sm:bottom-5 sm:right-6 z-20 flex items-center gap-1.5 rounded-full bg-black/70 hover:bg-black/90 border border-white/20 px-3.5 py-1.5 text-xs font-medium text-white backdrop-blur-md transition-all shadow-2xl hover:scale-105 active:scale-95"
           >
             {isMuted ? (
               <>
-                <VolumeX className="h-3.5 w-3.5 text-white/70" />
-                <span className="hidden sm:inline text-[11px] text-white/80">Preview Muted</span>
+                <VolumeX className="h-3.5 w-3.5 text-white/80" />
+                <span className="hidden sm:inline text-[11px] text-white/90">Preview Muted</span>
               </>
             ) : (
               <>
@@ -422,7 +463,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
 
         {/* Simple, touch-friendly slide dots; swiping remains available on touch screens. */}
         {slides.length > 1 && (
-          <div className="absolute bottom-1.5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-2">
+          <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-3">
             <div className="flex items-center" role="group" aria-label="Featured slides">
               {slides.map((_, i) => (
                 <button

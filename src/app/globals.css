@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bungee&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@700;900&family=Creepster&family=Dela+Gothic+One&family=Orbitron:wght@800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Righteous&family=Rubik+Glitch&family=Syne:wght@800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -50,6 +51,10 @@
 
 :root {
   --radius: 0.625rem;
+  /* Emil Kowalski canonical curves */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   /* page canvas — near-black with a blue cast */
   --page: #080a0f;
   --panel: #0b0e15;
@@ -207,12 +212,43 @@ body {
   animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* press feedback for interactive buttons */
+/* Emil Kowalski Card Stagger Entrance & Press Feedback */
+@keyframes cardArrival {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-stagger-item {
+  animation: cardArrival 220ms var(--ease-out) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-stagger-item,
+  .anim-fade-in-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* press feedback for interactive buttons & links */
 .press-feedback {
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 140ms var(--ease-out);
 }
 .press-feedback:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 @layer base {
@@ -222,4 +258,63 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Bespoke Cinematic Themed Font Stacks */
+.font-biohazard {
+  font-family: 'Cinzel Decorative', 'Creepster', Georgia, serif;
+}
+.font-chiseled {
+  font-family: 'Black Ops One', 'Bungee', impact, sans-serif;
+}
+.font-cyberpunk {
+  font-family: 'Orbitron', monospace, sans-serif;
+}
+.font-luxury {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+.font-tokyo {
+  font-family: 'Dela Gothic One', 'Hiragino Kaku Gothic ProN', sans-serif;
+}
+.font-candy {
+  font-family: 'Righteous', cursive, sans-serif;
+}
+.font-inferno {
+  font-family: 'Bungee', 'Syne', impact, sans-serif;
+}
+.font-amethyst {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+}
+
+/* 3D Extruded Stone Bevel for Chiseled Theme */
+.text-shadow-chiseled {
+  text-shadow: 1px 1px 0 #52525b, 2px 2px 0 #3f3f46, 3px 3px 0 #27272a, 4px 4px 0 #18181b, 6px 6px 14px rgba(0,0,0,0.95);
+}
+
+/* Chromatic Aberration Glitch for Cyberpunk */
+.text-shadow-cyberpunk {
+  text-shadow: -2.5px 0 #00f0ff, 2.5px 0 #ff0077, 0 0 25px rgba(0,240,255,0.75);
+}
+
+/* Neon Sign Tube Stroke for Tokyo JAV */
+.text-stroke-tokyo {
+  -webkit-text-stroke: 1.5px #ff2a85;
+  text-shadow: 0 0 15px #ff2a85, 0 0 35px #a855f7, 0 0 60px rgba(168,85,247,0.5);
+}
+
+/* Hazard Warning Diagonal Pattern */
+.bg-hazard-stripes {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(239, 68, 68, 0.25),
+    rgba(239, 68, 68, 0.25) 8px,
+    rgba(0, 0, 0, 0.4) 8px,
+    rgba(0, 0, 0, 0.4) 16px
+  );
+}
+
+/* 24K Liquid Gold Shimmer Background */
+.bg-gold-shimmer {
+  background: linear-gradient(135deg, #fff7cc 0%, #ffd700 35%, #b8860b 70%, #ffdf73 100%);
+  background-size: 200% auto;
 }

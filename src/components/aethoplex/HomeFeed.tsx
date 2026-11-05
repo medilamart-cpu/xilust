@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2, Eye, Heart, Languages, ShieldAlert } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
 import type { TaxonomyItem } from "@/lib/catalog-db";
@@ -415,13 +416,21 @@ export function HomeFeed({
                     if (query) onQueryChange?.("");
                     setTab(t.id);
                   }}
-                  className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-[13px] font-semibold tracking-normal transition-all duration-150 active:scale-95 ${
+                  className={`relative shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-[13px] font-semibold tracking-normal transition-colors duration-150 active:scale-95 z-[1] ${
                     active
-                      ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+                      ? "text-black font-bold"
                       : "bg-[#0e121a] text-neutral-200 hover:text-white hover:bg-[#151c27] border border-white/[0.08]"
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 ${active ? "text-black" : "text-cyan-400"}`} />
+                  {active && (
+                    <motion.span
+                      layoutId="feed-active-pill"
+                      className="absolute inset-0 rounded-full bg-white ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      style={{ zIndex: -1 }}
+                    />
+                  )}
+                  <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 transition-colors ${active ? "text-black" : "text-cyan-400"}`} />
                   <span>{t.label}</span>
                 </button>
               );
@@ -488,21 +497,13 @@ export function HomeFeed({
                       setJaxSubFilter(active ? null : (f.id === "subbed" ? "Subbed" : f.id === "uncensored" ? "Uncensored" : "4K"));
                     }
                   }}
-                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 active:scale-95 ${
+                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-normal transition-all duration-150 active:scale-95 ${
                     active
-                      ? f.id === "uncensored"
-                        ? "bg-rose-500/20 text-rose-200 border border-rose-500/50 ring-1 ring-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.25)] font-bold"
-                        : f.id === "subbed"
-                          ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/50 ring-1 ring-cyan-400/30 shadow-[0_0_15px_rgba(6,182,212,0.25)] font-bold"
-                          : f.id === "4k"
-                            ? "bg-amber-500/20 text-amber-200 border border-amber-400/50 ring-1 ring-amber-400/30 shadow-[0_0_15px_rgba(251,191,36,0.25)] font-bold"
-                            : f.id === "decensored"
-                              ? "bg-emerald-500/20 text-emerald-200 border border-emerald-400/50 ring-1 ring-emerald-400/30 shadow-[0_0_15px_rgba(52,211,153,0.25)] font-bold"
-                              : "bg-white text-black font-bold ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
-                      : "bg-[#0e121a] text-neutral-300 hover:bg-[#151c27] hover:text-white border border-white/[0.08]"
+                      ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+                      : "bg-[#0e121a] text-neutral-200 hover:bg-[#151c27] hover:text-white border border-white/[0.08]"
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className={`h-3.5 w-3.5 shrink-0 transition-colors ${active ? "text-black" : "text-cyan-400"}`} />
                   <span>{f.label}</span>
                 </button>
               );
@@ -914,8 +915,14 @@ export function HomeFeed({
               : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
           }`}
         >
-          {items.filter(Boolean).map((item) => (
-            <TileCard key={item.key || item.id || String(Math.random())} item={item} />
+          {items.filter(Boolean).map((item, idx) => (
+            <div
+              key={item.key || item.id || String(Math.random())}
+              className="card-stagger-item"
+              style={{ animationDelay: `${Math.min(idx, 8) * 35}ms` }}
+            >
+              <TileCard item={item} />
+            </div>
           ))}
         </div>
       ) : null}

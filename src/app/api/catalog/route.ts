@@ -70,6 +70,7 @@ export async function GET(req: NextRequest) {
                   posterUrl: it.posterUrl || posterUrl,
                   backdropUrl: it.backdropUrl || posterUrl,
                   fallbackUrl: it.fallbackUrl || fallbackUrl,
+                  previewVideoUrl: it.previewVideoUrl || it.preview_url || null,
                   studios: Array.isArray(it.studios) ? it.studios.filter((s: any) => typeof s === "string" && s.trim()) : [],
                   actors: Array.isArray(it.actors) ? it.actors.filter((a: any) => typeof a === "string" && a.trim()) : [],
                   categories: Array.isArray(it.categories) ? it.categories.filter((c: any) => typeof c === "string" && c.trim()) : [],
@@ -163,7 +164,7 @@ export async function GET(req: NextRequest) {
       const { posterUrl, fallbackUrl } = getCatalogThumbnailUrls(item, vpsBase);
       const backdropUrl = posterUrl;
 
-      let previewVideoUrl: string | null = null;
+      let previewVideoUrl: string | null = (item as any).preview_url || null;
       if (Array.isArray(item.video_sources)) {
         const mp4 = item.video_sources.find(
           (s: any) => s.url && (s.url.endsWith(".mp4") || s.url.includes("mediabook") || s.url.includes("trailer") || s.url.includes("preview"))

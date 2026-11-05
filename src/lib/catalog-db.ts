@@ -24,6 +24,7 @@ export interface CatalogItem {
     embed_url?: string;
     gateway_url?: string;
   }>;
+  preview_url?: string | null;
   published_at: string;
   duration_seconds?: number | null;
 }
@@ -116,6 +117,7 @@ export function parseItem(row: any): CatalogItem {
     video_sources: typeof row.video_sources === "string" ? (() => {
       try { return JSON.parse(row.video_sources) || []; } catch { return []; }
     })() : (row.video_sources || []),
+    preview_url: row.preview_url || null,
     published_at: row.published_at || "",
     duration_seconds: Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : null,
   };

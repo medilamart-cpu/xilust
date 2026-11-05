@@ -23,67 +23,94 @@ export interface ThemedTitleProps {
 
 interface ThemeConfig {
   key: TypographyThemeKey;
-  label: string;
+  eyebrow: string;
+  badgeLabel: string;
+  fontFamilyClass: string;
   titleClass: string;
-  tagClass: string;
+  badgeClass: string;
+  decorElement?: React.ReactNode;
 }
 
 const THEMES: Record<TypographyThemeKey, ThemeConfig> = {
   biohazard: {
     key: "biohazard",
-    label: "BIOHAZARD CRIMSON",
+    eyebrow: "☣ BIOHAZARD PROTOCOL // LEVEL-4 OUTBREAK",
+    badgeLabel: "BIOHAZARD THRILLER",
+    fontFamilyClass: "font-biohazard tracking-[0.06em] uppercase",
     titleClass:
-      "font-serif tracking-[0.05em] font-black uppercase bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(220,38,38,0.85)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)]",
-    tagClass: "bg-red-500/15 border-red-500/30 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.3)]",
+      "bg-gradient-to-r from-red-600 via-rose-500 via-50% to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(220,38,38,0.9)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.98)]",
+    badgeClass:
+      "bg-red-950/60 border-red-500/50 text-red-300 shadow-[0_0_16px_rgba(239,68,68,0.4)] backdrop-blur-md",
   },
   chiseled: {
     key: "chiseled",
-    label: "3D CHISELED STONE",
+    eyebrow: "⬡ TITAN COLOSSUS // 3D CHISELED STONE",
+    badgeLabel: "3D CHISELED STONE",
+    fontFamilyClass: "font-chiseled uppercase tracking-normal text-shadow-chiseled",
     titleClass:
-      "font-black uppercase tracking-tighter bg-gradient-to-b from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent drop-shadow-[0_3px_0_#27272a] drop-shadow-[0_8px_16px_rgba(0,0,0,0.95)]",
-    tagClass: "bg-zinc-700/30 border-zinc-500/40 text-zinc-200 shadow-[0_0_12px_rgba(161,161,170,0.2)]",
+      "bg-gradient-to-b from-white via-zinc-200 via-45% to-zinc-400 bg-clip-text text-transparent drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)]",
+    badgeClass:
+      "bg-zinc-900/70 border-zinc-500/50 text-zinc-100 shadow-[0_0_14px_rgba(161,161,170,0.25)] backdrop-blur-md",
   },
   cyberpunk: {
     key: "cyberpunk",
-    label: "CYBERPUNK NEON",
+    eyebrow: "⚡ CYBER_GRID // NEON SYNTH PULSE v2.4",
+    badgeLabel: "CYBERPUNK NEON",
+    fontFamilyClass: "font-cyberpunk tracking-[0.14em] uppercase text-shadow-cyberpunk",
     titleClass:
-      "font-mono tracking-[0.14em] font-black uppercase bg-gradient-to-r from-cyan-300 via-sky-400 to-fuchsia-500 bg-clip-text text-transparent drop-shadow-[0_0_22px_rgba(34,211,238,0.85)] drop-shadow-[0_0_40px_rgba(217,70,239,0.5)]",
-    tagClass: "bg-cyan-500/15 border-cyan-400/40 text-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.4)]",
+      "bg-gradient-to-r from-cyan-300 via-sky-300 via-40% to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,211,238,0.9)]",
+    badgeClass:
+      "bg-cyan-950/60 border-cyan-400/50 text-cyan-200 shadow-[0_0_16px_rgba(34,211,238,0.45)] backdrop-blur-md",
   },
   gold_luxury: {
     key: "gold_luxury",
-    label: "24K HAUTE GOLD",
+    eyebrow: "✦ 24K HAUTE LUXURY // PRIVATE RESERVE ✦",
+    badgeLabel: "24K LUXURY HAUTE",
+    fontFamilyClass: "font-luxury italic font-bold tracking-wide",
     titleClass:
-      "font-serif italic font-bold tracking-wide bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(245,158,11,0.65)] drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]",
-    tagClass: "bg-amber-500/15 border-amber-400/40 text-amber-300 shadow-[0_0_14px_rgba(245,158,11,0.35)]",
+      "bg-gradient-to-r from-[#fff9e6] via-[#ffd700] via-45% to-[#d4af37] bg-clip-text text-transparent drop-shadow-[0_0_24px_rgba(245,158,11,0.7)] drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]",
+    badgeClass:
+      "bg-amber-950/60 border-amber-400/50 text-amber-200 shadow-[0_0_16px_rgba(245,158,11,0.4)] backdrop-blur-md",
   },
   tokyo_sakura: {
     key: "tokyo_sakura",
-    label: "TOKYO NIGHT SAKURA",
+    eyebrow: "🌸 特選 TOKYO NIGHTS // 独占配信 4K JAV",
+    badgeLabel: "TOKYO NIGHT SAKURA",
+    fontFamilyClass: "font-tokyo uppercase tracking-[0.08em] text-stroke-tokyo",
     titleClass:
-      "font-extrabold uppercase tracking-[0.12em] bg-gradient-to-r from-pink-300 via-rose-400 to-violet-400 bg-clip-text text-transparent drop-shadow-[0_0_22px_rgba(244,114,182,0.8)] drop-shadow-[0_0_35px_rgba(168,85,247,0.5)]",
-    tagClass: "bg-pink-500/15 border-pink-400/40 text-pink-300 shadow-[0_0_14px_rgba(244,114,182,0.35)]",
+      "bg-gradient-to-r from-pink-300 via-rose-300 via-50% to-violet-300 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(244,114,182,0.9)]",
+    badgeClass:
+      "bg-pink-950/60 border-pink-400/50 text-pink-200 shadow-[0_0_16px_rgba(244,114,182,0.4)] backdrop-blur-md",
   },
   candy_pop: {
     key: "candy_pop",
-    label: "SWEET CANDY POP",
+    eyebrow: "🍭 SWEET CANDY POP // PASTEL GLAMOUR",
+    badgeLabel: "SWEET CANDY POP",
+    fontFamilyClass: "font-candy tracking-wide",
     titleClass:
-      "font-black tracking-normal bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(52,211,153,0.7)] drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]",
-    tagClass: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.35)]",
+      "bg-gradient-to-r from-emerald-300 via-teal-200 via-50% to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_24px_rgba(52,211,153,0.75)] drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)]",
+    badgeClass:
+      "bg-emerald-950/60 border-emerald-400/50 text-emerald-200 shadow-[0_0_14px_rgba(52,211,153,0.4)] backdrop-blur-md",
   },
   inferno: {
     key: "inferno",
-    label: "INFERNO MAGMA",
+    eyebrow: "🔥 REDLINE INFERNO // MAXIMUM HEAT",
+    badgeLabel: "INFERNO MAGMA",
+    fontFamilyClass: "font-inferno italic uppercase tracking-normal",
     titleClass:
-      "font-black italic uppercase tracking-tight bg-gradient-to-r from-yellow-200 via-orange-500 to-red-600 bg-clip-text text-transparent drop-shadow-[0_0_24px_rgba(249,115,22,0.85)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]",
-    tagClass: "bg-orange-500/15 border-orange-400/40 text-orange-300 shadow-[0_0_14px_rgba(249,115,22,0.4)]",
+      "bg-gradient-to-r from-yellow-200 via-orange-500 via-45% to-red-600 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(249,115,22,0.9)] drop-shadow-[0_4px_18px_rgba(0,0,0,0.98)]",
+    badgeClass:
+      "bg-orange-950/60 border-orange-400/50 text-orange-200 shadow-[0_0_16px_rgba(249,115,22,0.45)] backdrop-blur-md",
   },
   amethyst_noir: {
     key: "amethyst_noir",
-    label: "AMETHYST NOIR",
+    eyebrow: "✦ AMETHYST NOIR // VELVET FANTASY ✦",
+    badgeLabel: "AMETHYST NOIR",
+    fontFamilyClass: "font-amethyst uppercase tracking-[0.18em]",
     titleClass:
-      "font-semibold uppercase tracking-[0.08em] bg-gradient-to-r from-purple-200 via-violet-300 to-indigo-400 bg-clip-text text-transparent drop-shadow-[0_0_22px_rgba(167,139,250,0.75)] drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]",
-    tagClass: "bg-violet-500/15 border-violet-400/40 text-violet-300 shadow-[0_0_14px_rgba(167,139,250,0.35)]",
+      "bg-gradient-to-r from-purple-200 via-violet-300 via-50% to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(167,139,250,0.85)] drop-shadow-[0_2px_16px_rgba(0,0,0,0.95)]",
+    badgeClass:
+      "bg-purple-950/60 border-purple-400/50 text-purple-200 shadow-[0_0_16px_rgba(167,139,250,0.4)] backdrop-blur-md",
   },
 };
 
@@ -98,7 +125,7 @@ const THEME_KEYS: TypographyThemeKey[] = [
   "amethyst_noir",
 ];
 
-function resolveTheme(
+export function resolveTheme(
   title: string,
   studio?: string | null,
   section?: "lust" | "jax" | "fans",
@@ -108,7 +135,7 @@ function resolveTheme(
   const s = (studio || "").toLowerCase();
   const c = (code || "").toLowerCase();
 
-  // 1. Horror / Biohazard / Gothic / Dark Thriller
+  // 1. Horror / Biohazard / Gothic / Dark Thriller (Resident Evil archetype)
   if (
     /(?:resident|evil|biohazard|horror|blood|dark|zombie|gothic|nightmare|demon|curse|creepy|sinister|haunted|dead|killer|slasher)/.test(
       t
@@ -117,16 +144,16 @@ function resolveTheme(
     return THEMES.biohazard;
   }
 
-  // 2. Chiseled / Heavy Brutalist / Clayface / Colossus
+  // 2. Chiseled / Heavy Brutalist / Clayface / Titan (Clayface archetype)
   if (
-    /(?:clayface|batman|titan|beast|stone|iron|heavy|brutal|colossus|steel|monster|smash|shatter|armor|concrete)/.test(
+    /(?:clayface|batman|titan|beast|stone|iron|heavy|brutal|colossus|steel|monster|smash|shatter|armor|concrete|rock)/.test(
       t
     )
   ) {
     return THEMES.chiseled;
   }
 
-  // 3. Cyberpunk / Blade Runner / Sci-Fi Neon Pulse
+  // 3. Cyberpunk / Sci-Fi Neon Pulse
   if (
     /(?:cyber|matrix|neon|future|futuristic|vr|tech|glitch|bot|synth|ai|wire|electric|pulse|laser|virtual|hacker)/.test(
       t
@@ -135,7 +162,7 @@ function resolveTheme(
     return THEMES.cyberpunk;
   }
 
-  // 4. 24K Haute Luxury / Bellesa & Elegance
+  // 4. 24K Haute Luxury / Bellesa
   if (
     s.includes("bellesa") ||
     /(?:luxury|royalty|queen|goddess|gold|golden|champagne|elegance|elegant|secret|romance|silk|velvet|passion|sensual|erotic|couture)/.test(
@@ -218,15 +245,25 @@ export function ThemedTitle({
 
   const sizeClass =
     size === "hero"
-      ? "text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.12]"
+      ? "text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]"
       : size === "detail"
-      ? "text-xl sm:text-3xl md:text-4xl leading-tight"
-      : "text-base sm:text-lg leading-snug";
+      ? "text-2xl sm:text-4xl md:text-5xl leading-tight"
+      : "text-lg sm:text-xl leading-snug";
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5">
+    <div className="flex flex-col gap-1.5 sm:gap-2">
+      {/* Cinematic Studio Eyebrow Pattern */}
+      {size === "hero" && (
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] sm:text-[11px] font-black tracking-widest uppercase opacity-85 text-zinc-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+            {theme.eyebrow}
+          </span>
+        </div>
+      )}
+
+      {/* Bespoke Styled Headline */}
       <h1
-        className={`line-clamp-2 break-words transition-all duration-500 ${sizeClass} ${theme.titleClass} ${className}`}
+        className={`line-clamp-2 break-words transition-all duration-500 font-extrabold ${sizeClass} ${theme.fontFamilyClass} ${theme.titleClass} ${className}`}
       >
         {title}
       </h1>
@@ -252,9 +289,9 @@ export function ThemedThemeBadge({
 
   return (
     <span
-      className={`rounded-full border px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider backdrop-blur-md uppercase transition-colors duration-300 ${theme.tagClass}`}
+      className={`rounded-full border px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase transition-colors duration-300 ${theme.badgeClass}`}
     >
-      {theme.label}
+      {theme.badgeLabel}
     </span>
   );
 }
