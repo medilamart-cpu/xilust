@@ -126,11 +126,24 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       );
       if (mp4?.url) return mp4.url;
     }
-    // High-resolution reliable fallback so background video preview is always playing
     return null;
   };
 
   const previewVideoUrl = resolvePreviewVideoUrl();
+
+  // Mobile preview optimization (e.g. Naughty America _mobile10sec.mp4 under 720px)
+  const resolvePreviewMobileUrl = (desktopUrl: string | null): string | null => {
+    if (!desktopUrl) return null;
+    if ((cur as any)?.preview_mobile_url && (cur as any).preview_mobile_url.startsWith("http")) {
+      return (cur as any).preview_mobile_url;
+    }
+    if (desktopUrl.includes("_desktop10sec.mp4")) {
+      return desktopUrl.replace("_desktop10sec.mp4", "_mobile10sec.mp4");
+    }
+    return null;
+  };
+
+  const previewMobileUrl = resolvePreviewMobileUrl(previewVideoUrl);
 
   useEffect(() => {
     if (!cur) {
@@ -336,7 +349,6 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                 <video
                   ref={videoRef}
                   key={previewVideoUrl}
-                  src={previewVideoUrl}
                   autoPlay
                   loop
                   muted={isMuted}
@@ -354,7 +366,12 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                   className={`pointer-events-none absolute inset-0 h-full w-full rounded-2xl sm:rounded-3xl object-cover object-[center_20%] sm:object-[right_center] transition-opacity duration-1000 ${
                     videoReady ? "opacity-100" : "opacity-0"
                   }`}
-                />
+                >
+                  {previewMobileUrl && (
+                    <source src={previewMobileUrl} media="(max-width: 719px)" type="video/mp4" />
+                  )}
+                  <source src={previewVideoUrl} type="video/mp4" />
+                </video>
               )}
             </>
           ) : (
