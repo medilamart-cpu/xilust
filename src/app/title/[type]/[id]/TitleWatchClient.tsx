@@ -518,8 +518,15 @@ export function TitleWatchClient({
 
       {/* Live Server & CleanStream Status Modal */}
       {showStatusModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-lg rounded-2xl bg-zinc-950/95 border border-white/10 p-4 sm:p-6 shadow-2xl overflow-hidden">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm transition-opacity duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowStatusModal(false);
+          }}
+        >
+          <div className="relative w-full max-w-lg rounded-2xl bg-[#0e121a] border border-white/10 p-4 sm:p-6 shadow-2xl overflow-hidden modal-dialog-anim">
             <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">

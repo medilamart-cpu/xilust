@@ -122,7 +122,7 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
             if (e.target === e.currentTarget) setIsOpen(false);
           }}
         >
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0e121a] border border-white/10 p-5 shadow-2xl overflow-hidden transition-all duration-200 ease-out">
+          <div className="relative w-full max-w-md rounded-2xl bg-[#0e121a] border border-white/10 p-5 shadow-2xl overflow-hidden modal-dialog-anim">
             {/* Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
               <div className="flex items-center gap-2.5">

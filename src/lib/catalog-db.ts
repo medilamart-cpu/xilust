@@ -219,7 +219,9 @@ export async function queryItems(options: {
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
     let orderBy = "ORDER BY COALESCE(year, 0) DESC, COALESCE(published_at, '') DESC, id DESC";
-    if (options.tab === "trending" || options.tab === "featured" || options.sort === "trending" || options.sort === "featured") {
+    if (options.tab === "featured" || options.sort === "featured") {
+      orderBy = "ORDER BY (CASE WHEN preview_url IS NOT NULL AND preview_url != '' THEN 0 ELSE 1 END), COALESCE(trending_score, 0) DESC, COALESCE(views_30d, 0) DESC, id DESC";
+    } else if (options.tab === "trending" || options.sort === "trending") {
       orderBy = "ORDER BY COALESCE(trending_score, 0) DESC, COALESCE(views_30d, 0) DESC, COALESCE(views, 0) DESC, id DESC";
     } else if (options.tab === "top" || options.sort === "popular" || options.sort === "views") {
       orderBy = "ORDER BY COALESCE(views, 0) DESC, COALESCE(year, 0) DESC, id DESC";

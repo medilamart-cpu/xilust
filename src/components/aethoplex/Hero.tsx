@@ -11,7 +11,6 @@ import { ThemedTitle, ThemedThemeBadge } from "./ThemedTitle";
 const heroCache = new Map<string, CardModel[]>();
 
 // High-speed, unblocked studio 720p preview clip fallback (Aylo / Project1 Content)
-const DEFAULT_PREVIEW_MP4 =
   "https://prog-public-ht.project1content.com/862/821/ad6/e48/4ec/da2/c3c/53b/13a/5e0/51/mediabook/mediabook_720p.mp4";
 
 export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
@@ -44,7 +43,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
     setImgError(false);
 
     // For Lust feature the top trending leaderboards; for JAX feature newest releases
-    const heroTab = "trending";
+    const heroTab = "featured";
     fetch(`/api/catalog?section=${section}&tab=${heroTab}&limit=10`, {
       signal: controller.signal,
     })
@@ -128,7 +127,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       if (mp4?.url) return mp4.url;
     }
     // High-resolution reliable fallback so background video preview is always playing
-    return DEFAULT_PREVIEW_MP4;
+    return null;
   };
 
   const previewVideoUrl = resolvePreviewVideoUrl();
@@ -377,8 +376,11 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-32 sm:h-48 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent z-[1]"
         />
 
-        {/* Content Box */}
-        <div className="pointer-events-none relative z-[2] flex min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16">
+        {/* Content Box with Emil Kowalski slide arrival transition */}
+        <div
+          key={safeIdx}
+          className="pointer-events-none relative z-[2] flex min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16 hero-content-anim"
+        >
           {/* Eyebrow badge row */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
             <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-rose-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md uppercase">
