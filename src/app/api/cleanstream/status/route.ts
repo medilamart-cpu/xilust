@@ -36,7 +36,7 @@ export async function GET() {
 
   const cleanstreamUrl =
     process.env.NEXT_PUBLIC_CLEANSTREAM_URL ||
-    "https://marriage-editorials-tyler-clark.trycloudflare.com";
+    "https://rick-use-previously-explicitly.trycloudflare.com";
 
   const t0 = Date.now();
   let cleanstreamOnline = false;

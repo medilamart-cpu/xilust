@@ -113,7 +113,7 @@ export default async function TitlePage({
   const recs = recPool.filter((r) => r.id !== item.id && r.slug !== item.slug).slice(0, 18);
 
   const cleanstreamUrl =
-    process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://marriage-editorials-tyler-clark.trycloudflare.com";
+    process.env.NEXT_PUBLIC_CLEANSTREAM_URL || "https://rick-use-previously-explicitly.trycloudflare.com";
   
   const { cleanTitle, originalYear, originalDate } = extractCleanTitleAndDate(item.title, item.year, section);
   const duration = formatVideoDuration(item.duration_seconds, item.title, item.id, section, item.categories, item.tags);

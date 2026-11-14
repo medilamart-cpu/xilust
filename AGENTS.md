@@ -159,7 +159,7 @@ When finishing work:
 
 ### Required Environment Variables (Cloudflare Pages Dashboard):
 Set these in **Cloudflare Pages -> Project Settings -> Environment Variables**:
-* `NEXT_PUBLIC_CLEANSTREAM_URL`: `https://marriage-editorials-tyler-clark.trycloudflare.com`
+* `NEXT_PUBLIC_CLEANSTREAM_URL`: `https://rick-use-previously-explicitly.trycloudflare.com`
 * `NEXT_PUBLIC_THUMBS_CDN`: `https://xithumbs.duckdns.org`
 * `CATALOG_API_URL`: `https://supervisor-demonstrated-rhythm-ignored.trycloudflare.com`
 
