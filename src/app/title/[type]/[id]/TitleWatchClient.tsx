@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles, Activity, X, CheckCircle2, Clock } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles, Activity, X, CheckCircle2, Clock, ListVideo, SkipBack, SkipForward, Shuffle, Star, ChevronRight, Check, Film } from "lucide-react";
 import type { CatalogItem } from "@/lib/catalog-db";
 import { AddToPlaylistModal } from "@/components/aethoplex/AddToPlaylistModal";
+import { Playlist, getPlaylistById, ratePlaylist, getUserPlaylistRating } from "@/lib/playlists";
 
 function toDirectEmbedUrl(url: string): string {
   if (!url) return "";
@@ -167,6 +170,101 @@ export function TitleWatchClient({
   } | null>(null);
   const [healthLoading, setHealthLoading] = useState(false);
 
+  // Playlist Mode & Sequential Playback Engine
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const playlistId = searchParams?.get("playlist");
+  const playlistIndexParam = searchParams?.get("index");
+  const isShuffleParam = searchParams?.get("shuffle") === "1";
+
+  const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
+  const [showQueueDrawer, setShowQueueDrawer] = useState(false);
+  const [isShuffle, setIsShuffle] = useState(isShuffleParam);
+  const [autoAdvance, setAutoAdvance] = useState(true);
+  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null);
+  const [userPlRating, setUserPlRating] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (playlistId) {
+      const pl = getPlaylistById(playlistId);
+      setActivePlaylist(pl);
+      setUserPlRating(getUserPlaylistRating(playlistId));
+    } else {
+      setActivePlaylist(null);
+    }
+  }, [playlistId]);
+
+  const playlistIndex = useMemo(() => {
+    if (!activePlaylist || activePlaylist.items.length === 0) return -1;
+    const idx = playlistIndexParam ? parseInt(playlistIndexParam, 10) : 0;
+    if (isNaN(idx)) return 0;
+    return Math.max(0, Math.min(idx, activePlaylist.items.length - 1));
+  }, [activePlaylist, playlistIndexParam]);
+
+  const hasNext = activePlaylist ? (isShuffle ? activePlaylist.items.length > 1 : playlistIndex < activePlaylist.items.length - 1) : false;
+  const hasPrev = activePlaylist ? playlistIndex > 0 : false;
+
+  const navigateToTrack = (idx: number) => {
+    if (!activePlaylist) return;
+    const nextVideo = activePlaylist.items[idx];
+    if (!nextVideo) return;
+    const url = `/title/${nextVideo.section || "lust"}/${nextVideo.slug || nextVideo.id}?playlist=${encodeURIComponent(activePlaylist.id)}&index=${idx}${isShuffle ? "&shuffle=1" : ""}`;
+    router.push(url);
+  };
+
+  const handleNextTrack = () => {
+    if (!activePlaylist) return;
+    let nextIdx = playlistIndex + 1;
+    if (isShuffle && activePlaylist.items.length > 1) {
+      const otherIndices = activePlaylist.items.map((_, i) => i).filter((i) => i !== playlistIndex);
+      nextIdx = otherIndices[Math.floor(Math.random() * otherIndices.length)];
+    }
+    if (nextIdx < activePlaylist.items.length) {
+      navigateToTrack(nextIdx);
+    }
+  };
+
+  const handlePrevTrack = () => {
+    if (!activePlaylist || playlistIndex <= 0) return;
+    navigateToTrack(playlistIndex - 1);
+  };
+
+  const handleRateActivePlaylist = (stars: number) => {
+    if (!activePlaylist) return;
+    const res = ratePlaylist(activePlaylist.id, stars);
+    if (res.success) {
+      setUserPlRating(stars);
+      setActivePlaylist((prev) => prev ? { ...prev, rating: res.newRating, ratingCount: res.newCount } : null);
+    }
+  };
+
+  // Listen for video ended events from CleanStream iframe
+  useEffect(() => {
+    const handleMsg = (e: MessageEvent) => {
+      if (e.data && (e.data.type === "CLEANSTREAM_ENDED" || e.data.type === "VIDEO_ENDED")) {
+        if (activePlaylist && hasNext && autoAdvance) {
+          setAutoAdvanceCountdown(5);
+        }
+      }
+    };
+    window.addEventListener("message", handleMsg);
+    return () => window.removeEventListener("message", handleMsg);
+  }, [activePlaylist, hasNext, autoAdvance]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (autoAdvanceCountdown === null) return;
+    if (autoAdvanceCountdown <= 0) {
+      setAutoAdvanceCountdown(null);
+      handleNextTrack();
+      return;
+    }
+    const timer = setTimeout(() => {
+      setAutoAdvanceCountdown((prev) => (prev !== null ? prev - 1 : null));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [autoAdvanceCountdown]);
+
   const fetchStatus = () => {
     setHealthLoading(true);
     fetch("/api/cleanstream/status")
@@ -290,6 +388,110 @@ export function TitleWatchClient({
 
   return (
     <div className="space-y-3 sm:space-y-4 max-w-full">
+      {/* Auto-Advance Countdown Toast */}
+      {autoAdvanceCountdown !== null && hasNext && (
+        <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-white text-black shadow-2xl border border-white/20 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+            </span>
+            <span className="text-xs font-bold truncate">
+              Up Next in {autoAdvanceCountdown}s: {activePlaylist?.items[playlistIndex + 1]?.title}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setAutoAdvanceCountdown(null)}
+              className="px-3 py-1 text-xs font-semibold text-zinc-600 hover:text-black transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAutoAdvanceCountdown(null);
+                handleNextTrack();
+              }}
+              className="px-3.5 py-1 rounded-full bg-black text-white text-xs font-bold hover:bg-zinc-800 transition-colors"
+            >
+              Play Now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Playlist Continuous Playback Transport Deck */}
+      {activePlaylist && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 sm:p-3.5 rounded-2xl bg-[#0e121a] border border-white/10 shadow-lg">
+          {/* Previous Button */}
+          <div className="flex items-center justify-between sm:justify-start gap-2">
+            <button
+              type="button"
+              onClick={handlePrevTrack}
+              disabled={!hasPrev}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all active:scale-95"
+            >
+              <SkipBack className="h-3.5 w-3.5" />
+              <span>Prev</span>
+            </button>
+
+            {/* Current Playlist Title & Index */}
+            <button
+              type="button"
+              onClick={() => setShowQueueDrawer(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-all text-center min-w-0"
+              title="Click to view playlist queue"
+            >
+              <ListVideo className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+              <span className="text-xs font-bold text-white truncate max-w-[140px] sm:max-w-xs">
+                {activePlaylist.name}
+              </span>
+              <span className="text-[11px] font-semibold text-zinc-400 shrink-0 tabular-nums">
+                ({playlistIndex + 1}/{activePlaylist.items.length})
+              </span>
+            </button>
+          </div>
+
+          {/* Right Transport Controls: Shuffle, Next & Queue */}
+          <div className="flex items-center justify-end gap-1.5">
+            <button
+              type="button"
+              onClick={() => setIsShuffle(!isShuffle)}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                isShuffle
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : "border border-white/10 bg-white/5 text-zinc-400 hover:text-white"
+              }`}
+              title={isShuffle ? "Shuffle Enabled" : "Shuffle Off"}
+            >
+              <Shuffle className="h-3.5 w-3.5" />
+              <span className="hidden md:inline">Shuffle</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextTrack}
+              disabled={!hasNext}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-white text-black text-xs font-bold shadow-sm hover:bg-zinc-200 disabled:opacity-30 disabled:hover:bg-white transition-all active:scale-95"
+            >
+              <span>Next</span>
+              <SkipForward className="h-3.5 w-3.5 fill-black" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowQueueDrawer(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-xs font-semibold text-white hover:bg-white/10 transition-all active:scale-95"
+            >
+              <ListVideo className="h-3.5 w-3.5" />
+              <span>Queue</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Centered Cinema Video Player Container */}
       <div
         ref={playerContainerRef}
@@ -623,6 +825,154 @@ export function TitleWatchClient({
               >
                 <RefreshCw className={`h-3 w-3 ${healthLoading ? "animate-spin" : ""}`} />
                 <span>{healthLoading ? "Checking..." : "Re-check"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slide-Over Glass Playlist Queue Drawer */}
+      {showQueueDrawer && activePlaylist && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-end bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowQueueDrawer(false);
+          }}
+        >
+          <div className="relative h-full w-full max-w-md bg-[#0c1017] border-l border-white/10 p-5 shadow-2xl flex flex-col justify-between overflow-hidden">
+            {/* Header */}
+            <div>
+              <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-xl bg-white/5 border border-white/10 text-white shrink-0">
+                    <ListVideo className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-white truncate">
+                      {activePlaylist.name}
+                    </h3>
+                    <p className="text-[11px] text-zinc-400">
+                      Curated by @{activePlaylist.authorName} • {activePlaylist.items.length} titles
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQueueDrawer(false)}
+                  className="rounded-lg p-1.5 text-zinc-400 hover:text-white hover:bg-white/10"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* In-Player Rating Bar */}
+              <div className="mt-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-1 text-amber-300">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => handleRateActivePlaylist(star)}
+                      className="p-0.5 hover:scale-125 transition-transform"
+                    >
+                      <Star
+                        className={`h-4 w-4 ${
+                          star <= Math.round(activePlaylist.rating)
+                            ? "fill-amber-300 text-amber-300"
+                            : "text-zinc-600"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="text-xs font-bold text-white ml-1.5 tabular-nums">
+                    {activePlaylist.rating.toFixed(1)}
+                  </span>
+                  <span className="text-[10px] text-zinc-400">({activePlaylist.ratingCount})</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/playlists/${activePlaylist.id}`}
+                    className="text-[11px] text-zinc-400 hover:text-white underline"
+                  >
+                    View Details
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Queue Items List */}
+            <div className="my-4 flex-1 overflow-y-auto space-y-2 pr-1 no-scrollbar">
+              {activePlaylist.items.map((track, tIdx) => {
+                const isPlaying = tIdx === playlistIndex;
+
+                return (
+                  <button
+                    key={track.id + tIdx}
+                    type="button"
+                    onClick={() => {
+                      navigateToTrack(tIdx);
+                      setShowQueueDrawer(false);
+                    }}
+                    className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-xl border text-left transition-all ${
+                      isPlaying
+                        ? "bg-white/15 border-white text-white shadow-md"
+                        : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/15 text-zinc-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-4 text-center text-[11px] font-bold text-zinc-500 tabular-nums">
+                        {tIdx + 1}
+                      </span>
+                      <div className="relative h-10 w-16 shrink-0 overflow-hidden rounded-lg bg-black/60 border border-white/10">
+                        {track.thumbnailUrl || track.coverUrl ? (
+                          <img
+                            src={track.thumbnailUrl || track.coverUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-zinc-600">
+                            <Film className="h-3 w-3" />
+                          </div>
+                        )}
+                        {isPlaying && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <Play className="h-3 w-3 fill-white text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className={`text-xs font-bold truncate ${isPlaying ? "text-white" : "text-zinc-200"}`}>
+                          {track.title}
+                        </div>
+                        <div className="text-[10px] text-zinc-400 mt-0.5">
+                          {track.duration || "HD Video"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {isPlaying && (
+                      <span className="shrink-0 rounded-full bg-white text-black px-2 py-0.5 text-[9px] font-black uppercase tracking-wider">
+                        Playing
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Footer */}
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
+              <span>{activePlaylist.items.length} titles in queue</span>
+              <button
+                type="button"
+                onClick={() => setShowQueueDrawer(false)}
+                className="px-4 py-1.5 rounded-full bg-white text-black font-bold text-xs"
+              >
+                Close Queue
               </button>
             </div>
           </div>

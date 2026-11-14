@@ -2,16 +2,38 @@
 
 import { useEffect, useState } from "react";
 import { Navbar, type Section } from "@/components/aethoplex/Navbar";
+import { CinemaSidebar } from "@/components/aethoplex/CinemaSidebar";
 import { Hero } from "@/components/aethoplex/Hero";
 import { HomeFeed } from "@/components/aethoplex/HomeFeed";
 import { MyListView } from "@/components/aethoplex/MyListView";
 import { MyListProvider } from "@/components/aethoplex/PosterCard";
-import { Footer, LivePill } from "@/components/aethoplex/Chrome";
+import { Footer } from "@/components/aethoplex/Chrome";
 import { AdminModal } from "@/components/aethoplex/AdminModal";
 
 export default function Home() {
   const [showMyList, setShowMyList] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("xilust_sidebar_collapsed");
+        if (stored !== null) return stored === "true";
+      } catch {}
+    }
+    return true; // Default to slim 64px icon rail for maximum video breathing room
+  });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("xilust_sidebar_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
+
   // Synchronously initialize section from URL params or localStorage to avoid race conditions
   const [section, setSection] = useState<Section>(() => {
     if (typeof window !== "undefined") {
@@ -180,16 +202,42 @@ export default function Home() {
   return (
     <MyListProvider>
       <div className="flex min-h-screen flex-col bg-[#080a0f] text-[#f4f5f8] antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+        {/* Accessible Skip to Content Link */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-20 focus:z-50 focus:rounded-lg focus:bg-rose-600 focus:px-4 focus:py-2 focus:text-xs focus:font-bold focus:text-white focus:shadow-2xl"
+        >
+          Skip to main content
+        </a>
+
+        {/* Minimalist Cinema Navigation Sidebar (Desktop Rail & Mobile Drawer) */}
+        <CinemaSidebar
+          section={section}
+          onSectionChange={handleSectionChange}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+          onSelectStudio={(studioName) => handleFilterChange({ type: "studio", name: studioName })}
+          mobileOpen={mobileMenuOpen}
+          onMobileClose={() => setMobileMenuOpen(false)}
+        />
+
         {/* Navigation Bar */}
         <Navbar
           section={section}
           onSectionChange={handleSectionChange}
           query={query}
           onQueryChange={handleQueryChange}
+          sidebarCollapsed={sidebarCollapsed}
+          onOpenMobileMenu={() => setMobileMenuOpen(true)}
         />
 
-        {/* Main Content */}
-        <main className="flex-1 pt-16 sm:pt-20">
+        {/* Main Content with Dynamic Padding Coordination */}
+        <main
+          id="main-content"
+          className={`flex-1 pt-16 sm:pt-20 transition-all duration-300 ${
+            sidebarCollapsed ? "lg:pl-16" : "lg:pl-60"
+          }`}
+        >
           {showMyList ? (
             <MyListView onBrowse={handleBrowseFromList} />
           ) : (
@@ -209,10 +257,9 @@ export default function Home() {
 
         {/* Global Footer */}
         <Footer />
-        <LivePill />
 
-        {/* Secret Admin Panel Trigger & Modal */}
-        <div className="fixed bottom-3 left-3 z-40 opacity-25 hover:opacity-100 transition-opacity">
+        {/* Secret Admin Panel Trigger & Modal (Positioned clear of 64px left rail) */}
+        <div className="fixed bottom-3 left-20 z-40 opacity-25 hover:opacity-100 transition-opacity">
           <button
             onClick={() => setShowAdminModal(true)}
             title="Admin & Premium Studios"

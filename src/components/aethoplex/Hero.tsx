@@ -398,14 +398,14 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           key={safeIdx}
           className="pointer-events-none relative z-[2] flex min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16 hero-content-anim"
         >
-          {/* Eyebrow badge row */}
+          {/* Minimalist Cinema Metadata Row with Colourful Studio Theme Badge */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-            <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500/20 to-rose-500/20 border border-pink-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-pink-300 backdrop-blur-md uppercase">
-              <Sparkles className="h-3 w-3 text-pink-400" />
-              {section === "lust" ? `TRENDING #${safeIdx + 1}` : `FEATURED IN ${section.toUpperCase()}`}
+            <span className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-white backdrop-blur-md uppercase">
+              <Sparkles className="h-3 w-3 text-cyan-300" />
+              {section === "lust" ? `TRENDING #${safeIdx + 1}` : `FEATURED`}
             </span>
 
-            {/* Bespoke Cinematic Theme Badge */}
+            {/* Colourful Studio Themed Badge */}
             <ThemedThemeBadge
               title={heroHeadline}
               studio={studioName}
@@ -413,29 +413,23 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
               code={cur?.code}
             />
 
-            {studioName && (
-              <span className="rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-semibold tracking-wider text-zinc-200 uppercase backdrop-blur-md">
-                {studioName}
-              </span>
-            )}
-
             {section !== "fans" && cur?.code && (
-              <span className="rounded-full bg-cyan-500/20 border border-cyan-400/40 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-black tracking-widest text-cyan-300 backdrop-blur-md">
+              <span className="rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-mono font-bold tracking-widest text-cyan-300 backdrop-blur-md">
                 {cur.code}
               </span>
             )}
 
-            {/* Live Video Preview Active Indicator */}
+            {/* Video Preview Active Indicator */}
             {previewVideoUrl && videoReady && !videoError && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/25 border border-emerald-400/50 px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wider text-emerald-300 backdrop-blur-md uppercase shadow-[0_0_12px_rgba(52,211,153,0.35)]">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wider text-emerald-300 backdrop-blur-md uppercase">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Live Preview
               </span>
             )}
           </div>
 
-          {/* Bespoke Themed Typography with Distinct Fonts & Eyebrow Patterns */}
-          <div className="mb-2 sm:mb-3 drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]">
+          {/* Pure Cinema Headline */}
+          <div className="mb-2 sm:mb-3">
             <ThemedTitle
               title={heroHeadline}
               studio={studioName}
@@ -447,8 +441,8 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
 
           {/* Starring Cast Subline */}
           {heroCast && (
-            <p className="line-clamp-1 text-xs sm:text-sm font-medium text-pink-300/90 mb-2 sm:mb-3">
-              <span className="text-zinc-400 text-xs font-normal">Starring: </span>
+            <p className="line-clamp-1 text-xs sm:text-sm font-medium text-zinc-300 mb-2 sm:mb-3">
+              <span className="text-zinc-500 text-xs font-normal">Starring: </span>
               {heroCast}
             </p>
           )}

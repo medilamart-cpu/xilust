@@ -7,6 +7,7 @@ import {
   FolderHeart,
   Plus,
   Play,
+  Shuffle,
   Trash2,
   Film,
   Sparkles,
@@ -16,20 +17,27 @@ import {
   ExternalLink,
   Heart,
   Star,
-  Bookmark,
+  Globe,
+  Lock,
+  ChevronUp,
+  ChevronDown,
+  ListVideo,
+  Share2,
 } from "lucide-react";
 import {
   getPlaylists,
   createPlaylist,
   deletePlaylist,
   removeFromPlaylist,
+  reorderPlaylistItems,
+  setPlaylistVisibility,
   Playlist,
   PlaylistItem,
 } from "@/lib/playlists";
 
 const THEME_ICONS = [
   { id: "fav", label: "Favorites", icon: Heart },
-  { id: "film", label: "Feature Films", icon: Film },
+  { id: "film", label: "Cinema Hits", icon: Film },
   { id: "star", label: "VIP Vault", icon: Star },
   { id: "clock", label: "Watch Later", icon: Clock },
   { id: "sparkles", label: "Spotlight", icon: Sparkles },
@@ -40,9 +48,14 @@ export default function PlaylistsPage() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [playlistToDelete, setPlaylistToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  // Form states
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("fav");
+  const [isPublic, setIsPublic] = useState(false);
+  const [authorHandle, setAuthorHandle] = useState("");
 
   const sync = () => {
     const list = getPlaylists();
@@ -54,8 +67,9 @@ export default function PlaylistsPage() {
 
   useEffect(() => {
     sync();
-    window.addEventListener("playlists-change", sync);
-    return () => window.removeEventListener("playlists-change", sync);
+    const handleSync = () => sync();
+    window.addEventListener("playlists-change", handleSync);
+    return () => window.removeEventListener("playlists-change", handleSync);
   }, []);
 
   const selectedPlaylist = playlists.find((p) => p.id === selectedPlaylistId) || playlists[0];
@@ -64,26 +78,44 @@ export default function PlaylistsPage() {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
-    const created = createPlaylist(newTitle.trim(), selectedTheme, newDesc.trim());
+    const created = createPlaylist(
+      newTitle.trim(),
+      selectedTheme,
+      newDesc.trim(),
+      isPublic ? "public" : "private",
+      authorHandle.trim() || "You"
+    );
     sync();
     setSelectedPlaylistId(created.id);
     setNewTitle("");
     setNewDesc("");
+    setIsPublic(false);
     setShowCreateModal(false);
   };
 
-  const handleDelete = (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete "${name}"?`)) {
-      deletePlaylist(id);
-      sync();
-      if (selectedPlaylistId === id) {
-        setSelectedPlaylistId(null);
-      }
+  const confirmDelete = () => {
+    if (!playlistToDelete) return;
+    deletePlaylist(playlistToDelete.id);
+    sync();
+    if (selectedPlaylistId === playlistToDelete.id) {
+      setSelectedPlaylistId(null);
     }
+    setPlaylistToDelete(null);
   };
 
   const handleRemoveItem = (plId: string, itemId: string) => {
     removeFromPlaylist(plId, itemId);
+    sync();
+  };
+
+  const handleMoveItem = (plId: string, fromIdx: number, toIdx: number) => {
+    reorderPlaylistItems(plId, fromIdx, toIdx);
+    sync();
+  };
+
+  const handleTogglePrivacy = (plId: string, current: "public" | "private") => {
+    const next = current === "public" ? "private" : "public";
+    setPlaylistVisibility(plId, next);
     sync();
   };
 
@@ -103,7 +135,7 @@ export default function PlaylistsPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+            className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/10 transition-all active:scale-95"
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">Home</span>
@@ -111,10 +143,10 @@ export default function PlaylistsPage() {
 
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 border border-white/15 text-white">
-              <FolderHeart className="h-4 w-4" />
+              <ListVideo className="h-4 w-4" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-base font-black tracking-tight text-white">
+              <h1 className="text-sm sm:text-base font-bold text-white">
                 My Playlists
               </h1>
             </div>
@@ -124,7 +156,7 @@ export default function PlaylistsPage() {
         <button
           type="button"
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-black shadow-md hover:bg-neutral-200 transition-all active:scale-95"
+          className="flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-black shadow-md hover:bg-zinc-200 transition-all active:scale-95"
         >
           <Plus className="h-3.5 w-3.5" />
           <span>New Playlist</span>
@@ -137,7 +169,7 @@ export default function PlaylistsPage() {
           {/* Left Sidebar: Playlists List */}
           <div className="lg:col-span-1 space-y-3">
             <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-white/50">
+              <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                 Playlists ({playlists.length})
               </span>
             </div>
@@ -152,24 +184,35 @@ export default function PlaylistsPage() {
                     className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all duration-150 active:scale-[0.98] ${
                       isActive
                         ? "bg-[#0e121a] border-white/20 ring-1 ring-white/10 text-white shadow-md"
-                        : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10 text-neutral-300"
+                        : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10 text-zinc-300"
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/80">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white">
                         {getPlaylistThemeIcon(pl.emoji)}
                       </div>
                       <div className="min-w-0">
-                        <h3 className={`text-xs sm:text-sm font-bold truncate ${isActive ? "text-white" : "text-white/80"}`}>
-                          {pl.name}
-                        </h3>
-                        <p className="text-[11px] text-white/40 tabular-nums">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className={`text-xs sm:text-sm font-bold truncate ${isActive ? "text-white" : "text-zinc-200"}`}>
+                            {pl.name}
+                          </h3>
+                          {pl.visibility === "public" ? (
+                            <span title="Public Playlist" className="inline-flex">
+                              <Globe className="h-3 w-3 text-cyan-400 shrink-0" />
+                            </span>
+                          ) : (
+                            <span title="Private Playlist" className="inline-flex">
+                              <Lock className="h-3 w-3 text-zinc-500 shrink-0" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-zinc-400 tabular-nums">
                           {pl.items.length} {pl.items.length === 1 ? "video" : "videos"}
                         </p>
                       </div>
                     </div>
 
-                    <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${isActive ? "text-white translate-x-0.5" : "text-white/30"}`} />
+                    <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${isActive ? "text-white translate-x-0.5" : "text-zinc-600"}`} />
                   </button>
                 );
               })}
@@ -181,13 +224,13 @@ export default function PlaylistsPage() {
             {selectedPlaylist ? (
               <div className="space-y-6">
                 {/* Playlist Banner Card */}
-                <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0c1017] p-5 sm:p-7">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0c1017] p-5 sm:p-7">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                     <div className="flex items-center gap-4">
                       {/* 2x2 Mosaic or Theme Icon */}
                       <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-white/5 border border-white/10 shadow-inner flex items-center justify-center">
                         {selectedPlaylist.items.length >= 4 ? (
-                          <div className="grid h-full w-full grid-cols-2 grid-rows-2">
+                          <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-0.5">
                             {selectedPlaylist.items.slice(0, 4).map((vid, vIdx) => (
                               <img
                                 key={vIdx}
@@ -204,142 +247,195 @@ export default function PlaylistsPage() {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="text-white/40">
+                          <div className="text-zinc-400">
                             {getPlaylistThemeIcon(selectedPlaylist.emoji)}
                           </div>
                         )}
                       </div>
+
                       <div>
                         <div className="flex items-center gap-2">
                           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                             {selectedPlaylist.name}
                           </h2>
-                          <span className="rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 text-[10px] font-bold text-white/80">
-                            Custom Playlist
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePrivacy(selectedPlaylist.id, selectedPlaylist.visibility || "private")}
+                            className="flex items-center gap-1 rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 text-[10px] font-bold text-white hover:bg-white/20 transition-colors"
+                          >
+                            {selectedPlaylist.visibility === "public" ? (
+                              <>
+                                <Globe className="h-2.5 w-2.5 text-cyan-400" />
+                                <span>Public</span>
+                              </>
+                            ) : (
+                              <>
+                                <Lock className="h-2.5 w-2.5 text-zinc-400" />
+                                <span>Private</span>
+                              </>
+                            )}
+                          </button>
                         </div>
+
                         {selectedPlaylist.description && (
-                          <p className="mt-1 text-xs text-white/60">
+                          <p className="mt-1 text-xs text-zinc-400 max-w-md">
                             {selectedPlaylist.description}
                           </p>
                         )}
-                        <p className="mt-1.5 text-[11px] text-white/40 flex items-center gap-2 tabular-nums">
+
+                        <div className="mt-2 flex items-center gap-3 text-[11px] text-zinc-400 tabular-nums">
                           <span>{selectedPlaylist.items.length} titles</span>
                           <span>•</span>
                           <span>Updated {new Date(selectedPlaylist.updatedAt).toLocaleDateString()}</span>
-                        </p>
+                          <span>•</span>
+                          <Link
+                            href={`/playlists/${selectedPlaylist.id}`}
+                            className="text-white hover:underline font-semibold flex items-center gap-1"
+                          >
+                            <span>Public Page</span>
+                            <ExternalLink className="h-2.5 w-2.5" />
+                          </Link>
+                        </div>
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 shrink-0">
                       {selectedPlaylist.items.length > 0 && (
-                        <Link
-                          href={`/title/${selectedPlaylist.items[0].section || "lust"}/${selectedPlaylist.items[0].slug || selectedPlaylist.items[0].id}`}
-                          className="flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-xs font-bold text-black shadow-md hover:bg-neutral-200 transition-all active:scale-95"
-                        >
-                          <Play className="h-3.5 w-3.5 fill-black" />
-                          <span>Play All</span>
-                        </Link>
+                        <>
+                          <Link
+                            href={`/title/${selectedPlaylist.items[0].section || "lust"}/${selectedPlaylist.items[0].slug || selectedPlaylist.items[0].id}?playlist=${encodeURIComponent(selectedPlaylist.id)}&index=0`}
+                            className="flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-xs font-bold text-black shadow-md hover:bg-zinc-200 transition-all active:scale-95"
+                          >
+                            <Play className="h-3.5 w-3.5 fill-black" />
+                            <span>Play All</span>
+                          </Link>
+
+                          <Link
+                            href={`/title/${selectedPlaylist.items[0].section || "lust"}/${selectedPlaylist.items[0].slug || selectedPlaylist.items[0].id}?playlist=${encodeURIComponent(selectedPlaylist.id)}&index=0&shuffle=1`}
+                            className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10 transition-all active:scale-95"
+                            title="Shuffle play"
+                          >
+                            <Shuffle className="h-3.5 w-3.5 text-zinc-300" />
+                            <span className="hidden sm:inline">Shuffle</span>
+                          </Link>
+                        </>
                       )}
 
                       <button
                         type="button"
-                        onClick={() => handleDelete(selectedPlaylist.id, selectedPlaylist.name)}
-                        className="flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-2 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition-all active:scale-95"
+                        onClick={() => setPlaylistToDelete({ id: selectedPlaylist.id, name: selectedPlaylist.name })}
+                        className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all active:scale-95"
                         title="Delete playlist"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Delete</span>
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Videos Grid */}
+                {/* Videos Tracklist */}
                 {selectedPlaylist.items.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {selectedPlaylist.items.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="group relative flex flex-col rounded-2xl border border-white/10 bg-[#121622]/60 overflow-hidden hover:border-purple-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-purple-950/20"
-                      >
-                        {/* Video Thumbnail Preview */}
-                        <div className="relative aspect-video w-full overflow-hidden bg-black/60">
-                          {item.thumbnailUrl || item.coverUrl ? (
-                            <img
-                              src={item.thumbnailUrl || item.coverUrl}
-                              alt={item.title}
-                              loading="lazy"
-                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-white/30">
-                              <Film className="h-8 w-8" />
+                  <div className="space-y-2">
+                    {selectedPlaylist.items.map((item, idx) => {
+                      const watchLink = `/title/${item.section || "lust"}/${item.slug || item.id}?playlist=${encodeURIComponent(selectedPlaylist.id)}&index=${idx}`;
+
+                      return (
+                        <div
+                          key={item.id + idx}
+                          className="group flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl border border-white/5 bg-[#0e121a] hover:bg-white/[0.04] hover:border-white/15 transition-all"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Number */}
+                            <span className="w-5 text-center text-xs font-bold text-zinc-500 tabular-nums">
+                              {idx + 1}
+                            </span>
+
+                            {/* Thumbnail */}
+                            <div className="relative h-12 w-20 sm:h-14 sm:w-24 shrink-0 overflow-hidden rounded-xl bg-black/60 border border-white/10">
+                              {item.thumbnailUrl || item.coverUrl ? (
+                                <img
+                                  src={item.thumbnailUrl || item.coverUrl}
+                                  alt=""
+                                  loading="lazy"
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-zinc-600">
+                                  <Film className="h-4 w-4" />
+                                </div>
+                              )}
+
+                              <Link
+                                href={watchLink}
+                                className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Play className="h-3.5 w-3.5 fill-white text-white" />
+                              </Link>
                             </div>
-                          )}
 
-                          {/* Section Badge */}
-                          <span className="absolute top-2 left-2 rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md">
-                            {item.section || "lust"}
-                          </span>
-
-                          {/* Play overlay button */}
-                          <Link
-                            href={`/title/${item.section || "lust"}/${item.slug || item.id}`}
-                            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]"
-                          >
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cyan-400 text-black shadow-lg shadow-cyan-400/40">
-                              <Play className="h-5 w-5 fill-black translate-x-0.5" />
+                            {/* Details */}
+                            <div className="min-w-0">
+                              <Link
+                                href={watchLink}
+                                className="font-bold text-xs sm:text-sm text-white hover:text-zinc-200 line-clamp-1 transition-colors"
+                              >
+                                {item.title}
+                              </Link>
+                              <div className="flex items-center gap-2 mt-0.5 text-[11px] text-zinc-500">
+                                <span className="rounded bg-white/10 px-1.5 py-0.2 text-[9px] font-bold uppercase text-zinc-300">
+                                  {item.section || "lust"}
+                                </span>
+                                <span>Added {new Date(item.addedAt).toLocaleDateString()}</span>
+                              </div>
                             </div>
-                          </Link>
+                          </div>
 
-                          {/* Remove button */}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(selectedPlaylist.id, item.id || item.slug)}
-                            className="absolute top-2 right-2 rounded-lg bg-black/70 p-1.5 text-white/60 hover:text-rose-400 hover:bg-black/90 backdrop-blur-md transition-all active:scale-95"
-                            title="Remove from playlist"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-
-                        {/* Title and details */}
-                        <div className="p-3 flex-1 flex flex-col justify-between">
-                          <Link
-                            href={`/title/${item.section || "lust"}/${item.slug || item.id}`}
-                            className="font-display text-[13.5px] sm:text-[14.5px] font-bold text-white hover:text-cyan-300 line-clamp-2 transition-colors leading-[1.35]"
-                          >
-                            {item.title}
-                          </Link>
-
-                          <div className="mt-2.5 flex items-center justify-between text-[11px] text-white/40 border-t border-white/5 pt-2">
-                            <span>Added {new Date(item.addedAt).toLocaleDateString()}</span>
-                            <Link
-                              href={`/title/${item.section || "lust"}/${item.slug || item.id}`}
-                              className="text-cyan-400 hover:underline flex items-center gap-1"
+                          {/* Reorder and Delete */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem(selectedPlaylist.id, idx, idx - 1)}
+                              disabled={idx === 0}
+                              title="Move up"
+                              className="p-1 rounded text-zinc-400 hover:text-white hover:bg-white/10 disabled:opacity-20"
                             >
-                              <span>Watch</span>
-                              <ExternalLink className="h-2.5 w-2.5" />
-                            </Link>
+                              <ChevronUp className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem(selectedPlaylist.id, idx, idx + 1)}
+                              disabled={idx === selectedPlaylist.items.length - 1}
+                              title="Move down"
+                              className="p-1 rounded text-zinc-400 hover:text-white hover:bg-white/10 disabled:opacity-20"
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(selectedPlaylist.id, item.id || item.slug)}
+                              title="Remove video"
+                              className="p-1.5 rounded text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors ml-1"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="py-16 text-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01]">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10 text-purple-400 mb-3">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-zinc-400 mb-3 border border-white/10">
                       <Film className="h-6 w-6" />
                     </div>
                     <h3 className="text-sm font-bold text-white">This playlist is empty</h3>
-                    <p className="mt-1 text-xs text-white/50 max-w-sm mx-auto">
-                      Browse any video and click the <span className="text-purple-300 font-semibold">&quot;Playlist&quot;</span> button under the player to add videos here.
+                    <p className="mt-1 text-xs text-zinc-400 max-w-sm mx-auto">
+                      Click the &quot;Playlist&quot; button beneath any video to save titles here.
                     </p>
                     <Link
                       href="/"
-                      className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 px-4 py-2 text-xs font-semibold text-white transition-all"
+                      className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-xs font-bold text-black"
                     >
                       Browse Videos
                     </Link>
@@ -351,19 +447,58 @@ export default function PlaylistsPage() {
         </div>
       </main>
 
+      {/* Delete Confirmation Modal (Sleek custom dialog replacing window.confirm) */}
+      {playlistToDelete && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+        >
+          <div className="relative w-full max-w-sm rounded-2xl bg-[#0e121a] border border-white/10 p-5 shadow-2xl">
+            <h3 className="text-sm font-bold text-white">Delete Playlist?</h3>
+            <p className="mt-2 text-xs text-zinc-400">
+              Are you sure you want to delete <span className="font-semibold text-white">&quot;{playlistToDelete.name}&quot;</span>? This collection cannot be recovered.
+            </p>
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setPlaylistToDelete(null)}
+                className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="px-5 py-2 rounded-full bg-rose-600 text-white text-xs font-bold hover:bg-rose-500 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create Playlist Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowCreateModal(false);
+          }}
+        >
           <div className="relative w-full max-w-md rounded-2xl bg-[#0c1017] border border-white/10 p-6 shadow-2xl">
             <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-purple-400" />
+                <FolderHeart className="h-4 w-4" />
                 <span>Create New Playlist</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="text-white/50 hover:text-white"
+                className="text-zinc-400 hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -371,8 +506,8 @@ export default function PlaylistsPage() {
 
             <form onSubmit={handleCreate} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-white/70 mb-1.5">
-                  Select Theme
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                  Select Theme Icon
                 </label>
                 <div className="grid grid-cols-3 gap-2 p-2 rounded-xl bg-white/[0.03] border border-white/10">
                   {THEME_ICONS.map((t) => {
@@ -386,10 +521,10 @@ export default function PlaylistsPage() {
                         className={`flex items-center gap-2 p-2 rounded-lg text-xs font-semibold transition-all active:scale-95 ${
                           isSel
                             ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
-                            : "bg-white/5 text-neutral-300 hover:text-white hover:bg-white/10"
+                            : "bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10"
                         }`}
                       >
-                        <Icon className={`h-3.5 w-3.5 ${isSel ? "text-black" : "text-white/60"}`} />
+                        <Icon className="h-3.5 w-3.5" />
                         <span className="truncate">{t.label}</span>
                       </button>
                     );
@@ -398,44 +533,73 @@ export default function PlaylistsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-white/70 mb-1.5">
+                <label htmlFor="new-playlist-title" className="block text-xs font-semibold text-zinc-300 mb-1.5">
                   Playlist Title
                 </label>
                 <input
+                  id="new-playlist-title"
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="e.g. Late Night Favorites, Top 10 POV..."
                   autoFocus
                   required
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/30"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-white/70 mb-1.5">
+                <label htmlFor="new-playlist-desc" className="block text-xs font-semibold text-zinc-300 mb-1.5">
                   Description (Optional)
                 </label>
                 <textarea
+                  id="new-playlist-desc"
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
                   placeholder="What kind of videos are in this playlist?"
                   rows={2}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/30"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
                 />
+              </div>
+
+              {/* Visibility Switch */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="flex items-center gap-2.5">
+                  {isPublic ? <Globe className="h-4 w-4 text-cyan-400" /> : <Lock className="h-4 w-4 text-zinc-400" />}
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      {isPublic ? "Public Playlist" : "Private Playlist"}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 block">
+                      {isPublic ? "Discoverable by everyone in community" : "Only visible to you"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPublic(!isPublic)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                    isPublic
+                      ? "bg-white text-black shadow-sm"
+                      : "bg-white/10 text-zinc-300 hover:text-white"
+                  }`}
+                >
+                  {isPublic ? "Public" : "Private"}
+                </button>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-colors active:scale-95"
+                  className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-full bg-white text-black text-xs font-bold shadow-md hover:bg-neutral-200 transition-all active:scale-95"
+                  className="px-5 py-2 rounded-full bg-white text-black text-xs font-bold shadow-md hover:bg-zinc-200 transition-all active:scale-95"
                 >
                   Create Playlist
                 </button>

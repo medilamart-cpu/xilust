@@ -367,67 +367,29 @@ export function TileCard({ item }: { item: CardModel }) {
             {is4k ? "4K UHD" : "1080p FHD"}
           </span>
 
-          {/* Actual Video Duration Badge on Card (e.g. 45:32, 1:25:10) */}
-          <span className="absolute right-1.5 sm:right-2 bottom-3 inline-flex items-center gap-1 rounded bg-black/85 px-1.5 py-0.5 text-[9.5px] sm:text-[10px] font-bold text-white tracking-wide border border-white/10 shadow-lg backdrop-blur-md z-10 tabular-nums">
+          {/* Video Duration Badge */}
+          <span className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded bg-black/85 px-1.5 py-0.5 text-[9.5px] sm:text-[10px] font-bold text-white tracking-wide border border-white/10 shadow-lg backdrop-blur-md z-10 tabular-nums">
             <Clock aria-hidden="true" className="h-2.5 w-2.5 text-cyan-300" />
             <span>{durationLabel}</span>
           </span>
 
-          {/* Code badge if present on top left (when not hovered) - JAX only */}
+          {/* JAX Code Badge (Top-Left) */}
           {isJax && item.code && art && !isHovered && (
-            <span className="absolute left-1.5 sm:left-2 top-1.5 sm:top-2 rounded bg-pink-600/90 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-black tracking-wider text-white shadow-md backdrop-blur-md">
+            <span className="absolute left-2 top-2 rounded bg-pink-600/90 px-2 py-0.5 text-[9px] sm:text-[10px] font-mono font-black tracking-wider text-white shadow-md backdrop-blur-md border border-pink-400/30">
               {item.code}
             </span>
           )}
 
-          {/* Lust studio badge; JAX keeps its code badge in this position; hidden on Fans. */}
+          {/* Colourful Lust Studio Badge (Top-Left) */}
           {!isJax && !isFans && primaryStudio && !isHovered && (
             <span
               title={studioLabel}
-              className="absolute left-2 top-2 inline-flex min-h-6 max-w-[58%] min-w-0 items-center gap-1.5 rounded-full border border-violet-200/25 bg-slate-950/70 px-2 py-0.5 text-[9px] font-semibold tracking-wide text-white/95 shadow-[0_3px_12px_rgba(2,6,23,0.45)] backdrop-blur-md sm:text-[10px]"
+              className="absolute left-2 top-2 inline-flex min-h-6 max-w-[65%] min-w-0 items-center gap-1.5 rounded-full border border-violet-200/25 bg-slate-950/70 px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wide text-white/95 shadow-[0_3px_12px_rgba(2,6,23,0.45)] backdrop-blur-md"
             >
               <Film aria-hidden="true" className="h-3 w-3 shrink-0 text-fuchsia-300" />
               <span className="min-w-0 truncate">{studioLabel}</span>
             </span>
           )}
-
-          {/* Section pill & Rating on bottom left */}
-          <div className="absolute bottom-3 left-1.5 sm:left-2 flex items-center gap-1.5 z-10">
-            <span className={`rounded px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-white shadow backdrop-blur-md ${
-              isJax ? "bg-pink-500/80" : isFans ? "bg-cyan-600/85" : "bg-purple-600/80"
-            }`}>
-              {isJax ? "JAX" : isFans ? "FANS" : "LUST"}
-            </span>
-
-            {/* Rating pill: shown beside JAX badge */}
-            {isJax && item.rating > 0 && (
-              <span className="flex items-center gap-0.5 rounded bg-black/75 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-cyan-200 border border-white/10 backdrop-blur-md">
-                <Star className="h-2 w-2 fill-cyan-300 text-cyan-300" />
-                {item.rating.toFixed(1)}
-              </span>
-            )}
-
-            {/* Monthly Views / Trending pill if available */}
-            {item.views_30d && item.views_30d > 0 ? (
-              <span title={`${item.views_30d.toLocaleString()} views this month`} className="flex items-center gap-0.5 rounded bg-black/75 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-pink-300 border border-pink-500/30 backdrop-blur-md">
-                <Flame className="h-2 w-2 text-pink-400" />
-                {viewsLabel(item.views_30d)}/mo
-              </span>
-            ) : item.popularity && item.popularity > 1000 ? (
-              <span title={`${item.popularity.toLocaleString()} all-time views`} className="flex items-center gap-0.5 rounded bg-black/75 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-white/70 border border-white/10 backdrop-blur-md">
-                <Eye className="h-2 w-2 text-sky-400" />
-                {viewsLabel(item.popularity)}
-              </span>
-            ) : null}
-
-            {/* Likes pill if available */}
-            {item.likes_total && item.likes_total > 0 ? (
-              <span title={`${item.likes_total.toLocaleString()} total likes`} className="flex items-center gap-0.5 rounded bg-black/75 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-rose-300 border border-rose-500/30 backdrop-blur-md">
-                <Heart className="h-2 w-2 fill-rose-400 text-rose-400" />
-                {item.likes_total >= 1000 ? viewsLabel(item.likes_total) : item.likes_total}
-              </span>
-            ) : null}
-          </div>
         </div>
       </Link>
 
@@ -442,26 +404,20 @@ export function TileCard({ item }: { item: CardModel }) {
               {cleanTitle}
             </p>
           </div>
-          <p className="mt-0.5 flex flex-wrap items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-white/50">
+          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-zinc-400">
             {!isFans && item.studios && item.studios.length > 0 && (
               <>
                 <span
-                  className={`truncate max-w-[85px] sm:max-w-[125px] font-semibold tracking-wide ${
+                  className={`truncate max-w-[120px] sm:max-w-[160px] font-semibold tracking-wide ${
                     isJax ? "text-pink-400 hover:text-pink-300" : "text-sky-400 hover:text-sky-300"
                   }`}
                 >
                   {formatStudioLabel(item.studios[0])}
                 </span>
-                {relativeUploadTime && <span className="text-white/20">·</span>}
+                {relativeUploadTime && <span className="text-zinc-600">·</span>}
               </>
             )}
             {relativeUploadTime && <span>{relativeUploadTime}</span>}
-            {Boolean(item.sourcesCount && item.sourcesCount > 0) && (
-              <>
-                <span className="text-white/20 hidden xs:inline">·</span>
-                <span className="text-cyan-400 font-medium hidden xs:inline">{item.sourcesCount} Mirrors</span>
-              </>
-            )}
           </p>
         </Link>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { ListPlus, Check, Plus, X, FolderHeart, Sparkles, Heart, Film, Star, Clock } from "lucide-react";
 import {
   getPlaylists,
@@ -20,7 +21,7 @@ const THEME_ICONS: Record<string, typeof Heart> = {
 
 const THEME_OPTIONS = [
   { id: "fav", label: "Favorites", icon: Heart },
-  { id: "film", label: "Feature Films", icon: Film },
+  { id: "film", label: "Cinema Hits", icon: Film },
   { id: "star", label: "VIP Vault", icon: Star },
   { id: "clock", label: "Watch Later", icon: Clock },
   { id: "sparkles", label: "Spotlight", icon: Sparkles },
@@ -55,9 +56,22 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
 
   useEffect(() => {
     sync();
-    window.addEventListener("playlists-change", sync);
-    return () => window.removeEventListener("playlists-change", sync);
+    const handleSync = () => sync();
+    window.addEventListener("playlists-change", handleSync);
+    return () => window.removeEventListener("playlists-change", handleSync);
   }, []);
+
+  // Escape key listener for dialog accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   const handleToggle = (playlistId: string, plName: string) => {
     const added = togglePlaylistItem(playlistId, {
@@ -79,7 +93,7 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
     e.preventDefault();
     if (!newTitle.trim()) return;
 
-    const pl = createPlaylist(newTitle.trim(), selectedTheme);
+    const pl = createPlaylist(newTitle.trim(), selectedTheme, "", "private", "You");
     togglePlaylistItem(pl.id, {
       id: String(item.id),
       title: item.title,
@@ -103,35 +117,38 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-[#0e121a] text-xs font-semibold text-neutral-200 transition-all hover:bg-[#151c27] hover:text-white active:scale-95 shadow-sm ${
+        className={`inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#0e121a] text-xs font-semibold text-zinc-300 transition-all hover:bg-white/10 hover:text-white active:scale-95 shadow-sm ${
           compact ? "px-3 py-1.5" : "px-3.5 py-2"
         }`}
         title="Add video to custom playlist"
       >
-        <ListPlus className="h-3.5 w-3.5 text-cyan-400" />
+        <ListPlus className="h-3.5 w-3.5" />
         <span>Playlist</span>
       </button>
 
-      {/* Glassmorphic Modal with Emil's modal scale recipe */}
+      {/* Modal Dialog */}
       {isOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm transition-opacity duration-200"
+          aria-labelledby="playlist-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsOpen(false);
           }}
         >
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0e121a] border border-white/10 p-5 shadow-2xl overflow-hidden modal-dialog-anim">
+          <div className="relative w-full max-w-md rounded-2xl bg-[#0c1017] border border-white/10 p-5 shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-white/[0.05] border border-white/10 text-cyan-400">
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10 text-white">
                   <FolderHeart className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Save to Playlist</h3>
-                  <p className="text-[11px] text-neutral-400 truncate max-w-[240px]">
+                  <h3 id="playlist-modal-title" className="text-sm font-bold text-white">
+                    Save to Playlist
+                  </h3>
+                  <p className="text-[11px] text-zinc-400 truncate max-w-[240px]">
                     {item.title}
                   </p>
                 </div>
@@ -139,7 +156,8 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg p-1.5 text-neutral-400 hover:bg-white/10 hover:text-white transition-colors"
+                className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
+                aria-label="Close dialog"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -147,7 +165,7 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
 
             {/* Notification Feedback Toast */}
             {feedback && (
-              <div className="mt-3 py-1.5 px-3 rounded-lg bg-cyan-500/10 border border-cyan-400/30 text-center text-xs font-semibold text-cyan-200 transition-opacity">
+              <div className="mt-3 py-1.5 px-3 rounded-lg bg-white/10 border border-white/15 text-center text-xs font-semibold text-white transition-opacity">
                 {feedback}
               </div>
             )}
@@ -155,7 +173,7 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
             {/* Playlists List */}
             <div className="mt-4 max-h-60 overflow-y-auto space-y-2 pr-1 no-scrollbar">
               {playlists.length === 0 ? (
-                <div className="py-6 text-center text-xs text-neutral-400">
+                <div className="py-6 text-center text-xs text-zinc-400">
                   No playlists yet. Create one below!
                 </div>
               ) : (
@@ -172,17 +190,17 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
                       onClick={() => handleToggle(pl.id, pl.name)}
                       className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
                         isSaved
-                          ? "bg-white/[0.08] border-cyan-400/40 shadow-sm"
-                          : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/15"
+                          ? "bg-white/[0.08] border-white/30 shadow-sm"
+                          : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/15"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={`p-2 rounded-lg border ${isSaved ? "bg-cyan-500/10 border-cyan-400/30 text-cyan-300" : "bg-white/[0.03] border-white/5 text-neutral-400"}`}>
+                        <div className={`p-2 rounded-lg border ${isSaved ? "bg-white/10 border-white/20 text-white" : "bg-white/[0.03] border-white/5 text-zinc-400"}`}>
                           <Icon className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-white truncate">{pl.name}</div>
-                          <div className="text-[10px] text-neutral-400 tabular-nums">{pl.items.length} videos</div>
+                          <div className="text-[10px] text-zinc-400 tabular-nums">{pl.items.length} videos</div>
                         </div>
                       </div>
 
@@ -205,11 +223,11 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
             {creating ? (
               <form onSubmit={handleCreateNew} className="mt-4 p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-neutral-200">New Playlist</span>
+                  <span className="text-xs font-bold text-white">New Playlist</span>
                   <button
                     type="button"
                     onClick={() => setCreating(false)}
-                    className="text-[11px] text-neutral-400 hover:text-white"
+                    className="text-[11px] text-zinc-400 hover:text-white"
                   >
                     Cancel
                   </button>
@@ -228,7 +246,7 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
                         className={`p-2 rounded-lg border transition-all ${
                           isSelected
                             ? "bg-white text-black border-white shadow-sm"
-                            : "bg-white/[0.04] text-neutral-400 border-white/10 hover:text-white hover:bg-white/[0.08]"
+                            : "bg-white/[0.04] text-zinc-400 border-white/10 hover:text-white hover:bg-white/[0.08]"
                         }`}
                         title={t.label}
                       >
@@ -243,13 +261,13 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
                     type="text"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Playlist name (e.g. Late Night Favorites)..."
+                    placeholder="Playlist name..."
                     autoFocus
-                    className="flex-1 bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-cyan-400"
+                    className="flex-1 bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
                   />
                   <button
                     type="submit"
-                    className="px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-200 text-black text-xs font-bold transition-all active:scale-95"
+                    className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-bold transition-all active:scale-95"
                   >
                     Create
                   </button>
@@ -259,21 +277,21 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
               <button
                 type="button"
                 onClick={() => setCreating(true)}
-                className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-xs font-semibold text-neutral-300 hover:text-white hover:border-cyan-400/40 hover:bg-white/[0.04] transition-all active:scale-[0.98]"
+                className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-xs font-semibold text-zinc-300 hover:text-white hover:border-white/40 hover:bg-white/[0.04] transition-all active:scale-[0.98]"
               >
-                <Plus className="h-3.5 w-3.5 text-cyan-400" />
+                <Plus className="h-3.5 w-3.5" />
                 <span>Create New Playlist</span>
               </button>
             )}
 
             {/* Footer link to full playlists manager */}
             <div className="mt-4 pt-3 border-t border-white/10 text-center">
-              <a
+              <Link
                 href="/playlists"
-                className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                className="text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
               >
                 Manage all playlists →
-              </a>
+              </Link>
             </div>
           </div>
         </div>

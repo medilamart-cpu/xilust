@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Search, Flame, Bookmark, X, User as UserIcon, FolderHeart, Sparkles, Star } from "lucide-react";
+import Link from "next/link";
+import { Search, Flame, Bookmark, X, User as UserIcon, FolderHeart, Sparkles, Star, ListVideo, Menu } from "lucide-react";
 import { Wordmark, LogoMark } from "./Logo";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
@@ -14,6 +15,8 @@ export function Navbar({
   onSectionChange = () => { },
   query = "",
   onQueryChange = () => { },
+  sidebarCollapsed = true,
+  onOpenMobileMenu,
 }: {
   section?: Section;
   onSectionChange?: (s: Section) => void;
@@ -24,6 +27,8 @@ export function Navbar({
   deferNavigate?: boolean;
   onSelectCategory?: (cat: string) => void;
   activeCategory?: string;
+  sidebarCollapsed?: boolean;
+  onOpenMobileMenu?: () => void;
 }) {
   const { user } = useAuth();
   const [focus, setFocus] = useState(false);
@@ -84,7 +89,9 @@ export function Navbar({
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${scrolled
+        className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
+          sidebarCollapsed ? "lg:pl-16" : "lg:pl-60"
+        } ${scrolled
             ? "border-b border-white/10 bg-[#080a0f]/95 backdrop-blur-2xl shadow-xl"
             : "border-b border-white/5 bg-[#080a0f]/80 backdrop-blur-md"
           }`}
@@ -124,9 +131,20 @@ export function Navbar({
           ) : (
             <>
               {/* Brand and Section Tabs */}
-              <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:flex-none sm:gap-6">
-                <a
-                  href="/xilust"
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none sm:gap-6">
+                {onOpenMobileMenu && (
+                  <button
+                    type="button"
+                    onClick={onOpenMobileMenu}
+                    aria-label="Open cinema navigation"
+                    className="lg:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 text-white/80 hover:text-white active:scale-95 transition-all"
+                  >
+                    <Menu className="h-4 w-4" />
+                  </button>
+                )}
+
+                <Link
+                  href="/"
                   className="shrink-0 flex items-center"
                 >
                   <span className="hidden sm:inline-block">
@@ -138,10 +156,10 @@ export function Navbar({
                       Xi<span className="text-rose-500">Lust</span>
                     </span>
                   </span>
-                </a>
+                </Link>
 
-                {/* Section Switcher Tabs */}
-                <div className="flex min-w-0 flex-1 items-center justify-between p-1 sm:flex-none sm:justify-start rounded-full bg-[#0e121a] border border-white/[0.08]">
+                {/* Section Switcher Tabs (Mobile & Tablet - on Desktop, CinemaSidebar handles channels) */}
+                <div className="lg:hidden flex min-w-0 flex-1 items-center justify-between p-1 sm:flex-none sm:justify-start rounded-full bg-[#0e121a] border border-white/[0.08]">
                   {(
                     [
                       { id: "lust" as const, label: "LUST", sub: "(Western)", icon: <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-rose-400" /> },
@@ -183,8 +201,8 @@ export function Navbar({
                   <div
                     className={`flex h-10 items-center gap-2.5 rounded-full border bg-[#0e121a] px-3.5 transition-all duration-200 ${
                       focus || query
-                        ? "w-64 lg:w-80 border-white/30 bg-[#121622] shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
-                        : "w-44 lg:w-64 border-white/[0.08] hover:border-white/20"
+                        ? "w-64 lg:w-96 xl:w-[480px] border-white/30 bg-[#121622] shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
+                        : "w-48 lg:w-80 xl:w-96 border-white/[0.08] hover:border-white/20"
                     }`}
                   >
                     <Search className="h-4 w-4 shrink-0 text-white/40" />
@@ -224,7 +242,7 @@ export function Navbar({
                   <Search className="h-4 w-4 text-cyan-300" />
                 </button>
 
-                {/* My list shortcut */}
+                {/* My list shortcut (Tablet/Mobile only - on Desktop, CinemaSidebar handles My List) */}
                 <a
                   href="/#mylist"
                   onClick={() => {
@@ -232,7 +250,7 @@ export function Navbar({
                     if (query) onQueryChange("");
                   }}
                   aria-label="View saved list"
-                  className="flex h-9 w-9 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] px-0 text-xs font-medium text-white/80 transition-colors hover:border-white/20 sm:h-10 sm:w-auto sm:justify-start sm:px-3"
+                  className="lg:hidden flex h-9 w-9 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] px-0 text-xs font-medium text-white/80 transition-colors hover:border-white/20 sm:h-10 sm:w-auto sm:justify-start sm:px-3"
                 >
                   <Bookmark className="h-3.5 w-3.5 text-cyan-300" />
                   <span className="hidden md:inline">My List</span>
@@ -243,7 +261,7 @@ export function Navbar({
                   )}
                 </a>
 
-                {/* Playlists shortcut */}
+                {/* Playlists shortcut (Tablet only - on Desktop, CinemaSidebar handles Playlists) */}
                 <a
                   href="/playlists"
                   onClick={() => {
@@ -251,13 +269,13 @@ export function Navbar({
                     if (query) onQueryChange("");
                   }}
                   aria-label="View playlists"
-                  className="hidden md:flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] border border-white/5 px-2.5 sm:px-3 text-xs font-medium text-white/80 transition-colors hover:border-purple-500/30 hover:bg-white/[0.08]"
+                  className="hidden md:flex lg:hidden h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] border border-white/10 px-2.5 sm:px-3 text-xs font-medium text-zinc-300 transition-colors hover:border-white/20 hover:text-white hover:bg-white/[0.08]"
                 >
-                  <FolderHeart className="h-3.5 w-3.5 text-purple-400" />
+                  <ListVideo className="h-3.5 w-3.5 text-zinc-300" />
                   <span className="hidden lg:inline">Playlists</span>
                 </a>
 
-                {/* Profile / Sign In shortcut */}
+                {/* Profile / Sign In shortcut (Tablet/Mobile only - on Desktop, CinemaSidebar handles Profile) */}
                 <a
                   href={user ? "/profile" : "/login"}
                   onClick={() => {
@@ -265,7 +283,7 @@ export function Navbar({
                     if (query) onQueryChange("");
                   }}
                   aria-label={user ? "Profile" : "Sign In"}
-                  className="flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] border border-white/10 px-2.5 sm:px-3 text-xs font-semibold text-white/90 transition-colors hover:border-pink-500/40 hover:bg-white/[0.08]"
+                  className="lg:hidden flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] border border-white/10 px-2.5 sm:px-3 text-xs font-semibold text-white/90 transition-colors hover:border-pink-500/40 hover:bg-white/[0.08]"
                 >
                   {user ? (
                     <>

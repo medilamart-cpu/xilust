@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2, Eye, Heart, Languages, ShieldAlert } from "lucide-react";
+import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2, Eye, Heart, Languages, ShieldAlert, SlidersHorizontal } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
+import { CommunityPlaylistsSection } from "./CommunityPlaylistsSection";
 import type { TaxonomyItem } from "@/lib/catalog-db";
 import { formatStudioLabel } from "@/lib/studio-label";
 
@@ -64,6 +65,7 @@ export function HomeFeed({
   const [activeFilter, setActiveFilter] = useState<{ type: FilterType; name: string } | null>(
     filter || null
   );
+  const [showFilters, setShowFilters] = useState(false);
 
   // View Density: Cinematic (large 3-column HD) vs Compact (4-column grid)
   const [viewDensity, setViewDensity] = useState<"cinematic" | "compact">(() => {
@@ -437,77 +439,78 @@ export function HomeFeed({
             })}
           </div>
 
-          {/* Density Toggle (Cinematic 3-col HD vs Compact 4-col) */}
-          <div className="flex items-center p-1 rounded-xl bg-white/[0.04] border border-white/10 shrink-0 ml-auto">
-            <button
-              type="button"
-              title="Cinematic HD View (Large 3-Column)"
-              onClick={() => handleDensityChange("cinematic")}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                viewDensity === "cinematic"
-                  ? "bg-cyan-400 text-black shadow-md shadow-cyan-500/20"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Cinematic</span>
-            </button>
-            <button
-              type="button"
-              title="Compact View (4-Column Grid)"
-              onClick={() => handleDensityChange("compact")}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                viewDensity === "compact"
-                  ? "bg-cyan-400 text-black shadow-md shadow-cyan-500/20"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              <Grid2X2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Compact</span>
-            </button>
+          {/* Controls: Filter Drawer Toggle & Density Toggle */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
+            {section !== "fans" && (
+              <button
+                type="button"
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 border ${
+                  showFilters || activeFilter || jaxSubFilter
+                    ? "bg-white text-black font-bold border-white shadow-sm"
+                    : "bg-white/[0.04] text-neutral-300 hover:text-white hover:bg-white/[0.08] border-white/10"
+                }`}
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <span>Filters</span>
+                {(activeFilter || jaxSubFilter) && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                )}
+              </button>
+            )}
+
+            {/* Density Toggle (Cinematic 3-col HD vs Compact 4-col) */}
+            <div className="flex items-center p-1 rounded-xl bg-white/[0.04] border border-white/10">
+              <button
+                type="button"
+                title="Cinematic HD View (Large 3-Column)"
+                onClick={() => handleDensityChange("cinematic")}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewDensity === "cinematic"
+                    ? "bg-white text-black font-bold shadow-sm"
+                    : "text-white/60 hover:text-white"
+                }`}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Cinematic</span>
+              </button>
+              <button
+                type="button"
+                title="Compact View (4-Column Grid)"
+                onClick={() => handleDensityChange("compact")}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewDensity === "compact"
+                    ? "bg-white text-black font-bold shadow-sm"
+                    : "text-white/60 hover:text-white"
+                }`}
+              >
+                <Grid2X2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Compact</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Quick Format Filters Bar for JAX (Subbed, Uncensored, 4K, Decensored) */}
-        {section === "jax" && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scrollbar-none touch-scroll">
-            <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider shrink-0 mr-1">Format:</span>
-            {[
-              { id: null, label: "All Formats", icon: Filter },
-              { id: "subbed", label: "English Subbed", icon: Languages },
-              { id: "uncensored", label: "Uncensored", icon: ShieldAlert },
-              { id: "4k", label: "4K Ultra HD", icon: Film },
-              { id: "decensored", label: "Decensored", icon: Sparkles },
-            ].map((f) => {
-              const active = f.id === null ? !jaxSubFilter && activeFilter?.name !== "decnsoredsubbed" : (f.id === "decensored" ? activeFilter?.name === "decnsoredsubbed" : jaxSubFilter?.toLowerCase() === f.id);
-              const Icon = f.icon;
-              return (
-                <button
-                  key={f.label}
-                  type="button"
-                  onClick={() => {
-                    if (f.id === null) {
-                      setJaxSubFilter(null);
-                      if (activeFilter?.name === "decnsoredsubbed") handleSetFilter(null);
-                    } else if (f.id === "decensored") {
-                      setJaxSubFilter(null);
-                      handleSetFilter({ type: "category", name: "decnsoredsubbed" });
-                    } else {
-                      if (activeFilter?.name === "decnsoredsubbed") handleSetFilter(null);
-                      setJaxSubFilter(active ? null : (f.id === "subbed" ? "Subbed" : f.id === "uncensored" ? "Uncensored" : "4K"));
-                    }
-                  }}
-                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-normal transition-all duration-150 active:scale-95 ${
-                    active
-                      ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
-                      : "bg-[#0e121a] text-neutral-200 hover:bg-[#151c27] hover:text-white border border-white/[0.08]"
-                  }`}
-                >
-                  <Icon className={`h-3.5 w-3.5 shrink-0 transition-colors ${active ? "text-black" : "text-cyan-400"}`} />
-                  <span>{f.label}</span>
-                </button>
-              );
-            })}
+        {/* Quiet Active Filter Banner (Shown when filters panel is closed) */}
+        {activeFilter && !showFilters && (
+          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-[#0e121a] border border-white/[0.08] animate-in fade-in duration-150">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs text-zinc-400 shrink-0">Filtered by {activeFilter.type}:</span>
+              <span className="font-bold text-xs sm:text-sm text-white truncate">
+                {activeFilter.name === "decnsoredsubbed" ? "Decensored Subbed" : activeFilter.type === "studio" ? formatStudioLabel(activeFilter.name) : activeFilter.name}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setJaxSubFilter(null);
+                handleSetFilter(null);
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-colors active:scale-95"
+            >
+              <X className="h-3 w-3" />
+              <span>Clear</span>
+            </button>
           </div>
         )}
 
@@ -529,65 +532,68 @@ export function HomeFeed({
           </div>
         )}
 
-        {/* Categorization Mode Selector & Filters (Hidden in Fans) */}
-        {section !== "fans" && (
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar scrollbar-none touch-scroll max-w-full">
-              <button
-                type="button"
-                onClick={() => changeTaxType("category")}
-                className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
-                  taxType === "category" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
-                }`}
-              >
-                <Filter className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-cyan-400" />
-                <span>Categories</span>
-              </button>
+        {/* Collapsible Filter & Taxonomy Drawer */}
+        {section !== "fans" && showFilters && (
+          <div className="flex flex-col gap-4 p-4 rounded-2xl bg-[#0e121a] border border-white/10 animate-in fade-in slide-in-from-top-2 duration-200">
+            {/* Row 1: Mode Switcher & View All */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar scrollbar-none touch-scroll max-w-full">
+                <button
+                  type="button"
+                  onClick={() => changeTaxType("category")}
+                  className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
+                    taxType === "category" ? "bg-white text-black font-bold shadow-sm" : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <Filter className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  <span>Categories</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => changeTaxType("actor")}
-                className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
-                  taxType === "actor" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
-                }`}
-              >
-                <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-pink-400" />
-                <span>{actorLabel}</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => changeTaxType("actor")}
+                  className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
+                    taxType === "actor" ? "bg-white text-black font-bold shadow-sm" : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  <span>{actorLabel}</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => changeTaxType("studio")}
-                className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
-                  taxType === "studio" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
-                }`}
-              >
-                <Film className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-purple-400" />
-                <span>Studios</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => changeTaxType("studio")}
+                  className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
+                    taxType === "studio" ? "bg-white text-black font-bold shadow-sm" : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <Film className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  <span>Studios</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => changeTaxType("tag")}
-                className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
-                  taxType === "tag" ? "bg-white/15 text-white shadow-sm" : "text-white/60 hover:text-white"
-                }`}
-              >
-                <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-400" />
-                <span>Tags</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => changeTaxType("tag")}
+                  className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${
+                    taxType === "tag" ? "bg-white text-black font-bold shadow-sm" : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  <span>Tags</span>
+                </button>
+              </div>
+
+              <Link href={`/browse/${browseTaxType}?section=${section}`} className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-zinc-300 transition hover:bg-white/10 hover:text-white">
+                View all <span aria-hidden="true">→</span>
+              </Link>
             </div>
-            <Link href={`/browse/${browseTaxType}?section=${section}`} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-cyan-300/20 bg-cyan-400/[0.06] px-3 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/15">
-              View all <span aria-hidden="true">→</span>
-            </Link>
 
-            {/* Active filter banner with instant sorting selector */}
+            {/* Row 2: Active filter details (if active) */}
             {activeFilter && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-[#0e121a] border border-white/[0.08]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/50">Viewing {activeFilter.type === "code" ? "JAV code" : activeFilter.type === "premium" ? "studio collection" : activeFilter.type}:</span>
-                  <span className="font-bold text-sm text-cyan-300 flex items-center gap-1.5">
+                  <span className="text-xs text-zinc-400">Viewing {activeFilter.type === "code" ? "JAV code" : activeFilter.type === "premium" ? "studio collection" : activeFilter.type}:</span>
+                  <span className="font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
                     {activeFilter.type === "actor" && <Star className="h-3.5 w-3.5 text-pink-400" />}
                     {activeFilter.type === "studio" && <Film className="h-3.5 w-3.5 text-purple-400" />}
                     {activeFilter.type === "code" && <Filter className="h-3.5 w-3.5 text-cyan-400" />}
@@ -602,7 +608,7 @@ export function HomeFeed({
                       setJaxSubFilter(null);
                       handleSetFilter(null);
                     }}
-                    className="ml-1 rounded-full p-1 bg-white/5 hover:bg-white/15 text-white/60 hover:text-white transition-colors active:scale-95"
+                    className="ml-1 rounded-full p-1 bg-white/5 hover:bg-white/15 text-zinc-400 hover:text-white transition-colors active:scale-95"
                     title="Clear filter"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -611,7 +617,7 @@ export function HomeFeed({
 
                 {section === "jax" && (activeFilter.type === "actor" || activeFilter.type === "studio") && (
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5">
-                    <span className="text-[11px] font-semibold text-white/40 mr-1 shrink-0">Filter:</span>
+                    <span className="text-[11px] font-semibold text-zinc-400 mr-1 shrink-0">Filter:</span>
                     {(["Subbed", "Uncensored", "4K"] as const).map((fmt) => {
                       const active = jaxSubFilter === fmt;
                       return (
@@ -619,10 +625,10 @@ export function HomeFeed({
                           key={fmt}
                           type="button"
                           onClick={() => setJaxSubFilter(active ? null : fmt)}
-                          className={`shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+                          className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 ${
                             active
                               ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
-                              : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5"
+                              : "bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10 border border-white/5"
                           }`}
                         >
                           <span>{fmt}</span>
@@ -631,80 +637,16 @@ export function HomeFeed({
                     })}
                   </div>
                 )}
-
-                {/* Sort Options for filtered page */}
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5">
-                  <span className="text-[11px] font-semibold text-white/40 mr-1 shrink-0">Sort:</span>
-                  <button
-                    type="button"
-                    onClick={() => setTab("new")}
-                    className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                      tab === "new"
-                        ? "bg-cyan-400 text-black font-bold shadow-md shadow-cyan-500/20"
-                        : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
-                    }`}
-                  >
-                    <Sparkles className="h-3 w-3" />
-                    <span>Newest</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTab("top")}
-                    className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                      tab === "top"
-                        ? "bg-cyan-400 text-black font-bold shadow-md shadow-cyan-500/20"
-                        : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
-                    }`}
-                  >
-                    <Trophy className="h-3 w-3" />
-                    <span>Popular / Views</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTab("trending")}
-                    className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                      tab === "trending"
-                        ? "bg-cyan-400 text-black font-bold shadow-md shadow-cyan-500/20"
-                        : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
-                    }`}
-                  >
-                    <Flame className="h-3 w-3" />
-                    <span>Trending</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTab("random")}
-                    className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                      tab === "random"
-                        ? "bg-cyan-400 text-black font-bold shadow-md shadow-cyan-500/20"
-                        : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
-                    }`}
-                  >
-                    <Shuffle className="h-3 w-3" />
-                    <span>Random</span>
-                  </button>
-                </div>
               </div>
             )}
-          </div>
 
-          {section === "jax" && (
-            <div className="flex flex-col gap-3">
-              <div className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.015] p-3 sm:p-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Featured JAV formats</p>
-                  <p className="mt-1 text-[11px] text-white/45">Choose a format to narrow the catalog</p>
-                </div>
-                <div className="flex max-w-full flex-wrap gap-2.5" role="group" aria-label="Featured JAV formats">
+            {/* Row 3: JAX Formats + JAV Code Search */}
+            {section === "jax" && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1 border-t border-white/5">
+                <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Featured JAV formats">
+                  <span className="text-xs font-medium text-zinc-400 mr-1">Format:</span>
                   {JAV_FORMAT_FILTERS.map((preset) => {
                     const active = activeFilter?.type === preset.type && activeFilter.name === preset.name;
-                    const tone = preset.label === "Decensored Subbed"
-                      ? "border-emerald-300/40 bg-gradient-to-r from-emerald-500/25 to-teal-500/20 text-emerald-100 shadow-emerald-500/10"
-                      : preset.label === "Uncensored"
-                        ? "border-fuchsia-300/35 bg-gradient-to-r from-fuchsia-500/20 to-violet-500/15 text-fuchsia-100"
-                        : preset.label === "English Subbed"
-                          ? "border-cyan-300/35 bg-gradient-to-r from-cyan-500/20 to-blue-500/15 text-cyan-100"
-                          : "border-amber-300/35 bg-gradient-to-r from-amber-500/20 to-orange-500/15 text-amber-100";
                     return (
                       <button
                         key={preset.label}
@@ -717,159 +659,156 @@ export function HomeFeed({
                           setTaxSearch("");
                           handleSetFilter(nextFilter);
                         }}
-                        className={`min-h-11 rounded-full border px-4 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                           active
-                            ? "border-white/80 bg-white text-slate-950 shadow-lg shadow-white/10"
-                            : `${tone} hover:border-white/45 hover:brightness-110`
+                            ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
+                            : "bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10"
                         }`}
                       >
-                        {preset.label === "Decensored Subbed" ? "⚡ Decensored Subbed" : preset.label}
+                        {preset.label}
                       </button>
                     );
                   })}
                 </div>
+
+                <form onSubmit={applyCodeFilter} className="flex items-center gap-2">
+                  <label htmlFor="jax-code-filter" className="sr-only">Filter by JAV code</label>
+                  <input
+                    id="jax-code-filter"
+                    type="search"
+                    value={codeInput}
+                    onChange={(event) => setCodeInput(event.target.value)}
+                    placeholder="Code, e.g. KNMB-134"
+                    className="h-8 min-w-0 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 text-xs text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none w-36 sm:w-44"
+                  />
+                  <button type="submit" className="h-8 rounded-lg bg-white/10 hover:bg-white/20 px-3 text-xs font-semibold text-white transition">
+                    Find
+                  </button>
+                </form>
               </div>
+            )}
 
-              <form onSubmit={applyCodeFilter} className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
-                <label htmlFor="jax-code-filter" className="sr-only">Filter by JAV code</label>
-                <input
-                  id="jax-code-filter"
-                  type="search"
-                  value={codeInput}
-                  onChange={(event) => setCodeInput(event.target.value)}
-                  placeholder="JAV code, e.g. KNMB-134"
-                  className="min-h-11 min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.05] px-3 text-sm text-white placeholder:text-white/40 focus:border-cyan-400/50 focus:outline-none sm:max-w-xs"
-                />
-                <button type="submit" className="min-h-11 rounded-lg bg-cyan-400 px-4 text-sm font-bold text-slate-950 transition hover:bg-cyan-300">
-                  Find code
+            {/* Row 4: Search input for taxonomy */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center pt-1 border-t border-white/5">
+              <label htmlFor="taxonomy-search" className="shrink-0 text-xs font-medium text-zinc-400">
+                Find {taxType === "category" ? "categories" : taxType === "actor" ? actorLabel.toLowerCase() : `${taxType}s`}:
+              </label>
+              <input
+                id="taxonomy-search"
+                type="search"
+                value={taxSearch}
+                onChange={(event) => setTaxSearch(event.target.value)}
+                placeholder={taxType === "studio" ? "Search a studio, e.g. Team Skeet" : `Search ${taxType}...`}
+                className="h-8 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none sm:max-w-xs"
+              />
+            </div>
+
+            {taxLoading && <p role="status" className="text-xs text-zinc-400">Loading filters…</p>}
+            {taxError && (
+              <div role="alert" className="flex flex-wrap items-center gap-3 text-xs text-amber-200">
+                <span>Filters could not be loaded.</span>
+                <button type="button" onClick={() => setTaxReload((value) => value + 1)} className="rounded-lg border border-white/10 px-3 py-1 font-semibold text-white hover:bg-white/10">
+                  Retry
                 </button>
-              </form>
+              </div>
+            )}
+            {!taxLoading && !taxError && taxSearch.trim() && taxItems.length === 0 && !showTeamSkeetSuggestion && (
+              <p role="status" className="text-xs text-zinc-400">No matching {taxType}s found.</p>
+            )}
 
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <label htmlFor="taxonomy-search" className="shrink-0 text-xs font-semibold text-white/55">
-              Find {taxType === "category" ? "categories" : taxType === "actor" ? actorLabel.toLowerCase() : `${taxType}s`}
-            </label>
-            <input
-              id="taxonomy-search"
-              type="search"
-              value={taxSearch}
-              onChange={(event) => setTaxSearch(event.target.value)}
-              placeholder={taxType === "studio" ? "Search a studio, e.g. Team Skeet" : `Search ${taxType}...`}
-              className="min-h-11 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white placeholder:text-white/40 focus:border-cyan-400/50 focus:outline-none sm:max-w-sm"
-            />
-          </div>
-
-          {taxLoading && <p role="status" className="text-xs text-white/45">Loading filters…</p>}
-          {taxError && (
-            <div role="alert" className="flex flex-wrap items-center gap-3 text-xs text-amber-100/80">
-              <span>Filters could not be loaded.</span>
-              <button type="button" onClick={() => setTaxReload((value) => value + 1)} className="min-h-11 rounded-lg border border-white/10 px-3 font-semibold text-white hover:bg-white/10">
-                Retry filters
-              </button>
-            </div>
-          )}
-          {!taxLoading && !taxError && taxSearch.trim() && taxItems.length === 0 && !showTeamSkeetSuggestion && (
-            <p role="status" className="text-xs text-white/45">No matching {taxType}s found.</p>
-          )}
-
-          {/* Interactive Taxonomy Pills Slider */}
-          {(taxItems.length > 0 || showTeamSkeetSuggestion) && (
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 no-scrollbar scrollbar-none touch-scroll max-w-full">
-              <button
-                type="button"
-                onClick={() => handleSetFilter(null)}
-                className={`shrink-0 rounded-full px-3.5 sm:px-4 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                  !activeFilter
-                    ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
-                    : "bg-[#0e121a] border border-white/[0.08] text-neutral-300 hover:text-white hover:bg-[#151c27]"
-                }`}
-              >
-                All
-              </button>
-
-              {section === "lust" && taxType === "category" && (
+            {/* Interactive Taxonomy Pills Slider */}
+            {(taxItems.length > 0 || showTeamSkeetSuggestion) && (
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar scrollbar-none touch-scroll max-w-full">
                 <button
                   type="button"
-                  aria-pressed={activeFilter?.type === "premium"}
-                  onClick={() => {
-                    onQueryChange?.("");
-                    const nextFilter = activeFilter?.type === "premium"
-                      ? null
-                      : { type: "premium" as const, name: "Premium Studios" };
-                    handleSetFilter(nextFilter);
-                  }}
-                  className={`shrink-0 flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 ${
-                    activeFilter?.type === "premium"
-                      ? "border-amber-400/60 bg-amber-500/20 text-amber-200 shadow-[0_0_15px_rgba(251,191,36,0.25)] font-bold ring-1 ring-amber-400/30"
-                      : "border-amber-400/30 bg-[#12100a] text-amber-200/90 hover:border-amber-300/50 hover:bg-amber-500/[0.12] hover:text-amber-100"
+                  onClick={() => handleSetFilter(null)}
+                  className={`shrink-0 rounded-full px-3.5 py-1 text-xs font-semibold transition-all active:scale-95 ${
+                    !activeFilter
+                      ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
+                      : "bg-[#080a0f] border border-white/10 text-zinc-300 hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-amber-300 shrink-0" />
-                  <span>Premium Studios</span>
+                  All
                 </button>
-              )}
 
-              {section === "jax" && taxType === "category" && (
-                <button
-                  type="button"
-                  aria-pressed={activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"}
-                  onClick={() => {
-                    onQueryChange?.("");
-                    const nextFilter = activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"
-                      ? null
-                      : { type: "category" as const, name: "decnsoredsubbed" };
-                    handleSetFilter(nextFilter);
-                  }}
-                  className={`shrink-0 flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 ${
-                    activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"
-                      ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-200 shadow-[0_0_15px_rgba(52,211,153,0.25)] font-bold ring-1 ring-emerald-400/30"
-                      : "border-emerald-400/30 bg-[#0a120e] text-emerald-200/90 hover:border-emerald-300/50 hover:bg-emerald-500/[0.12] hover:text-emerald-100"
-                  }`}
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-emerald-300 shrink-0" />
-                  <span>Decensored Subbed</span>
-                </button>
-              )}
-
-              {showTeamSkeetSuggestion && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onQueryChange?.("");
-                    onSectionChange?.("lust");
-                    handleSetFilter({ type: "studio", name: "Teamskeet" });
-                  }}
-                  className="min-h-11 shrink-0 rounded-lg border border-cyan-300/25 bg-cyan-400/[0.08] px-3 text-xs font-semibold text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
-                >
-                  Team Skeet <span className="ml-1 text-[10px] text-white/45">Lust studio</span>
-                </button>
-              )}
-
-              {taxItems.map((item) => {
-                const active = activeFilter?.type === taxType && activeFilter?.name === item.name;
-                const itemLabel = taxType === "studio" ? formatStudioLabel(item.name) : item.name;
-                return (
-                  <Link
-                    key={item.id}
-                    href={`/browse/${taxType}/${encodeURIComponent(item.slug)}?section=${section}&name=${encodeURIComponent(item.name)}`}
-                    className={`shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium transition-all ${
-                      active
-                        ? section === "jax"
-                          ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold shadow-md shadow-pink-500/25"
-                          : "bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-md shadow-purple-500/25"
-                        : "bg-white/[0.03] border border-white/10 text-white/70 hover:text-white hover:bg-white/[0.08]"
+                {section === "lust" && taxType === "category" && (
+                  <button
+                    type="button"
+                    aria-pressed={activeFilter?.type === "premium"}
+                    onClick={() => {
+                      onQueryChange?.("");
+                      const nextFilter = activeFilter?.type === "premium"
+                        ? null
+                        : { type: "premium" as const, name: "Premium Studios" };
+                      handleSetFilter(nextFilter);
+                    }}
+                    className={`shrink-0 flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-semibold transition-all duration-150 active:scale-95 ${
+                      activeFilter?.type === "premium"
+                        ? "border-amber-400/60 bg-amber-500/20 text-amber-200 font-bold ring-1 ring-amber-400/30"
+                        : "border-amber-400/30 bg-[#12100a] text-amber-200/90 hover:border-amber-300/50 hover:bg-amber-500/[0.12] hover:text-amber-100"
                     }`}
                   >
-                    <span>{itemLabel}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                    <Sparkles className="h-3 w-3 text-amber-300 shrink-0" />
+                    <span>Premium Studios</span>
+                  </button>
+                )}
+
+                {section === "jax" && taxType === "category" && (
+                  <button
+                    type="button"
+                    aria-pressed={activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"}
+                    onClick={() => {
+                      onQueryChange?.("");
+                      const nextFilter = activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"
+                        ? null
+                        : { type: "category" as const, name: "decnsoredsubbed" };
+                      handleSetFilter(nextFilter);
+                    }}
+                    className={`shrink-0 flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-semibold transition-all duration-150 active:scale-95 ${
+                      activeFilter?.type === "category" && activeFilter.name === "decnsoredsubbed"
+                        ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-200 font-bold ring-1 ring-emerald-400/30"
+                        : "border-emerald-400/30 bg-[#0a120e] text-emerald-200/90 hover:border-emerald-300/50 hover:bg-emerald-500/[0.12] hover:text-emerald-100"
+                    }`}
+                  >
+                    <Sparkles className="h-3 w-3 text-emerald-300 shrink-0" />
+                    <span>Decensored Subbed</span>
+                  </button>
+                )}
+
+                {showTeamSkeetSuggestion && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onQueryChange?.("");
+                      onSectionChange?.("lust");
+                      handleSetFilter({ type: "studio", name: "Teamskeet" });
+                    }}
+                    className="h-7 shrink-0 rounded-lg border border-cyan-300/25 bg-cyan-400/[0.08] px-2.5 text-xs font-semibold text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15"
+                  >
+                    Team Skeet <span className="ml-1 text-[10px] text-zinc-400">Lust studio</span>
+                  </button>
+                )}
+
+                {taxItems.map((item) => {
+                  const active = activeFilter?.type === taxType && activeFilter?.name === item.name;
+                  const itemLabel = taxType === "studio" ? formatStudioLabel(item.name) : item.name;
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/browse/${taxType}/${encodeURIComponent(item.slug)}?section=${section}&name=${encodeURIComponent(item.name)}`}
+                      className={`shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                        active
+                          ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
+                          : "bg-white/[0.03] border border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.08]"
+                      }`}
+                    >
+                      <span>{itemLabel}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -926,6 +865,11 @@ export function HomeFeed({
           ))}
         </div>
       ) : null}
+
+      {/* Community Curated Collections (Chikari.moe-style discovery) */}
+      {!query && !activeFilter && page === 1 && (
+        <CommunityPlaylistsSection currentSection={section} />
+      )}
 
       {items.length > 0 && totalPages > 1 && (
         <nav aria-label="Catalog pagination" className="mt-8 flex items-center justify-center gap-3 sm:gap-5">
