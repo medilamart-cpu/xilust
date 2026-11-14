@@ -429,7 +429,6 @@ export function HomeFeed({
 
   const goToPage = (nextPage: number) => {
     if (busy || nextPage < 1 || nextPage > totalPages || nextPage === page) return;
-    setItems([]);
     setPage(nextPage);
     if (typeof window !== "undefined") {
       try {
@@ -439,13 +438,17 @@ export function HomeFeed({
       url.searchParams.set("page", String(nextPage));
       window.history.replaceState({}, "", url.toString());
     }
-    void fetchPage(nextPage);
-    // Smooth scroll directly to the first post / top of grid
+
+    // Smooth scroll directly to the top of the posts grid with generous navbar clearance
+    // Ensures the entire top card (thumbnail, title, badge) is completely in view, not cut in half
     if (gridTopRef.current) {
-      gridTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      window.scrollTo({ top: 400, behavior: "smooth" });
+      const rect = gridTopRef.current.getBoundingClientRect();
+      const navbarOffset = window.innerWidth < 640 ? 85 : 105;
+      const targetY = Math.max(0, rect.top + window.scrollY - navbarOffset);
+      window.scrollTo({ top: targetY, behavior: "smooth" });
     }
+
+    void fetchPage(nextPage);
   };
 
   const actorLabel = section === "jax" ? "Actresses" : section === "fans" ? "Creators" : "Pornstars";
@@ -874,6 +877,9 @@ export function HomeFeed({
         </div>
       )}
 
+      {/* Dedicated persistent scroll anchor positioned immediately above the post catalog grid */}
+      <div ref={gridTopRef} className="scroll-mt-28 sm:scroll-mt-32 pointer-events-none -mt-4 h-0" />
+
       {/* Catalog cards reflow to two columns on phones and expand on larger screens. */}
       {items.length === 0 && !busy && !feedError ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -895,8 +901,9 @@ export function HomeFeed({
         </div>
       ) : items.length > 0 ? (
         <div
-          ref={gridTopRef}
-          className={`mt-6 sm:mt-8 grid gap-4 sm:gap-6 scroll-mt-20 transition-all duration-300 ${
+          className={`mt-6 sm:mt-8 grid gap-4 sm:gap-6 transition-all duration-300 ${
+            busy ? "opacity-60 transition-opacity" : "opacity-100"
+          } ${
             viewDensity === "cinematic"
               ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
               : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
