@@ -294,10 +294,19 @@ export function TileCard({ item }: { item: CardModel }) {
           if (typeof window !== "undefined") {
             try {
               sessionStorage.setItem(`xilust_scroll_${sec}`, String(window.scrollY));
+              sessionStorage.setItem("xilust_has_history", "1");
+              sessionStorage.setItem(
+                "xilust_last_feed_url",
+                window.location.pathname + window.location.search
+              );
               const sp = new URLSearchParams(window.location.search);
               const p = sp.get("page");
               if (p) {
                 sessionStorage.setItem(`xilust_page_${sec}`, p);
+              }
+              const t = sp.get("tab");
+              if (t) {
+                sessionStorage.setItem(`xilust_tab_${sec}`, t);
               }
             } catch {}
           }

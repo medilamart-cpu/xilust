@@ -56,6 +56,10 @@ export function HomeFeed({
       const sp = new URLSearchParams(window.location.search);
       const t = sp.get("tab") as TabId | null;
       if (t && TABS.some((tabObj) => tabObj.id === t)) return t;
+      try {
+        const storedTab = sessionStorage.getItem(`xilust_tab_${section}`) as TabId | null;
+        if (storedTab && TABS.some((tabObj) => tabObj.id === storedTab)) return storedTab;
+      } catch {}
     }
     return "new";
   });
@@ -91,6 +95,46 @@ export function HomeFeed({
       localStorage.setItem("xilust_view_density", density);
     } catch {}
   };
+
+  const handleTabClick = (nextTab: TabId) => {
+    if (query) onQueryChange?.("");
+    setTab(nextTab);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(`xilust_tab_${section}`, nextTab);
+        sessionStorage.setItem(`xilust_page_${section}`, "1");
+        sessionStorage.removeItem(`xilust_scroll_${section}`);
+      } catch {}
+      const url = new URL(window.location.href);
+      if (nextTab === "new") {
+        url.searchParams.delete("tab");
+      } else {
+        url.searchParams.set("tab", nextTab);
+      }
+      url.searchParams.delete("page");
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
+
+  // Sync tab and page when navigating with browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === "undefined") return;
+      const sp = new URLSearchParams(window.location.search);
+      const urlTab = sp.get("tab") as TabId | null;
+      if (urlTab && TABS.some((t) => t.id === urlTab)) {
+        setTab(urlTab);
+      } else if (!urlTab) {
+        setTab("new");
+      }
+      const urlPage = parseInt(sp.get("page") || "1", 10);
+      if (!isNaN(urlPage) && urlPage >= 1) {
+        setPage(urlPage);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Sync when filter prop changes (e.g. from URL redirect)
   useEffect(() => {
@@ -421,10 +465,7 @@ export function HomeFeed({
               return (
                 <button
                   key={t.id}
-                  onClick={() => {
-                    if (query) onQueryChange?.("");
-                    setTab(t.id);
-                  }}
+                  onClick={() => handleTabClick(t.id)}
                   className={`relative shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-[13px] font-semibold tracking-normal transition-colors duration-150 active:scale-95 z-[1] ${
                     active
                       ? "text-black font-bold"
@@ -873,11 +914,7 @@ export function HomeFeed({
         </div>
       ) : null}
 
-      {/* Community Curated Collections (Chikari.moe-style discovery) */}
-      {!query && !activeFilter && page === 1 && (
-        <CommunityPlaylistsSection currentSection={section} />
-      )}
-
+      {/* Catalog Pagination — positioned immediately below video posts */}
       {items.length > 0 && totalPages > 1 && (
         <nav aria-label="Catalog pagination" className="mt-8 flex items-center justify-center gap-3 sm:gap-5">
           <button
@@ -900,6 +937,11 @@ export function HomeFeed({
             Next
           </button>
         </nav>
+      )}
+
+      {/* Community Curated Collections (Chikari.moe-style discovery) */}
+      {!query && !activeFilter && page === 1 && (
+        <CommunityPlaylistsSection currentSection={section} />
       )}
 
       <div className="mt-8 flex min-h-11 justify-center py-2" aria-live="polite">

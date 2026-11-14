@@ -17,6 +17,7 @@ export function Navbar({
   onQueryChange = () => { },
   sidebarCollapsed = true,
   onOpenMobileMenu,
+  onGoHome,
 }: {
   section?: Section;
   onSectionChange?: (s: Section) => void;
@@ -29,6 +30,7 @@ export function Navbar({
   activeCategory?: string;
   sidebarCollapsed?: boolean;
   onOpenMobileMenu?: () => void;
+  onGoHome?: () => void;
 }) {
   const { user } = useAuth();
   const [focus, setFocus] = useState(false);
@@ -146,6 +148,14 @@ export function Navbar({
                 <Link
                   href="/"
                   className="shrink-0 flex items-center"
+                  onClick={(e) => {
+                    if (onGoHome) {
+                      e.preventDefault();
+                      onGoHome();
+                    } else if (typeof window !== "undefined" && window.location.hash) {
+                      window.location.hash = "";
+                    }
+                  }}
                 >
                   <span className="hidden sm:inline-block">
                     <Wordmark size={28} />

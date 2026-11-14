@@ -125,13 +125,38 @@ export default function Home() {
 
   const handleBrowseFromList = () => {
     setShowMyList(false);
-    if (window.location.hash === "#mylist") {
-      window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}`);
+    if (typeof window !== "undefined") {
+      if (window.location.hash === "#mylist") {
+        window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}`);
+      }
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleGoHome = () => {
+    setShowMyList(false);
+    setQuery("");
+    setFilter(null);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.hash = "";
+      url.searchParams.set("section", section);
+      url.searchParams.delete("q");
+      url.searchParams.delete("query");
+      url.searchParams.delete("actor");
+      url.searchParams.delete("studio");
+      url.searchParams.delete("category");
+      url.searchParams.delete("tag");
+      url.searchParams.delete("code");
+      url.searchParams.delete("premium");
+      url.searchParams.delete("page");
+      window.history.pushState({}, "", url.toString().replace(/#.*$/, ""));
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSectionChange = (s: Section) => {
+    setShowMyList(false);
     setSection(s);
     setQuery("");
     setFilter(null);
@@ -140,6 +165,7 @@ export default function Home() {
         localStorage.setItem("xilust_section", s);
       } catch {}
       const url = new URL(window.location.href);
+      url.hash = "";
       url.searchParams.set("section", s);
       url.searchParams.delete("q");
       url.searchParams.delete("query");
@@ -154,7 +180,7 @@ export default function Home() {
         sessionStorage.removeItem("xilust_page_" + s);
         sessionStorage.removeItem("xilust_scroll_" + s);
       } catch {}
-      window.history.pushState({}, "", url.toString());
+      window.history.pushState({}, "", url.toString().replace(/#.*$/, ""));
     }
   };
 
@@ -219,6 +245,7 @@ export default function Home() {
           onSelectStudio={(studioName) => handleFilterChange({ type: "studio", name: studioName })}
           mobileOpen={mobileMenuOpen}
           onMobileClose={() => setMobileMenuOpen(false)}
+          onGoHome={handleGoHome}
         />
 
         {/* Navigation Bar */}
@@ -229,6 +256,7 @@ export default function Home() {
           onQueryChange={handleQueryChange}
           sidebarCollapsed={sidebarCollapsed}
           onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          onGoHome={handleGoHome}
         />
 
         {/* Main Content with Dynamic Padding Coordination */}
@@ -239,7 +267,11 @@ export default function Home() {
           }`}
         >
           {showMyList ? (
-            <MyListView onBrowse={handleBrowseFromList} />
+            <MyListView
+              onBrowse={handleBrowseFromList}
+              section={section}
+              onSectionChange={handleSectionChange}
+            />
           ) : (
             <>
               {!query && !filter && <Hero section={section} />}

@@ -26,6 +26,7 @@ export interface CinemaSidebarProps {
   onSelectStudio?: (studio: string) => void;
   mobileOpen?: boolean;
   onMobileClose?: () => void;
+  onGoHome?: () => void;
 }
 
 // Curated studios with distinctive colourful aesthetic styling matching live badges
@@ -118,6 +119,7 @@ export function CinemaSidebar({
   onSelectStudio,
   mobileOpen = false,
   onMobileClose,
+  onGoHome,
 }: CinemaSidebarProps) {
   const { user } = useAuth();
   const [listCount, setListCount] = useState(0);
@@ -216,7 +218,13 @@ export function CinemaSidebar({
           <div className="flex h-16 items-center justify-between px-3.5 border-b border-white/[0.06]">
             <Link
               href="/"
-              onClick={() => {
+              onClick={(e) => {
+                if (onGoHome) {
+                  e.preventDefault();
+                  onGoHome();
+                } else if (typeof window !== "undefined" && window.location.hash) {
+                  window.location.hash = "";
+                }
                 if (mobileOpen) onMobileClose?.();
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
