@@ -549,13 +549,12 @@ export function TitleWatchClient({
         </div>
       )}
 
-      {/* Player Controls & Mirror Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4 p-2.5 sm:p-4 rounded-2xl bg-[#0e121a] border border-white/[0.08]">
-        {/* Mirrors list */}
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scrollbar-none touch-scroll py-1 max-w-full">
-          <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white/50 mr-1 sm:mr-2 shrink-0">
-            <Server className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white/60" />
-            Servers ({sources.length}):
+      {/* Sleek Minimalist Cinema Control Deck */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4 p-2.5 sm:p-3 rounded-2xl bg-[#0b0e14]/90 border border-white/[0.08] backdrop-blur-md">
+        {/* Left: Stream Mirrors List */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-scroll py-0.5 max-w-full">
+          <span className="text-[11px] font-semibold tracking-wider uppercase text-white/40 mr-1 shrink-0">
+            Mirrors:
           </span>
 
           {sources.map((s, idx) => {
@@ -571,112 +570,83 @@ export function TitleWatchClient({
                   setPlayerError(false);
                   setKey((k) => k + 1);
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 ${
                   active
-                    ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
-                    : "bg-white/[0.04] text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-white/[0.08]"
+                    ? "bg-white text-black font-bold shadow-[0_2px_12px_rgba(255,255,255,0.2)] ring-1 ring-white"
+                    : "bg-white/[0.04] text-zinc-300 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
                 }`}
               >
-                <Play className={`h-2.5 w-2.5 ${active ? "fill-black text-black" : "fill-current text-white/50"}`} />
+                <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-black" : "bg-cyan-400"}`} />
                 <span>{label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Right utility buttons: Mode Switcher, CleanStream status, Reload */}
-        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-2.5 pt-1 sm:pt-0 border-t border-white/5 sm:border-0">
-          {/* Player Mode Switcher */}
-          <div className="flex items-center p-0.5 rounded-full bg-black/60 border border-white/10 text-[10px] sm:text-[11px]">
-            <button
-              type="button"
-              onClick={() => setPlayerMode("clean")}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold transition-all active:scale-95 ${
-                playerMode === "clean"
-                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold"
-                  : "text-white/50 hover:text-white/80"
-              }`}
-            >
-              <ShieldCheck className="h-3 w-3" />
-              <span>CleanStream</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPlayerMode("direct")}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold transition-all active:scale-95 ${
-                playerMode === "direct"
-                  ? "bg-white/15 text-white border border-white/20 font-bold"
-                  : "text-white/50 hover:text-white/80"
-              }`}
-            >
-              <ExternalLink className="h-3 w-3" />
-              <span>Direct</span>
-            </button>
-          </div>
+        {/* Right: Consolidated Cinema Actions */}
+        <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t border-white/5 sm:border-0">
+          {/* CleanStream Toggle */}
+          <button
+            type="button"
+            onClick={() => setPlayerMode(playerMode === "clean" ? "direct" : "clean")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 border ${
+              playerMode === "clean"
+                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-bold"
+                : "bg-white/[0.04] border-white/10 text-zinc-400 hover:text-white"
+            }`}
+            title={playerMode === "clean" ? "CleanStream Active: Ads Blocked" : "Direct Embed Mode"}
+          >
+            <ShieldCheck className={`h-3.5 w-3.5 ${playerMode === "clean" ? "text-emerald-400" : "text-zinc-400"}`} />
+            <span>{playerMode === "clean" ? "Ad-Free" : "Direct"}</span>
+          </button>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setShowStatusModal(true);
-                fetchStatus();
-              }}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors active:scale-95"
-              title="View live server health and CleanStream status"
+          {/* Add to Playlist */}
+          <AddToPlaylistModal
+            item={{
+              id: String(item.id),
+              title: item.title,
+              slug: item.slug,
+              section: item.section,
+              thumbnailUrl: item.thumbnail_url,
+              coverUrl: item.cover_url,
+            }}
+            compact
+          />
+
+          {/* Quick Reload Player */}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.04] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-all active:scale-95"
+            title="Reload video player"
+            aria-label="Reload player"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+          </button>
+
+          {/* Fullscreen Player */}
+          <button
+            type="button"
+            onClick={handleNativeFullscreen}
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.04] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-all active:scale-95"
+            title="Open Fullscreen"
+            aria-label="Fullscreen"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+
+          {targetUrl && (
+            <a
+              href={toDirectEmbedUrl(targetUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.04] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-all active:scale-95"
+              title="Open raw source"
+              aria-label="Open source link"
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <Activity className="h-3.5 w-3.5" />
-              <span className="hidden xs:inline">Servers</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleRefresh}
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
-              title="Reload video player"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              <span>Reload</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleNativeFullscreen}
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs font-medium text-cyan-300 hover:bg-cyan-500/20 transition-colors active:scale-95"
-              title="Open video in device native player"
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-              <span>Fullscreen</span>
-            </button>
-
-            <AddToPlaylistModal
-              item={{
-                id: String(item.id),
-                title: item.title,
-                slug: item.slug,
-                section: item.section,
-                thumbnailUrl: item.thumbnail_url,
-                coverUrl: item.cover_url,
-              }}
-              compact
-            />
-
-            {targetUrl && (
-              <a
-                href={toDirectEmbedUrl(targetUrl)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
-                title="Open raw source"
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                <span>Source</span>
-              </a>
-            )}
-          </div>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          )}
         </div>
       </div>
 

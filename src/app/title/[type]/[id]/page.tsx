@@ -143,67 +143,85 @@ export default async function TitlePage({
         <TitleWatchClient item={item} cleanstreamUrl={cleanstreamUrl} />
 
         {/* Title Details & Meta */}
-        <div className="mt-5 sm:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
+        <div className="mt-5 sm:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
           {/* Main Info (Left 2 cols) */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <div className="lg:col-span-2 space-y-5">
             <div>
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                {jaxRating && (
+              {/* Minimalist Metadata Breadcrumb */}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400 mb-2.5">
+                {studio && (
                   <>
-                    <span className="flex items-center gap-1 rounded bg-black/50 px-2 py-0.5 text-xs font-semibold text-cyan-300 border border-white/10">
-                      <Star className="h-3 w-3 fill-cyan-400 text-cyan-400" />
-                      {jaxRating} / 10
-                    </span>
-                    <span className="text-sm text-white/40">•</span>
+                    <Link
+                      href={`/?section=${section}&studio=${encodeURIComponent(studio)}`}
+                      className="font-bold text-sky-400 hover:text-sky-300 transition-colors"
+                    >
+                      {formatStudioLabel(studio)}
+                    </Link>
+                    <span className="text-zinc-600">·</span>
                   </>
                 )}
                 {originalYear && (
                   <>
-                    <span className="text-sm font-medium text-white/70">{originalYear}</span>
-                    <span className="text-sm text-white/40">•</span>
+                    <span className="font-medium text-zinc-300">{originalYear}</span>
+                    <span className="text-zinc-600">·</span>
                   </>
                 )}
-                <span className="rounded bg-black/50 px-2 py-0.5 text-xs font-semibold text-white/80 border border-white/10 flex items-center gap-1">
-                  <span>⏱</span>
-                  <span>{duration}</span>
-                </span>
-                <span className="text-sm text-white/40">•</span>
-                <span className="rounded bg-cyan-500/20 px-2 py-0.5 text-[11px] font-bold text-cyan-300">
-                  CleanStream Protected
+                <span className="font-medium text-zinc-300 tabular-nums">{duration}</span>
+                {originalDate && (
+                  <>
+                    <span className="text-zinc-600">·</span>
+                    <span className="text-zinc-400">{originalDate}</span>
+                  </>
+                )}
+                {section === "jax" && item.code && (
+                  <>
+                    <span className="text-zinc-600">·</span>
+                    <Link
+                      href={`/?section=jax&code=${encodeURIComponent(item.code)}`}
+                      className="rounded px-2 py-0.5 bg-pink-500/15 border border-pink-500/30 text-pink-300 font-mono font-bold text-[11px] hover:bg-pink-500/25 transition-all"
+                    >
+                      {item.code}
+                    </Link>
+                  </>
+                )}
+                {jaxRating && (
+                  <>
+                    <span className="text-zinc-600">·</span>
+                    <span className="flex items-center gap-1 font-semibold text-amber-300">
+                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                      <span>{jaxRating}</span>
+                    </span>
+                  </>
+                )}
+                <span className="text-zinc-600">·</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  CleanStream Ad-Free
                 </span>
               </div>
 
+              {/* Pure High-Impact Cinema Title */}
               <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight">
                 {cleanTitle}
               </h1>
             </div>
 
-            {/* Actresses / Stars */}
+            {/* Performers / Cast (Clean chips without emoji noise) */}
             {item.actors.length > 0 && (
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-pink-400" />
-                  {section === "jax" ? "Actresses" : "Pornstars / Cast"}
-                </h3>
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider shrink-0 mr-1">
+                  Starring:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
                   {item.actors.map((actor, idx) => {
                     const cleanActor = actor.replace(/\s+[a-f0-9]{10,}$/i, "").trim();
                     const actorSlug = cleanActor.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "performer";
-                    const isJax = section === "jax";
-                    const isFans = section === "fans";
                     return (
                       <Link
                         key={idx}
                         href={`/browse/actor/${encodeURIComponent(actorSlug)}?section=${section}&name=${encodeURIComponent(cleanActor)}`}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all active:scale-95 flex items-center gap-1.5 ${
-                          isJax
-                            ? "bg-pink-500/15 border border-pink-500/30 text-pink-200 hover:bg-pink-500/30"
-                            : isFans
-                              ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-200 hover:bg-cyan-500/30"
-                              : "bg-purple-500/15 border border-purple-500/30 text-purple-200 hover:bg-purple-500/30"
-                        }`}
+                        className="inline-flex items-center rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 px-3 py-1 text-xs font-medium text-zinc-200 hover:text-white transition-all active:scale-95"
                       >
-                        <span className="text-sm shrink-0">💋</span>
                         <span>{cleanActor}</span>
                       </Link>
                     );
@@ -212,122 +230,121 @@ export default async function TitlePage({
               </div>
             )}
 
-            {/* Studios & Production */}
+            {/* Studios & Labels */}
             {section !== "fans" && item.studios.length > 0 && (
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                  <Film className="h-3.5 w-3.5 text-purple-400" />
-                  Studios & Production
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {item.studios.map((studio, idx) => (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider shrink-0 mr-1">
+                  Studio:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {item.studios.map((s, idx) => (
                     <Link
                       key={idx}
-                      href={`/?section=${section}&studio=${encodeURIComponent(studio)}`}
-                      className="rounded-lg bg-purple-500/15 border border-purple-500/30 px-3 py-1.5 text-xs font-medium text-purple-200 hover:bg-purple-500/30 transition-all active:scale-95 flex items-center gap-1.5"
+                      href={`/?section=${section}&studio=${encodeURIComponent(s)}`}
+                      className="inline-flex items-center rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/25 px-3 py-1 text-xs font-medium text-purple-200 hover:text-white transition-all active:scale-95"
                     >
-                      <span>🎬</span>
-                      <span>{formatStudioLabel(studio)}</span>
+                      <span>{formatStudioLabel(s)}</span>
                     </Link>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Categories & Tags */}
+            {/* Categories & Genres */}
             {item.categories.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                  <Tag className="h-3.5 w-3.5 text-cyan-400" />
-                  Categories & Genres
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {item.categories.map((cat, idx) => (
-                    <Link
-                      key={idx}
-                      href={`/?section=${section}&category=${encodeURIComponent(cat)}`}
-                      className="rounded-lg bg-white/5 border border-white/10 px-3 py-1 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
-                    >
-                      {cat}
-                    </Link>
-                  ))}
-                </div>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {item.categories.map((cat, idx) => (
+                  <Link
+                    key={idx}
+                    href={`/?section=${section}&category=${encodeURIComponent(cat)}`}
+                    className="rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] px-2.5 py-1 text-xs font-medium text-zinc-400 hover:text-white transition-all"
+                  >
+                    {cat}
+                  </Link>
+                ))}
               </div>
             )}
+
+            {/* Post Comments Section */}
+            <div className="pt-4 border-t border-white/[0.08]">
+              <CommentSection postSlug={item.slug || rawId} section={section} postTitle={item.title} />
+            </div>
           </div>
 
-          {/* Sidebar Facts (Right 1 col) */}
+          {/* Right Rail: Up Next Preview Rail (YouTube / Netflix Theater style) */}
           <div className="space-y-4">
-            <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-5 space-y-4">
-              <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider">
-                Video Details
-              </h3>
-
-              {section === "jax" && item.code && (
-                <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
-                  <span className="text-white/50">JAV Code</span>
-                  <Link href={`/?section=jax&code=${encodeURIComponent(item.code)}`} className="font-mono font-bold text-pink-300 hover:text-pink-100 hover:underline">
-                    {item.code}
-                  </Link>
-                </div>
-              )}
-
-              {section !== "fans" && item.studios.length > 0 && (
-                <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
-                  <span className="text-white/50">Studio / Label</span>
-                  <div className="flex flex-wrap justify-end gap-1.5 max-w-[170px]">
-                    {item.studios.map((s, idx) => (
-                      <Link
-                        key={idx}
-                        href={`/?section=${section}&studio=${encodeURIComponent(s)}`}
-                        className="font-medium text-purple-300 hover:text-purple-100 hover:underline transition-colors truncate"
-                      >
-                        {formatStudioLabel(s)}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
-                <span className="text-white/50">Runtime / Length</span>
-                <span className="font-medium text-white/90">{duration}</span>
+            <div className="rounded-2xl bg-[#0e121a]/80 border border-white/[0.08] p-4 space-y-3.5 backdrop-blur-md">
+              <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+                  <span>Up Next</span>
+                </h3>
+                <span className="text-[11px] text-zinc-500">Related releases</span>
               </div>
 
-              {originalDate ? (
-                <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
-                  <span className="text-white/50">Release Date</span>
-                  <span className="font-medium text-white/90">{originalDate}</span>
-                </div>
-              ) : originalYear ? (
-                <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
-                  <span className="text-white/50">Release Year</span>
-                  <span className="font-medium text-white/90">{originalYear}</span>
-                </div>
-              ) : null}
+              {/* Up Next Compact Video List */}
+              <div className="space-y-2.5">
+                {recs.slice(0, 5).map((rec) => {
+                  const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
+                  const { posterUrl, fallbackUrl } = getCatalogThumbnailUrls(rec, vpsBase);
+                  const { cleanTitle: recTitle } = extractCleanTitleAndDate(rec.title, rec.year, rec.section);
+                  const recDuration = formatVideoDuration(rec.duration_seconds, rec.title, rec.id, rec.section);
+                  const recHref = `/title/${rec.section}/${encodeURIComponent(rec.slug || rec.id)}`;
 
-              <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
-                <span className="text-white/50">Streaming Mirrors</span>
-                <span className="font-bold text-cyan-400">{item.video_sources.length} Available</span>
+                  return (
+                    <Link
+                      key={rec.id}
+                      href={recHref}
+                      className="group flex items-center gap-3 p-1.5 rounded-xl hover:bg-white/[0.05] transition-all"
+                    >
+                      <div className="relative aspect-video w-28 sm:w-32 shrink-0 overflow-hidden rounded-lg bg-black border border-white/10">
+                        <img
+                          src={posterUrl || fallbackUrl || ""}
+                          alt={recTitle}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        {recDuration && (
+                          <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 py-0.2 text-[9px] font-bold text-white tabular-nums">
+                            {recDuration}
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-xs font-bold text-zinc-200 group-hover:text-cyan-300 transition-colors leading-snug">
+                          {recTitle}
+                        </p>
+                        {rec.studios && rec.studios.length > 0 && (
+                          <p className="mt-1 text-[11px] font-semibold text-zinc-500 truncate">
+                            {formatStudioLabel(rec.studios[0])}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
+            </div>
 
+            {/* Quick Details Card */}
+            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-4 text-xs text-zinc-400 space-y-2">
+              <div className="flex items-center justify-between">
+                <span>Available Streams</span>
+                <span className="font-semibold text-cyan-400">{item.video_sources.length} mirrors</span>
+              </div>
               {uploadDate && (
-                <div className="flex items-center justify-between text-xs border-b border-white/5 pb-2.5">
-                  <span className="text-white/50">Uploaded</span>
-                  <span className="font-medium text-white/90">{uploadDate}</span>
+                <div className="flex items-center justify-between">
+                  <span>Uploaded to XiLust</span>
+                  <span className="text-zinc-300">{uploadDate}</span>
                 </div>
               )}
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-white/50">Ad Protection</span>
-                <span className="font-semibold text-emerald-400">CleanStream Active</span>
+              <div className="flex items-center justify-between">
+                <span>Direct Host Ads</span>
+                <span className="font-semibold text-emerald-400">Blocked by Proxy</span>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Post Comments Section */}
-        <CommentSection postSlug={item.slug || rawId} section={section} postTitle={item.title} />
 
         {/* Recommended Row */}
         {recs.length > 0 && (
