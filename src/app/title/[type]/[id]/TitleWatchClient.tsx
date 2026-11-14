@@ -87,31 +87,6 @@ function isCleanStreamSupported(url: string): boolean {
   return supportedKeywords.some((k) => lower.includes(k));
 }
 
-function serverIdentity(source: { label?: string; host?: string }, section: CatalogItem["section"]) {
-  const key = `${source.host || ""} ${source.label || ""}`.toLowerCase();
-  const identities = section === "jax"
-    ? [
-        { match: ["kamehaus", "kamehameha", "kame"], name: "Server 1 (Kamehaus Fast)", quality: "1080p HD" },
-        { match: ["vidara", "sugbaioug"], name: "Server 2 (Vidara High Speed)", quality: "1080p HD" },
-        { match: ["streamtape", "streamta.pe"], name: "Server 3 (Streamtape)", quality: "720p HD" },
-        { match: ["mixdrop", "mxdrop"], name: "Server 4 (Mixdrop)", quality: "720p HD" },
-        { match: ["streamhihi", "lulu"], name: "Server 5 (Lulu Stream)", quality: "1080p HD" },
-        { match: ["javlesbian", "voe"], name: "Server 6 (VOE Embed)", quality: "1080p HD" },
-        { match: ["javclan", "streamsb", "sbthe", "sb"], name: "Server 7 (StreamSB)", quality: "720p" },
-        { match: ["filemoon"], name: "Server 8 (Filemoon)", quality: "1080p HD" },
-        { match: ["maxstream"], name: "Server 9 (MaxStream)", quality: "1080p HD" },
-        { match: ["vid0", "vide0"], name: "Server 10 (Direct Player)", quality: "720p" },
-      ]
-    : section === "lust"
-      ? [
-          { match: ["streamtape", "streamta.pe"], name: "Server 1 (Streamtape HD)", quality: "1080p HD" },
-          { match: ["mixdrop", "mxdrop", "mixdrp"], name: "Server 2 (Mixdrop Fast)", quality: "720p HD" },
-          { match: ["doodstream", "dood", "d000d"], name: "Server 3 (Doodstream)", quality: "720p" },
-        ]
-      : [];
-  return identities.find((identity) => identity.match.some((part) => key.includes(part)));
-}
-
 export function TitleWatchClient({
   item,
   cleanstreamUrl,
@@ -527,7 +502,7 @@ export function TitleWatchClient({
         {playerLoading && targetUrl && (
           <div className="absolute inset-x-0 bottom-0 flex justify-center p-3 pointer-events-none">
             <span className="rounded-full border border-white/10 bg-black/75 px-3 py-1.5 text-xs text-white/80 backdrop-blur">
-              Connecting to {activeSource?.label || activeSource?.host || "video source"}…
+              Connecting to Server {activeIdx + 1}…
             </span>
           </div>
         )}
@@ -580,25 +555,12 @@ export function TitleWatchClient({
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scrollbar-none touch-scroll py-1 max-w-full">
           <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white/50 mr-1 sm:mr-2 shrink-0">
             <Server className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white/60" />
-            Mirrors ({sources.length}):
+            Servers ({sources.length}):
           </span>
 
           {sources.map((s, idx) => {
             const active = activeIdx === idx;
-            let label = s.label || s.host || `Mirror ${idx + 1}`;
-            const identity = serverIdentity(s, item.section);
-            // Clean up host label for readability
-            if (identity) label = identity.name;
-            else if (label.toLowerCase().includes("hdplayer") || label.toLowerCase().includes("jolly")) label = "Server (Jolly Fast)";
-            else if (label.toLowerCase().includes("hornyleak") || label.toLowerCase().includes("molly")) label = "Server (Molly HD)";
-            else if (label.toLowerCase().includes("streamtape")) label = "Streamtape";
-            else if (label.toLowerCase().includes("mixdrop")) label = "Mixdrop";
-            else if (label.toLowerCase().includes("dood")) label = "Doodstream";
-            else if (label.toLowerCase().includes("javclan") || label.includes("SB")) label = "StreamSB";
-            else if (label.toLowerCase().includes("vide0") || label.includes("DD")) label = "Direct 1080p";
-            else if (label.toLowerCase().includes("maxstream") || label.includes("JK")) label = "MaxStream";
-            else if (label.toLowerCase().includes("streamhihi") || label.includes("LU")) label = "Lulu Stream";
-            else if (label.toLowerCase().includes("javlesbians") || label.includes("VO")) label = "VOE Embed";
+            const label = `Server ${idx + 1}`;
 
             return (
               <button
@@ -609,7 +571,7 @@ export function TitleWatchClient({
                   setPlayerError(false);
                   setKey((k) => k + 1);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 ${
                   active
                     ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
                     : "bg-white/[0.04] text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-white/[0.08]"
@@ -779,11 +741,10 @@ export function TitleWatchClient({
                 {healthLoading && !serverHealth ? (
                   <div className="p-4 text-center text-xs text-white/40">Probing streaming servers...</div>
                 ) : (
-                  Object.values(serverHealth?.servers || {}).map((s) => {
-                    const identity = serverIdentity({ host: s.name, label: s.name }, item.section);
+                  Object.values(serverHealth?.servers || {}).map((s, idx) => {
                     return (
                       <div
-                        key={s.name}
+                        key={s.name || idx}
                         className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 border border-white/5 hover:border-white/10 transition-colors"
                       >
                         <div className="flex items-center gap-2">
@@ -793,8 +754,8 @@ export function TitleWatchClient({
                             <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                           )}
                           <div>
-                            <div className="text-xs font-medium text-white">{identity?.name || s.name}</div>
-                            <div className="text-[10px] text-white/40">{s.note || (s.cleanstream_working ? "CleanStream Protected" : "Mirror Unavailable")}</div>
+                            <div className="text-xs font-medium text-white">Server {idx + 1}</div>
+                            <div className="text-[10px] text-white/40">{s.cleanstream_working ? "CleanStream Protected" : "Mirror Unavailable"}</div>
                           </div>
                         </div>
                         <div className="text-right">

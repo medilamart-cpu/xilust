@@ -19,11 +19,11 @@ type TaxonomyType = "category" | "actor" | "studio" | "tag";
 type FilterType = TaxonomyType | "code" | "premium";
 
 const TABS: { id: TabId; label: string; icon: typeof Sparkles }[] = [
+  { id: "new", label: "Newly Released", icon: Sparkles },
   { id: "trending", label: "Trending", icon: Flame },
   { id: "monthly", label: "Monthly Top", icon: Eye },
   { id: "likes", label: "Most Liked", icon: Heart },
   { id: "top", label: "All-Time", icon: Trophy },
-  { id: "new", label: "New Releases", icon: Sparkles },
   { id: "movies", label: "Feature Films", icon: Film },
   { id: "longform", label: "Longform", icon: Clock },
   { id: "random", label: "Discover", icon: Shuffle },
@@ -51,7 +51,14 @@ export function HomeFeed({
   onQueryChange?: (query: string) => void;
   onSectionChange?: (section: "lust" | "jax" | "fans") => void;
 }) {
-  const [tab, setTab] = useState<TabId>(section === "jax" ? "trending" : "new");
+  const [tab, setTab] = useState<TabId>(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const t = sp.get("tab") as TabId | null;
+      if (t && TABS.some((tabObj) => tabObj.id === t)) return t;
+    }
+    return "new";
+  });
   const [jaxSubFilter, setJaxSubFilter] = useState<"Subbed" | "Uncensored" | "4K" | null>(null);
 
   // Taxonomy navigation

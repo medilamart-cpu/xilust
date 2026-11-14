@@ -42,8 +42,8 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
     }
     setImgError(false);
 
-    // For Lust feature the top trending leaderboards; for JAX feature newest releases
-    const heroTab = "trending";
+    // Feature newest releases across all sections by default
+    const heroTab = "new";
     fetch(`/api/catalog?section=${section}&tab=${heroTab}&limit=10`, {
       signal: controller.signal,
     })

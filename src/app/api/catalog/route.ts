@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const code = searchParams.get("code") || undefined;
     const year = searchParams.get("year") ? parseInt(searchParams.get("year")!, 10) : undefined;
     const query = searchParams.get("query") || searchParams.get("q") || undefined;
-    const tab = (searchParams.get("tab") as any) || "trending";
+    const tab = (searchParams.get("tab") as any) || "new";
     const sort = (searchParams.get("sort") as any) || undefined;
     const movies = searchParams.get("movies") === "1";
     const longform = searchParams.get("longform") === "1";
