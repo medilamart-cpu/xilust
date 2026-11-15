@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles, Activity, X, CheckCircle2, Clock, ListVideo, SkipBack, SkipForward, Shuffle, Star, ChevronRight, Check, Film } from "lucide-react";
+import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles, Activity, X, CheckCircle2, Clock, ListVideo, SkipBack, SkipForward, Shuffle, Star, ChevronRight, Check, Film, Download, Zap } from "lucide-react";
 import type { CatalogItem } from "@/lib/catalog-db";
 import { AddToPlaylistModal } from "@/components/aethoplex/AddToPlaylistModal";
 import { Playlist, getPlaylistById, ratePlaylist, getUserPlaylistRating } from "@/lib/playlists";
@@ -87,6 +87,28 @@ function isCleanStreamSupported(url: string): boolean {
   return supportedKeywords.some((k) => lower.includes(k));
 }
 
+export function isDirectCdnUrl(url?: string): boolean {
+  if (!url) return false;
+  const clean = url.trim().toLowerCase();
+  return (
+    clean.endsWith(".mp4") ||
+    clean.includes(".mp4?") ||
+    clean.endsWith(".m3u8") ||
+    clean.includes(".m3u8?") ||
+    clean.endsWith(".webm") ||
+    clean.includes(".webm?") ||
+    clean.includes("sorrymother.video") ||
+    clean.includes("famousinternetgirls.com") ||
+    clean.includes("sexy-egirls.com") ||
+    clean.includes("javpornvideos.xyz") ||
+    clean.includes("pimpbunny.com") ||
+    clean.includes("project1content.com") ||
+    clean.includes("naughtycdn.com") ||
+    clean.includes("gammacdn.com") ||
+    clean.includes("psmcdn.net")
+  );
+}
+
 export function TitleWatchClient({
   item,
   cleanstreamUrl,
@@ -98,16 +120,32 @@ export function TitleWatchClient({
 
   // Sort sources by highest reliability (KameHaus, Vidara, Streamtape, StreamSB first)
   const sources = useMemo(() => {
-    return [...rawSources]
+    const list = [...rawSources];
+    // If preview_url is a direct CDN video and not already in sources, add it as a Direct CDN mirror
+    if (item.preview_url && isDirectCdnUrl(item.preview_url)) {
+      const alreadyHas = list.some((s) => (s.url || s.embed_url || "") === item.preview_url);
+      if (!alreadyHas) {
+        list.unshift({
+          label: "Direct CDN (Master)",
+          host: "direct-cdn",
+          url: item.preview_url,
+        });
+      }
+    }
+
+    return list
       .filter((s) => {
         const h = (s.host || s.label || "").toLowerCase();
         return !h.includes("listeamed") && !h.includes("parking");
       })
       .sort((a, b) => {
+        const uA = (a.url || a.embed_url || "").toLowerCase();
+        const uB = (b.url || b.embed_url || "").toLowerCase();
         const hA = (a.host || a.label || "").toLowerCase();
         const hB = (b.host || b.label || "").toLowerCase();
 
-        const priority = (h: string) => {
+        const priority = (h: string, u: string) => {
+          if (isDirectCdnUrl(u) || h.includes("direct") || h.includes("sorrymother") || h.includes("pimpbunny")) return 0;
           if (h.includes("jolly") || h.includes("hdplayer")) return 1;
           if (h.includes("molly") || h.includes("hornyleak")) return 2;
           if (h.includes("kamehaus") || h.includes("kamehameha") || h.includes("kame.upns")) return 3;
@@ -126,9 +164,9 @@ export function TitleWatchClient({
           return 20;
         };
 
-        return priority(hA) - priority(hB);
+        return priority(hA, uA) - priority(hB, uB);
       });
-  }, [rawSources]);
+  }, [rawSources, item.preview_url]);
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [playerMode, setPlayerMode] = useState<"clean" | "direct">("clean");
@@ -257,10 +295,12 @@ export function TitleWatchClient({
 
   const playerTimeoutRef = useRef<number | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
 
   const activeSource = sources[activeIdx];
   const targetUrl = activeSource?.url || activeSource?.embed_url || "";
+  const isDirectCdn = isDirectCdnUrl(targetUrl);
 
   // Auto-switch to direct mode if targetUrl is unsupported by CleanStream
   useEffect(() => {
@@ -334,12 +374,24 @@ export function TitleWatchClient({
   };
 
   const handleNativeFullscreen = () => {
-    // 1. Post message to CleanStream embed inside the iframe
+    // 1. Direct Video element fullscreen
+    if (isDirectCdn && videoRef.current) {
+      const v = videoRef.current as any;
+      if (v.requestFullscreen) {
+        v.requestFullscreen().catch(() => {});
+        return;
+      } else if (v.webkitEnterFullscreen) {
+        v.webkitEnterFullscreen();
+        return;
+      }
+    }
+
+    // 2. Post message to CleanStream embed inside the iframe
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage({ type: "CLEANSTREAM_NATIVE_FULLSCREEN" }, "*");
     }
 
-    // 2. Direct device check for fallback
+    // 3. Direct device check for fallback
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
     const isIOS = /iPad|iPhone|iPod/.test(ua) || (typeof navigator !== "undefined" && navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
@@ -473,23 +525,50 @@ export function TitleWatchClient({
         className="w-full max-w-full mx-auto relative aspect-video bg-black overflow-hidden rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]"
       >
         {targetUrl ? (
-          <iframe
-            ref={iframeRef}
-            key={`${key}-${playerMode}-${activeIdx}`}
-            src={embedUrl}
-            title={item.title}
-            className="absolute inset-0 h-full w-full border-0 object-contain"
-            allow="accelerometer; autoplay *; clipboard-write; encrypted-media *; gyroscope; picture-in-picture *; fullscreen *"
-            allowFullScreen
-            onLoad={(e) => {
-              handleEmbedLoaded();
-              try {
-                const el = e.currentTarget;
-                el.setAttribute("webkitallowfullscreen", "true");
-                el.setAttribute("mozallowfullscreen", "true");
-              } catch (_) {}
-            }}
-          />
+          isDirectCdn ? (
+            <video
+              ref={videoRef}
+              key={`${key}-direct-video-${activeIdx}`}
+              src={targetUrl}
+              className="absolute inset-0 h-full w-full object-contain bg-black"
+              controls
+              playsInline
+              webkit-playsinline="true"
+              referrerPolicy="no-referrer"
+              autoPlay
+              preload="metadata"
+              poster={item.cover_url || item.thumbnail_url}
+              onLoadedData={handleEmbedLoaded}
+              onEnded={() => {
+                if (activePlaylist && hasNext && autoAdvance) {
+                  setAutoAdvanceCountdown(5);
+                }
+              }}
+              onError={(e) => {
+                console.warn("Direct CDN video error:", e);
+                setPlayerError(true);
+                setPlayerLoading(false);
+              }}
+            />
+          ) : (
+            <iframe
+              ref={iframeRef}
+              key={`${key}-${playerMode}-${activeIdx}`}
+              src={embedUrl}
+              title={item.title}
+              className="absolute inset-0 h-full w-full border-0 object-contain"
+              allow="accelerometer; autoplay *; clipboard-write; encrypted-media *; gyroscope; picture-in-picture *; fullscreen *"
+              allowFullScreen
+              onLoad={(e) => {
+                handleEmbedLoaded();
+                try {
+                  const el = e.currentTarget;
+                  el.setAttribute("webkitallowfullscreen", "true");
+                  el.setAttribute("mozallowfullscreen", "true");
+                } catch (_) {}
+              }}
+            />
+          )
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
             <AlertTriangle className="h-10 w-10 text-amber-400 mb-3" />
@@ -559,7 +638,8 @@ export function TitleWatchClient({
 
           {sources.map((s, idx) => {
             const active = activeIdx === idx;
-            const label = `Server ${idx + 1}`;
+            const isSourceDirect = isDirectCdnUrl(s.url || s.embed_url);
+            const label = isSourceDirect ? (sources.length === 1 ? "Direct CDN" : `Direct CDN ${idx + 1}`) : `Server ${idx + 1}`;
 
             return (
               <button
@@ -573,10 +653,16 @@ export function TitleWatchClient({
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 ${
                   active
                     ? "bg-white text-black font-bold shadow-[0_2px_12px_rgba(255,255,255,0.2)] ring-1 ring-white"
+                    : isSourceDirect
+                    ? "bg-emerald-500/10 text-emerald-300 hover:text-white hover:bg-emerald-500/20 border border-emerald-500/30"
                     : "bg-white/[0.04] text-zinc-300 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
                 }`}
               >
-                <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-black" : "bg-cyan-400"}`} />
+                {isSourceDirect ? (
+                  <Zap className={`h-3 w-3 ${active ? "text-black fill-black" : "text-emerald-400 fill-emerald-400"}`} />
+                ) : (
+                  <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-black" : "bg-cyan-400"}`} />
+                )}
                 <span>{label}</span>
               </button>
             );
@@ -585,20 +671,47 @@ export function TitleWatchClient({
 
         {/* Right: Consolidated Cinema Actions */}
         <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t border-white/5 sm:border-0">
-          {/* CleanStream Toggle */}
-          <button
-            type="button"
-            onClick={() => setPlayerMode(playerMode === "clean" ? "direct" : "clean")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 border ${
-              playerMode === "clean"
-                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-bold"
-                : "bg-white/[0.04] border-white/10 text-zinc-400 hover:text-white"
-            }`}
-            title={playerMode === "clean" ? "CleanStream Active: Ads Blocked" : "Direct Embed Mode"}
-          >
-            <ShieldCheck className={`h-3.5 w-3.5 ${playerMode === "clean" ? "text-emerald-400" : "text-zinc-400"}`} />
-            <span>{playerMode === "clean" ? "Ad-Free" : "Direct"}</span>
-          </button>
+          {/* Direct CDN indicator or CleanStream Toggle */}
+          {isDirectCdn ? (
+            <span
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-300"
+              title="Native Direct CDN Player Active (Ad-Free Ultra HD)"
+            >
+              <Zap className="h-3.5 w-3.5 text-emerald-400 fill-emerald-400" />
+              <span>Direct Ultra HD</span>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setPlayerMode(playerMode === "clean" ? "direct" : "clean")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 border ${
+                playerMode === "clean"
+                  ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-bold"
+                  : "bg-white/[0.04] border-white/10 text-zinc-400 hover:text-white"
+              }`}
+              title={playerMode === "clean" ? "CleanStream Active: Ads Blocked" : "Direct Embed Mode"}
+            >
+              <ShieldCheck className={`h-3.5 w-3.5 ${playerMode === "clean" ? "text-emerald-400" : "text-zinc-400"}`} />
+              <span>{playerMode === "clean" ? "Ad-Free" : "Direct"}</span>
+            </button>
+          )}
+
+          {/* Direct High-Speed Download (MP4) */}
+          {isDirectCdn && targetUrl && (
+            <a
+              href={targetUrl}
+              download={`${item.slug || "video"}.mp4`}
+              rel="noreferrer"
+              referrerPolicy="no-referrer"
+              target="_blank"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all active:scale-95 text-xs font-semibold"
+              title="Direct High-Speed Download (MP4)"
+              aria-label="Download video"
+            >
+              <Download className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="hidden md:inline">Download</span>
+            </a>
+          )}
 
           {/* Add to Playlist */}
           <AddToPlaylistModal
