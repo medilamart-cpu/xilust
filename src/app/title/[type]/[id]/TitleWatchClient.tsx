@@ -300,7 +300,43 @@ export function TitleWatchClient({
 
   const activeSource = sources[activeIdx];
   const targetUrl = activeSource?.url || activeSource?.embed_url || "";
-  const isDirectCdn = isDirectCdnUrl(targetUrl);
+  const isPbSource = targetUrl.includes("pimpbunny.com/videos/");
+  const [resolvedPbUrl, setResolvedPbUrl] = useState<string | null>(null);
+  const [isResolvingPb, setIsResolvingPb] = useState(false);
+  const [pbQuality, setPbQuality] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isPbSource) {
+      setIsResolvingPb(true);
+      setPlayerLoading(true);
+      fetch(`/api/resolve/pimpbunny?url=${encodeURIComponent(targetUrl)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.success && data.stream_url) {
+            setResolvedPbUrl(data.stream_url);
+            setPbQuality(data.quality || "HD");
+            setPlayerError(false);
+          } else {
+            console.error("PB resolve error:", data.error);
+            setPlayerError(true);
+          }
+        })
+        .catch((err) => {
+          console.error("PB resolve fetch error:", err);
+          setPlayerError(true);
+        })
+        .finally(() => {
+          setIsResolvingPb(false);
+          setPlayerLoading(false);
+        });
+    } else {
+      setResolvedPbUrl(null);
+      setPbQuality(null);
+    }
+  }, [targetUrl, isPbSource]);
+
+  const activeStreamUrl = resolvedPbUrl || targetUrl;
+  const isDirectCdn = isDirectCdnUrl(activeStreamUrl) || Boolean(resolvedPbUrl);
 
   // Auto-switch to direct mode if targetUrl is unsupported by CleanStream
   useEffect(() => {
@@ -525,11 +561,20 @@ export function TitleWatchClient({
         className="w-full max-w-full mx-auto relative aspect-video bg-black overflow-hidden rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]"
       >
         {targetUrl ? (
-          isDirectCdn ? (
+          isPbSource && isResolvingPb ? (
+            <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center bg-black/90">
+              <div className="relative mb-3 flex h-10 w-10 items-center justify-center">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <Zap className="h-6 w-6 text-emerald-400 relative" />
+              </div>
+              <p className="text-sm font-bold text-white">Resolving PimpBunny Dynamic CDN...</p>
+              <p className="text-xs text-white/50 mt-1">Acquiring direct high-speed stream token</p>
+            </div>
+          ) : isDirectCdn ? (
             <video
               ref={videoRef}
-              key={`${key}-direct-video-${activeIdx}`}
-              src={targetUrl}
+              key={`${key}-direct-video-${activeIdx}-${activeStreamUrl}`}
+              src={activeStreamUrl}
               className="absolute inset-0 h-full w-full object-contain bg-black"
               controls
               playsInline
@@ -678,7 +723,7 @@ export function TitleWatchClient({
               title="Native Direct CDN Player Active (Ad-Free Ultra HD)"
             >
               <Zap className="h-3.5 w-3.5 text-emerald-400 fill-emerald-400" />
-              <span>Direct Ultra HD</span>
+              <span>{pbQuality ? `Direct ${pbQuality}` : "Direct Ultra HD"}</span>
             </span>
           ) : (
             <button
@@ -697,9 +742,9 @@ export function TitleWatchClient({
           )}
 
           {/* Direct High-Speed Download (MP4) */}
-          {isDirectCdn && targetUrl && (
+          {isDirectCdn && activeStreamUrl && (
             <a
-              href={targetUrl}
+              href={activeStreamUrl}
               download={`${item.slug || "video"}.mp4`}
               rel="noreferrer"
               referrerPolicy="no-referrer"
