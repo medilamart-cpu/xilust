@@ -297,7 +297,7 @@ export function PlaylistDetailClient({ id }: PlaylistDetailClientProps) {
                       onMouseLeave={() => setHoverRating(null)}
                       onClick={() => handleRate(star)}
                       title={`Rate ${star} stars`}
-                      className="p-0.5 hover:scale-125 transition-transform active:scale-95"
+                      className="p-0.5 hover:scale-125 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-90"
                     >
                       <Star
                         className={`h-5 w-5 ${

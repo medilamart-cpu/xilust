@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   FolderHeart,
@@ -34,6 +35,7 @@ import {
   Playlist,
   PlaylistItem,
 } from "@/lib/playlists";
+import { SPRING_GENTLE, SPRING_SNAPPY } from "@/lib/motion";
 
 const THEME_ICONS = [
   { id: "fav", label: "Favorites", icon: Heart },
@@ -447,167 +449,191 @@ export default function PlaylistsPage() {
         </div>
       </main>
 
-      {/* Delete Confirmation Modal (Sleek custom dialog replacing window.confirm) */}
-      {playlistToDelete && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
-        >
-          <div className="relative w-full max-w-sm rounded-2xl bg-[#0e121a] border border-white/10 p-5 shadow-2xl">
-            <h3 className="text-sm font-bold text-white">Delete Playlist?</h3>
-            <p className="mt-2 text-xs text-zinc-400">
-              Are you sure you want to delete <span className="font-semibold text-white">&quot;{playlistToDelete.name}&quot;</span>? This collection cannot be recovered.
-            </p>
-            <div className="mt-5 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setPlaylistToDelete(null)}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="px-5 py-2 rounded-full bg-rose-600 text-white text-xs font-bold hover:bg-rose-500 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Create Playlist Modal */}
-      {showCreateModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowCreateModal(false);
-          }}
-        >
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0c1017] border border-white/10 p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <FolderHeart className="h-4 w-4" />
-                <span>Create New Playlist</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(false)}
-                className="text-zinc-400 hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                  Select Theme Icon
-                </label>
-                <div className="grid grid-cols-3 gap-2 p-2 rounded-xl bg-white/[0.03] border border-white/10">
-                  {THEME_ICONS.map((t) => {
-                    const Icon = t.icon;
-                    const isSel = selectedTheme === t.id;
-                    return (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => setSelectedTheme(t.id)}
-                        className={`flex items-center gap-2 p-2 rounded-lg text-xs font-semibold transition-all active:scale-95 ${
-                          isSel
-                            ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
-                            : "bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10"
-                        }`}
-                      >
-                        <Icon className="h-3.5 w-3.5" />
-                        <span className="truncate">{t.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="new-playlist-title" className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                  Playlist Title
-                </label>
-                <input
-                  id="new-playlist-title"
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Late Night Favorites, Top 10 POV..."
-                  autoFocus
-                  required
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="new-playlist-desc" className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                  Description (Optional)
-                </label>
-                <textarea
-                  id="new-playlist-desc"
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  placeholder="What kind of videos are in this playlist?"
-                  rows={2}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
-                />
-              </div>
-
-              {/* Visibility Switch */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                <div className="flex items-center gap-2.5">
-                  {isPublic ? <Globe className="h-4 w-4 text-cyan-400" /> : <Lock className="h-4 w-4 text-zinc-400" />}
-                  <div>
-                    <span className="text-xs font-bold text-white block">
-                      {isPublic ? "Public Playlist" : "Private Playlist"}
-                    </span>
-                    <span className="text-[10px] text-zinc-400 block">
-                      {isPublic ? "Discoverable by everyone in community" : "Only visible to you"}
-                    </span>
-                  </div>
-                </div>
-
+      {/* Delete Confirmation Modal (Sleek custom dialog with Emil Kowalski physics) */}
+      <AnimatePresence>
+        {playlistToDelete && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 4 }}
+              transition={SPRING_GENTLE}
+              className="relative w-full max-w-sm rounded-2xl bg-[#0e121a] border border-white/10 p-5 shadow-2xl"
+            >
+              <h3 className="text-sm font-bold text-white">Delete Playlist?</h3>
+              <p className="mt-2 text-xs text-zinc-400">
+                Are you sure you want to delete <span className="font-semibold text-white">&quot;{playlistToDelete.name}&quot;</span>? This collection cannot be recovered.
+              </p>
+              <div className="mt-5 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsPublic(!isPublic)}
-                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                    isPublic
-                      ? "bg-white text-black shadow-sm"
-                      : "bg-white/10 text-zinc-300 hover:text-white"
-                  }`}
-                >
-                  {isPublic ? "Public" : "Private"}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+                  onClick={() => setPlaylistToDelete(null)}
+                  className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="px-5 py-2 rounded-full bg-white text-black text-xs font-bold shadow-md hover:bg-zinc-200 transition-all active:scale-95"
+                  type="button"
+                  onClick={confirmDelete}
+                  className="px-5 py-2 rounded-full bg-rose-600 text-white text-xs font-bold hover:bg-rose-500 transition-colors active:scale-95"
                 >
-                  Create Playlist
+                  Delete
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Playlist Modal with Emil Kowalski physics */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowCreateModal(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 4 }}
+              transition={SPRING_GENTLE}
+              className="relative w-full max-w-md rounded-2xl bg-[#0c1017] border border-white/10 p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <FolderHeart className="h-4 w-4" />
+                  <span>Create New Playlist</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreate} className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                    Select Theme Icon
+                  </label>
+                  <div className="grid grid-cols-3 gap-2 p-2 rounded-xl bg-white/[0.03] border border-white/10">
+                    {THEME_ICONS.map((t) => {
+                      const Icon = t.icon;
+                      const isSel = selectedTheme === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setSelectedTheme(t.id)}
+                          className={`flex items-center gap-2 p-2 rounded-lg text-xs font-semibold transition-all active:scale-95 ${
+                            isSel
+                              ? "bg-white text-black font-bold ring-1 ring-white/90 shadow-sm"
+                              : "bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10"
+                          }`}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          <span className="truncate">{t.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="new-playlist-title" className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                    Playlist Title
+                  </label>
+                  <input
+                    id="new-playlist-title"
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="e.g. Late Night Favorites, Top 10 POV..."
+                    autoFocus
+                    required
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="new-playlist-desc" className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="new-playlist-desc"
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    placeholder="What kind of videos are in this playlist?"
+                    rows={2}
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                  />
+                </div>
+
+                {/* Visibility Switch */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div className="flex items-center gap-2.5">
+                    {isPublic ? <Globe className="h-4 w-4 text-cyan-400" /> : <Lock className="h-4 w-4 text-zinc-400" />}
+                    <div>
+                      <span className="text-xs font-bold text-white block">
+                        {isPublic ? "Public Playlist" : "Private Playlist"}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 block">
+                        {isPublic ? "Discoverable by everyone in community" : "Only visible to you"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPublic(!isPublic)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                      isPublic
+                        ? "bg-white text-black shadow-sm"
+                        : "bg-white/10 text-zinc-300 hover:text-white"
+                    }`}
+                  >
+                    {isPublic ? "Public" : "Private"}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-full bg-white text-black text-xs font-bold shadow-md hover:bg-zinc-200 transition-all active:scale-95"
+                  >
+                    Create Playlist
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

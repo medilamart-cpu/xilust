@@ -3,10 +3,12 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { Server, Play, ShieldCheck, RefreshCw, ExternalLink, AlertTriangle, Maximize2, Sparkles, Activity, X, CheckCircle2, Clock, ListVideo, SkipBack, SkipForward, Shuffle, Star, ChevronRight, Check, Film, Download, Zap } from "lucide-react";
 import type { CatalogItem } from "@/lib/catalog-db";
 import { AddToPlaylistModal } from "@/components/aethoplex/AddToPlaylistModal";
 import { Playlist, getPlaylistById, ratePlaylist, getUserPlaylistRating } from "@/lib/playlists";
+import { SPRING_SNAPPY, SPRING_GENTLE } from "@/lib/motion";
 
 function toDirectEmbedUrl(url: string): string {
   if (!url) return "";
@@ -765,20 +767,31 @@ export function TitleWatchClient({
                   setPlayerError(false);
                   setKey((k) => k + 1);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 ${
+                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-colors duration-150 active:scale-95 ${
                   active
-                    ? "bg-white text-black font-bold shadow-[0_2px_12px_rgba(255,255,255,0.2)] ring-1 ring-white"
+                    ? "text-black font-bold"
                     : isSourceDirect
                     ? "bg-emerald-500/10 text-emerald-300 hover:text-white hover:bg-emerald-500/20 border border-emerald-500/30"
                     : "bg-white/[0.04] text-zinc-300 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
                 }`}
               >
-                {isSourceDirect ? (
-                  <Zap className={`h-3 w-3 ${active ? "text-black fill-black" : "text-emerald-400 fill-emerald-400"}`} />
-                ) : (
-                  <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-black" : "bg-cyan-400"}`} />
+                {/* Fluid Active Sliding Mirror Pill */}
+                {active && (
+                  <motion.span
+                    layoutId="active-server-pill"
+                    className="absolute inset-0 rounded-xl bg-white shadow-[0_2px_12px_rgba(255,255,255,0.25)] ring-1 ring-white"
+                    transition={SPRING_SNAPPY}
+                    style={{ zIndex: 0 }}
+                  />
                 )}
-                <span>{label}</span>
+                <span className="relative z-[1] flex items-center gap-1.5">
+                  {isSourceDirect ? (
+                    <Zap className={`h-3 w-3 ${active ? "text-black fill-black" : "text-emerald-400 fill-emerald-400"}`} />
+                  ) : (
+                    <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-black" : "bg-cyan-400"}`} />
+                  )}
+                  <span>{label}</span>
+                </span>
               </button>
             );
           })}

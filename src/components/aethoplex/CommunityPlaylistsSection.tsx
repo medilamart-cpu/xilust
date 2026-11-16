@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   Sparkles,
   Flame,
@@ -17,6 +18,7 @@ import {
   Playlist,
   getCommunityPlaylists,
 } from "@/lib/playlists";
+import { SPRING_SNAPPY } from "@/lib/motion";
 
 interface CommunityPlaylistsSectionProps {
   currentSection?: "lust" | "jax" | "fans";
@@ -71,59 +73,38 @@ export function CommunityPlaylistsSection({ currentSection }: CommunityPlaylists
           </p>
         </div>
 
-        {/* Filter Tabs */}
+        {/* Filter Tabs with Sliding Spring Pill */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setActiveTab("trending")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              activeTab === "trending"
-                ? "bg-white text-black font-bold shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Flame className="h-3.5 w-3.5" />
-            <span>Trending</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("top")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              activeTab === "top"
-                ? "bg-white text-black font-bold shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Star className="h-3.5 w-3.5" />
-            <span>Top Rated</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("recent")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              activeTab === "recent"
-                ? "bg-white text-black font-bold shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span>Recent</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("staff")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              activeTab === "staff"
-                ? "bg-white text-black font-bold shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Staff Picks</span>
-          </button>
+          {[
+            { id: "trending" as const, label: "Trending", icon: Flame },
+            { id: "top" as const, label: "Top Rated", icon: Star },
+            { id: "recent" as const, label: "Recent", icon: Clock },
+            { id: "staff" as const, label: "Staff Picks", icon: Sparkles },
+          ].map((t) => {
+            const Icon = t.icon;
+            const active = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setActiveTab(t.id)}
+                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors duration-150 active:scale-95 ${
+                  active ? "text-black font-bold" : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="community-playlist-tab-pill"
+                    className="absolute inset-0 rounded-lg bg-white shadow-sm"
+                    transition={SPRING_SNAPPY}
+                    style={{ zIndex: 0 }}
+                  />
+                )}
+                <Icon className={`relative z-[1] h-3.5 w-3.5 ${active ? "text-black" : "text-zinc-400"}`} />
+                <span className="relative z-[1]">{t.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -138,7 +119,7 @@ export function CommunityPlaylistsSection({ currentSection }: CommunityPlaylists
           return (
             <div
               key={pl.id}
-              className="group relative flex flex-col rounded-2xl border border-white/10 bg-[#0e121a] overflow-hidden hover:border-white/30 transition-all duration-300 hover:shadow-2xl hover:shadow-black/60"
+              className="group relative flex flex-col rounded-2xl border border-white/10 bg-[#0e121a] overflow-hidden hover:border-white/30 transition-[transform,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/70"
             >
               {/* Thumbnail Container (2x2 Mosaic or Single Cover) */}
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-black/80">

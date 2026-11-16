@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { ListPlus, Check, Plus, X, FolderHeart, Sparkles, Heart, Film, Star, Clock } from "lucide-react";
 import {
   getPlaylists,
@@ -9,6 +10,7 @@ import {
   togglePlaylistItem,
   Playlist,
 } from "@/lib/playlists";
+import { SPRING_GENTLE } from "@/lib/motion";
 
 const THEME_ICONS: Record<string, typeof Heart> = {
   fav: Heart,
@@ -126,18 +128,29 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
         <span>Playlist</span>
       </button>
 
-      {/* Modal Dialog */}
-      {isOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="playlist-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsOpen(false);
-          }}
-        >
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0c1017] border border-white/10 p-5 shadow-2xl overflow-hidden">
+      {/* Modal Dialog with Emil Kowalski Physics */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="playlist-modal-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 4 }}
+              transition={SPRING_GENTLE}
+              className="relative w-full max-w-md rounded-2xl bg-[#0c1017] border border-white/10 p-5 shadow-2xl overflow-hidden"
+            >
             {/* Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
               <div className="flex items-center gap-2.5">
@@ -293,9 +306,10 @@ export function AddToPlaylistModal({ item, compact = false }: AddToPlaylistProps
                 Manage all playlists →
               </Link>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+    </AnimatePresence>
     </>
   );
 }

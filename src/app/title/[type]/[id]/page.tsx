@@ -295,13 +295,13 @@ export default async function TitlePage({
                     <Link
                       key={rec.id}
                       href={recHref}
-                      className="group flex items-center gap-3 p-1.5 rounded-xl hover:bg-white/[0.05] transition-all"
+                      className="group flex items-center gap-3 p-1.5 rounded-xl hover:bg-white/[0.06] transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:translate-x-1"
                     >
-                      <div className="relative aspect-video w-28 sm:w-32 shrink-0 overflow-hidden rounded-lg bg-black border border-white/10">
+                      <div className="relative aspect-video w-28 sm:w-32 shrink-0 overflow-hidden rounded-lg bg-black border border-white/10 shadow-sm">
                         <img
                           src={posterUrl || fallbackUrl || ""}
                           alt={recTitle}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-108"
                           loading="lazy"
                         />
                         {recDuration && (
