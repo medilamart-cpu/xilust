@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Volume2, VolumeX, Play, Plus, Check, Info, Flame, ChevronLeft, ChevronRight } from "lucide-react";
-import { useMyList, type CardModel } from "./PosterCard";
+import { Sparkles, Volume2, VolumeX } from "lucide-react";
+import { type CardModel } from "./PosterCard";
 import { extractCleanTitleAndDate } from "@/lib/video-utils";
 import { GeneratedArt } from "./GeneratedArt";
 import { ThemedTitle, ThemedThemeBadge } from "./ThemedTitle";
-import { SPRING_SNAPPY, SPRING_BOUNCY, EASE_DECEL } from "@/lib/motion";
+import { SPRING_SNAPPY, EASE_DECEL } from "@/lib/motion";
 
 const heroCache = new Map<string, CardModel[]>();
 
@@ -89,8 +89,6 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
   const count = Math.max(slides.length, 1);
   const safeIdx = slides.length > 0 ? ((idx % slides.length) + slides.length) % slides.length : 0;
   const cur = slides[safeIdx];
-  const { has, toggle } = useMyList();
-  const inList = cur ? has(cur.key ?? `${cur.section}-${cur.id}`) : false;
 
   const vpsBase = process.env.NEXT_PUBLIC_THUMBS_CDN || "https://xithumbs.duckdns.org";
   const resolveHeroThumb = () => {
@@ -309,7 +307,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="group/hero relative min-h-[380px] sm:min-h-[480px] md:min-h-[520px] lg:min-h-[560px] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl"
+        className="relative min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0d14] shadow-2xl"
       >
         {/* The whole featured artwork opens its title; controls stay above this link. */}
         <Link
@@ -319,21 +317,35 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
         >
           {imgSrc && !imgError ? (
             <>
-              {/* Dual-layer Ambient Backdrop for cinema glow */}
+              {!imageLoaded && (
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-[#0a0d14] pointer-events-none transition-opacity duration-300"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                </div>
+              )}
+              {/* Dual-layer Ambient Backdrop */}
               <img
                 src={imgSrc}
                 alt=""
                 aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-cover blur-3xl opacity-35 scale-125 pointer-events-none"
+                className="absolute inset-0 h-full w-full object-cover blur-3xl opacity-40 scale-110 pointer-events-none"
               />
               {/* Crisp Foreground Master Image with right-weighted positioning */}
               <motion.img
                 key={imgSrc || safeIdx}
+                ref={(img) => {
+                  if (img && img.complete && img.naturalWidth > 0 && !imageLoaded) {
+                    setImageLoaded(true);
+                  }
+                }}
                 src={imgSrc || undefined}
                 alt=""
                 initial={{ opacity: 0, scale: 1.02 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, ease: EASE_DECEL }}
+                onLoad={() => setImageLoaded(true)}
                 onError={handleHeroImgError}
                 className="absolute inset-0 h-full w-full rounded-2xl sm:rounded-3xl object-cover object-[center_20%] sm:object-[right_center] will-change-transform brightness-100"
               />
@@ -384,25 +396,24 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
         {/* Bottom-to-Top Fade */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-36 sm:h-52 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent z-[1]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-32 sm:h-48 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent z-[1]"
         />
 
-        {/* Content Box with 4-Tier Cinema Choreography */}
+        {/* Content Box with 3-Tier Emil Kowalski Wave Choreography */}
         <div
           key={safeIdx}
-          className="pointer-events-none relative z-[2] flex min-h-[380px] sm:min-h-[480px] md:min-h-[520px] lg:min-h-[560px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-16 sm:p-8 sm:pb-20 md:p-10 md:pb-20"
+          className="pointer-events-none relative z-[2] flex min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16"
         >
           {/* Tier 1: Badges & Metadata (0ms delay) */}
           <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, ease: EASE_DECEL }}
-            className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-2.5"
+            className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3"
           >
-            {/* Rank Ribbon Badge */}
-            <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-rose-500/25 to-amber-500/20 border border-rose-500/40 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-rose-200 backdrop-blur-md uppercase shadow-[0_0_12px_rgba(244,63,94,0.2)]">
-              <Flame className="h-3 w-3 text-rose-400 fill-rose-400/40" />
-              {section === "lust" ? `TRENDING #${safeIdx + 1}` : `TOP FEATURED #${safeIdx + 1}`}
+            <span className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-white backdrop-blur-md uppercase">
+              <Sparkles className="h-3 w-3 text-cyan-300" />
+              {section === "lust" ? `TRENDING #${safeIdx + 1}` : `FEATURED`}
             </span>
 
             {/* Colourful Studio Themed Badge */}
@@ -433,7 +444,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.32, delay: 0.06, ease: EASE_DECEL }}
-            className="mb-2 sm:mb-2.5"
+            className="mb-2 sm:mb-3"
           >
             <ThemedTitle
               title={heroHeadline}
@@ -444,118 +455,19 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
             />
           </motion.div>
 
-          {/* Tier 2.5: Metadata Line (Rating, Year, Quality, Duration) */}
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.09, ease: EASE_DECEL }}
-            className="flex items-center gap-2 text-xs sm:text-[13px] font-medium text-zinc-300 mb-2 sm:mb-2.5"
-          >
-            <span className="font-bold text-emerald-400">98% Match</span>
-            <span className="text-zinc-600">•</span>
-            <span>{cur?.year || 2026}</span>
-            <span className="text-zinc-600">•</span>
-            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-white border border-white/15">
-              4K ULTRA HD
-            </span>
-            {cur?.durationSeconds && (
-              <>
-                <span className="text-zinc-600">•</span>
-                <span>{Math.floor(cur.durationSeconds / 60)}m</span>
-              </>
-            )}
-          </motion.div>
-
           {/* Tier 3: Starring Cast Subline (120ms delay) */}
           {heroCast && (
             <motion.p
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.28, delay: 0.12, ease: EASE_DECEL }}
-              className="line-clamp-1 text-xs sm:text-sm font-medium text-zinc-300 mb-3 sm:mb-4"
+              className="line-clamp-1 text-xs sm:text-sm font-medium text-zinc-300 mb-2 sm:mb-3"
             >
               <span className="text-zinc-500 text-xs font-normal">Starring: </span>
               {heroCast}
             </motion.p>
           )}
-
-          {/* Tier 4: Primary Action CTA Deck */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.32, delay: 0.15, ease: EASE_DECEL }}
-            className="pointer-events-auto flex flex-wrap items-center gap-2.5 sm:gap-3"
-          >
-            <Link
-              href={titleHref}
-              className="group inline-flex items-center gap-2 rounded-xl sm:rounded-2xl bg-white px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-extrabold text-[#090b10] shadow-[0_0_20px_rgba(255,255,255,0.25)] transition hover:bg-white/90 hover:scale-[1.02] active:scale-95"
-            >
-              <Play className="h-4 w-4 fill-current transition group-hover:scale-110" />
-              <span>Watch Now</span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                toggle(cur);
-              }}
-              className="inline-flex items-center gap-2 rounded-xl sm:rounded-2xl border border-white/20 bg-white/10 px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/20 hover:border-white/30 active:scale-95"
-            >
-              <motion.span
-                key={inList ? "in-list" : "not-in-list"}
-                initial={{ scale: 0.6 }}
-                animate={{ scale: 1 }}
-                transition={SPRING_BOUNCY}
-              >
-                {inList ? <Check className="h-4 w-4 text-emerald-400" /> : <Plus className="h-4 w-4" />}
-              </motion.span>
-              <span>{inList ? "In My List" : "My List"}</span>
-            </button>
-
-            <Link
-              href={titleHref}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl sm:rounded-2xl border border-white/10 bg-white/[0.04] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-white/70 backdrop-blur-md transition hover:bg-white/10 hover:text-white active:scale-95"
-            >
-              <Info className="h-4 w-4 text-white/60" />
-              <span>Details</span>
-            </Link>
-          </motion.div>
         </div>
-
-        {/* Next Trending Mini-Rail (Desktop) */}
-        {slides.length > 2 && (
-          <div className="hidden xl:flex absolute bottom-4 right-8 z-20 items-center gap-2 pointer-events-auto">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 mr-1">
-              Up Next:
-            </span>
-            {[1, 2].map((offset) => {
-              const nextSlideIdx = (safeIdx + offset) % slides.length;
-              const nextSlide = slides[nextSlideIdx];
-              if (!nextSlide) return null;
-              const nextTitle = extractCleanTitleAndDate(nextSlide.name || "", nextSlide.year, nextSlide.section).cleanTitle;
-              return (
-                <button
-                  key={nextSlideIdx}
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    go(nextSlideIdx);
-                  }}
-                  className="group flex items-center gap-2 rounded-xl border border-white/10 bg-black/60 px-3 py-1.5 text-left backdrop-blur-md transition hover:bg-white/15 hover:border-white/30 active:scale-95"
-                >
-                  <span className="text-[10px] font-extrabold text-rose-400">#{nextSlideIdx + 1}</span>
-                  <span className="max-w-[130px] truncate text-[11px] font-semibold text-white/85 group-hover:text-white">
-                    {nextTitle}
-                  </span>
-                  <ChevronRight className="h-3 w-3 text-white/40 group-hover:text-white" />
-                </button>
-              );
-            })}
-          </div>
-        )}
 
         {/* Ambient Video Sound Control (Volume Mute / Unmute) */}
         {previewVideoUrl && videoReady && !videoError && (
@@ -581,36 +493,6 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
               </>
             )}
           </button>
-        )}
-
-        {/* Subtle Desktop Side Navigation Arrows (Hover) */}
-        {slides.length > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                go(safeIdx - 1);
-              }}
-              aria-label="Previous trending slide"
-              className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 z-20 h-10 w-10 items-center justify-center rounded-full bg-black/40 hover:bg-black/80 border border-white/10 text-white/70 hover:text-white backdrop-blur-md transition-all opacity-0 group-hover/hero:opacity-100 hover:scale-105 active:scale-95"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                go(safeIdx + 1);
-              }}
-              aria-label="Next trending slide"
-              className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 z-20 h-10 w-10 items-center justify-center rounded-full bg-black/40 hover:bg-black/80 border border-white/10 text-white/70 hover:text-white backdrop-blur-md transition-all opacity-0 group-hover/hero:opacity-100 hover:scale-105 active:scale-95"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </>
         )}
 
         {/* Simple, touch-friendly slide dots with spring layout animation */}
