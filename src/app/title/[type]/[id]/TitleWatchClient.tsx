@@ -644,7 +644,7 @@ export function TitleWatchClient({
               controls
               playsInline
               webkit-playsinline="true"
-              referrerPolicy="no-referrer"
+              {...{ referrerPolicy: "no-referrer" }}
               autoPlay
               preload="auto"
               poster={item.cover_url || item.thumbnail_url}
