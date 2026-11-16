@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Flame,
   Sparkles,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { LogoMark } from "./Logo";
 import { useAuth } from "@/lib/auth-context";
+import { SPRING_SNAPPY, SPRING_GENTLE } from "@/lib/motion";
 
 export interface CinemaSidebarProps {
   section: "lust" | "jax" | "fans";
@@ -203,7 +205,7 @@ export function CinemaSidebar({
         role="navigation"
         aria-label="Cinema Navigation"
         aria-expanded={!collapsed}
-        className={`fixed top-0 bottom-0 left-0 z-[70] lg:z-50 flex flex-col justify-between border-r border-white/[0.08] bg-[#07090e]/95 backdrop-blur-2xl transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 bottom-0 left-0 z-[70] lg:z-50 flex flex-col justify-between border-r border-white/[0.08] bg-[#07090e]/95 backdrop-blur-2xl transition-[width,transform] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,transform] ${
           // Desktop sizing: collapsed w-16, expanded w-60
           collapsed ? "lg:w-16" : "lg:w-60"
         } ${
@@ -234,16 +236,24 @@ export function CinemaSidebar({
               <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
                 <LogoMark size={28} />
               </div>
-              {(!collapsed || mobileOpen) && (
-                <div className="animate-in fade-in duration-200 flex items-center gap-2 overflow-hidden whitespace-nowrap">
-                  <span className="text-base font-black tracking-tight text-white">
-                    Xi<span className="text-rose-500">Lust</span>
-                  </span>
-                  <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.2 text-[9px] font-black tracking-wider text-rose-300">
-                    CINEMA
-                  </span>
-                </div>
-              )}
+              <AnimatePresence initial={false}>
+                {(!collapsed || mobileOpen) && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -6 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="flex items-center gap-2 overflow-hidden whitespace-nowrap"
+                  >
+                    <span className="text-base font-black tracking-tight text-white">
+                      Xi<span className="text-rose-500">Lust</span>
+                    </span>
+                    <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.2 text-[9px] font-black tracking-wider text-rose-300">
+                      CINEMA
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Link>
 
             {/* Desktop Collapse / Expand Toggle Button */}
@@ -300,21 +310,34 @@ export function CinemaSidebar({
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                       aria-label={`${item.label} channel (${item.sublabel})`}
-                      className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+                      className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 active:scale-[0.98] ${
                         active
-                          ? `${item.glowBg} border shadow-sm`
+                          ? "text-white"
                           : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
                       } ${collapsed && !mobileOpen ? "justify-center" : ""}`}
                     >
-                      {/* Active Left Vertical Accent Pill */}
+                      {/* Fluid Active Sliding Glow Pill */}
                       {active && (
-                        <span
+                        <motion.span
+                          layoutId="sidebar-active-channel-bg"
+                          className={`absolute inset-0 rounded-xl ${item.glowBg} border shadow-sm`}
+                          transition={SPRING_SNAPPY}
+                          style={{ zIndex: 0 }}
+                        />
+                      )}
+
+                      {/* Fluid Active Left Vertical Accent Pill */}
+                      {active && (
+                        <motion.span
+                          layoutId="sidebar-active-channel-bar"
                           className={`absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-gradient-to-b ${item.barGradient}`}
+                          transition={SPRING_SNAPPY}
+                          style={{ zIndex: 1 }}
                         />
                       )}
 
                       <div
-                        className={`relative shrink-0 flex items-center justify-center h-8 w-8 rounded-lg border transition-colors ${
+                        className={`relative z-[1] shrink-0 flex items-center justify-center h-8 w-8 rounded-lg border transition-colors ${
                           active
                             ? "bg-black/60 border-white/20 shadow-md"
                             : "bg-black/40 border-white/5 group-hover:border-white/15"
@@ -328,21 +351,29 @@ export function CinemaSidebar({
                         )}
                       </div>
 
-                      {(!collapsed || mobileOpen) && (
-                        <div className="min-w-0 text-left animate-in fade-in duration-150">
-                          <span className="block truncate font-bold text-[13px]">{item.label}</span>
-                          <span className="block text-[10px] text-zinc-500 font-normal truncate">
-                            {item.sublabel}
-                          </span>
-                        </div>
-                      )}
+                      <AnimatePresence initial={false}>
+                        {(!collapsed || mobileOpen) && (
+                          <motion.div
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -6 }}
+                            transition={{ duration: 0.18, ease: "easeOut" }}
+                            className="relative z-[1] min-w-0 text-left"
+                          >
+                            <span className="block truncate font-bold text-[13px]">{item.label}</span>
+                            <span className="block text-[10px] text-zinc-500 font-normal truncate">
+                              {item.sublabel}
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </button>
 
-                    {/* Instant Hover Micro-Tooltip with Smooth CSS Visibility Transition */}
+                    {/* Instant Hover Micro-Tooltip with Smooth Physics */}
                     {collapsed && !mobileOpen && (
                       <div
                         role="tooltip"
-                        className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-2 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150"
+                        className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-2 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 scale-95 translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                       >
                         <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor}`} />
                         <span>{item.label}</span>
@@ -397,11 +428,19 @@ export function CinemaSidebar({
 
             {/* Library & Curations Cluster */}
             <div className="pt-2 border-t border-white/[0.06] space-y-1">
-              {(!collapsed || mobileOpen) && (
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                  Discover & Library
-                </div>
-              )}
+              <AnimatePresence initial={false}>
+                {(!collapsed || mobileOpen) && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -4 }}
+                    transition={{ duration: 0.16 }}
+                    className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500"
+                  >
+                    Discover & Library
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Community Playlists */}
               <div className="relative group">
@@ -411,25 +450,33 @@ export function CinemaSidebar({
                     if (mobileOpen) onMobileClose?.();
                   }}
                   aria-label="Playlists and Curated Collections"
-                  className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+                  className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 active:scale-[0.98] ${
                     collapsed && !mobileOpen ? "justify-center" : ""
                   }`}
                 >
                   <div className="shrink-0 flex items-center justify-center h-8 w-8 rounded-lg bg-black/40 border border-white/5 text-zinc-400 group-hover:text-rose-400 group-hover:border-rose-500/30 transition-colors">
                     <ListVideo className="h-4 w-4" />
                   </div>
-                  {(!collapsed || mobileOpen) && (
-                    <div className="min-w-0 text-left animate-in fade-in duration-150">
-                      <span className="block truncate font-semibold text-zinc-200">Playlists</span>
-                      <span className="block text-[10px] text-zinc-500 truncate">Curated & Community</span>
-                    </div>
-                  )}
+                  <AnimatePresence initial={false}>
+                    {(!collapsed || mobileOpen) && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -6 }}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        className="min-w-0 text-left"
+                      >
+                        <span className="block truncate font-semibold text-zinc-200">Playlists</span>
+                        <span className="block text-[10px] text-zinc-500 truncate">Curated & Community</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </Link>
 
                 {collapsed && !mobileOpen && (
                   <div
                     role="tooltip"
-                    className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150"
+                    className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 scale-95 translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   >
                     <span>Playlists & Collections</span>
                   </div>
@@ -444,7 +491,7 @@ export function CinemaSidebar({
                     if (mobileOpen) onMobileClose?.();
                   }}
                   aria-label={`My Saved List (${listCount} items)`}
-                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 active:scale-[0.98] ${
                     collapsed && !mobileOpen ? "justify-center" : ""
                   }`}
                 >
@@ -452,11 +499,19 @@ export function CinemaSidebar({
                     <div className="shrink-0 flex items-center justify-center h-8 w-8 rounded-lg bg-black/40 border border-white/5 text-cyan-400 group-hover:border-cyan-400/30 transition-colors">
                       <Bookmark className="h-4 w-4" />
                     </div>
-                    {(!collapsed || mobileOpen) && (
-                      <span className="truncate font-semibold text-zinc-200 animate-in fade-in duration-150">
-                        My Saved List
-                      </span>
-                    )}
+                    <AnimatePresence initial={false}>
+                      {(!collapsed || mobileOpen) && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -6 }}
+                          transition={{ duration: 0.18, ease: "easeOut" }}
+                          className="truncate font-semibold text-zinc-200"
+                        >
+                          My Saved List
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {listCount > 0 && (!collapsed || mobileOpen) && (
@@ -469,7 +524,7 @@ export function CinemaSidebar({
                 {collapsed && !mobileOpen && (
                   <div
                     role="tooltip"
-                    className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-2 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150"
+                    className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-2 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 scale-95 translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   >
                     <span>My Saved List</span>
                     {listCount > 0 && (
@@ -489,25 +544,33 @@ export function CinemaSidebar({
                     if (mobileOpen) onMobileClose?.();
                   }}
                   aria-label="Browse all production studios"
-                  className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+                  className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 active:scale-[0.98] ${
                     collapsed && !mobileOpen ? "justify-center" : ""
                   }`}
                 >
                   <div className="shrink-0 flex items-center justify-center h-8 w-8 rounded-lg bg-black/40 border border-white/5 text-zinc-400 group-hover:text-purple-400 group-hover:border-purple-500/30 transition-colors">
                     <Film className="h-4 w-4" />
                   </div>
-                  {(!collapsed || mobileOpen) && (
-                    <div className="min-w-0 text-left animate-in fade-in duration-150">
-                      <span className="block truncate font-semibold text-zinc-200">Studios</span>
-                      <span className="block text-[10px] text-zinc-500 truncate">Full Production Index</span>
-                    </div>
-                  )}
+                  <AnimatePresence initial={false}>
+                    {(!collapsed || mobileOpen) && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -6 }}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        className="min-w-0 text-left"
+                      >
+                        <span className="block truncate font-semibold text-zinc-200">Studios</span>
+                        <span className="block text-[10px] text-zinc-500 truncate">Full Production Index</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </Link>
 
                 {collapsed && !mobileOpen && (
                   <div
                     role="tooltip"
-                    className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150"
+                    className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 scale-95 translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   >
                     <span>Browse All Studios</span>
                   </div>
@@ -522,27 +585,35 @@ export function CinemaSidebar({
                     if (mobileOpen) onMobileClose?.();
                   }}
                   aria-label={section === "jax" ? "Browse AV Actresses" : "Browse Pornstars and Models"}
-                  className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+                  className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 active:scale-[0.98] ${
                     collapsed && !mobileOpen ? "justify-center" : ""
                   }`}
                 >
                   <div className="shrink-0 flex items-center justify-center h-8 w-8 rounded-lg bg-black/40 border border-white/5 text-zinc-400 group-hover:text-pink-400 group-hover:border-pink-500/30 transition-colors">
                     <Compass className="h-4 w-4" />
                   </div>
-                  {(!collapsed || mobileOpen) && (
-                    <div className="min-w-0 text-left animate-in fade-in duration-150">
-                      <span className="block truncate font-semibold text-zinc-200">
-                        {section === "jax" ? "AV Actresses" : "Pornstars & Models"}
-                      </span>
-                      <span className="block text-[10px] text-zinc-500 truncate">Alphabetical Index</span>
-                    </div>
-                  )}
+                  <AnimatePresence initial={false}>
+                    {(!collapsed || mobileOpen) && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -6 }}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        className="min-w-0 text-left"
+                      >
+                        <span className="block truncate font-semibold text-zinc-200">
+                          {section === "jax" ? "AV Actresses" : "Pornstars & Models"}
+                        </span>
+                        <span className="block text-[10px] text-zinc-500 truncate">Alphabetical Index</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </Link>
 
                 {collapsed && !mobileOpen && (
                   <div
                     role="tooltip"
-                    className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150"
+                    className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 scale-95 translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   >
                     <span>{section === "jax" ? "Browse AV Actresses" : "Browse Pornstars"}</span>
                   </div>
@@ -561,7 +632,7 @@ export function CinemaSidebar({
                 if (mobileOpen) onMobileClose?.();
               }}
               aria-label={user ? `@${user.username || "user"} Profile` : "Sign In to account"}
-              className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+              className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 active:scale-[0.98] ${
                 collapsed && !mobileOpen ? "justify-center" : ""
               }`}
             >
@@ -572,22 +643,30 @@ export function CinemaSidebar({
                   <UserIcon className="h-4 w-4" />
                 )}
               </div>
-              {(!collapsed || mobileOpen) && (
-                <div className="min-w-0 text-left animate-in fade-in duration-150">
-                  <span className="block truncate font-semibold text-zinc-200">
-                    {user ? (user.username ? `@${user.username}` : "My Profile") : "Sign In"}
-                  </span>
-                  <span className="block text-[10px] text-zinc-500 truncate">
-                    {user ? "Account Settings" : "Save Favorites & Sync"}
-                  </span>
-                </div>
-              )}
+              <AnimatePresence initial={false}>
+                {(!collapsed || mobileOpen) && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -6 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="min-w-0 text-left"
+                  >
+                    <span className="block truncate font-semibold text-zinc-200">
+                      {user ? (user.username ? `@${user.username}` : "My Profile") : "Sign In"}
+                    </span>
+                    <span className="block text-[10px] text-zinc-500 truncate">
+                      {user ? "Account Settings" : "Save Favorites & Sync"}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Link>
 
             {collapsed && !mobileOpen && (
               <div
                 role="tooltip"
-                className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150"
+                className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-50 invisible group-hover:visible flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-[#121622]/95 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl opacity-0 scale-95 translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
               >
                 <span>{user ? (user.username ? `@${user.username}` : "My Profile") : "Sign In"}</span>
               </div>

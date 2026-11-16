@@ -6,6 +6,7 @@ import { Search, Flame, Bookmark, X, User as UserIcon, FolderHeart, Sparkles, St
 import { Wordmark, LogoMark } from "./Logo";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
+import { SPRING_SNAPPY } from "@/lib/motion";
 
 export type Section = "lust" | "jax" | "fans";
 export type View = string;
@@ -320,7 +321,7 @@ export function Navbar({
         aria-label="Mobile Bottom Navigation"
         className="sm:hidden fixed bottom-0 inset-x-0 z-50 border-t border-white/10 bg-[#080a0f]/95 backdrop-blur-2xl px-4 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.6)]"
       >
-        <div className="flex items-center justify-around">
+        <div className="flex items-center justify-around relative">
           <button
             type="button"
             onClick={() => {
@@ -329,11 +330,19 @@ export function Navbar({
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
-              section === "lust" ? "text-rose-400 font-bold" : "text-white/50 hover:text-white/80"
+            className={`relative flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
+              section === "lust" && !query && !mobileSearchOpen ? "text-rose-400 font-bold" : "text-white/50 hover:text-white/80"
             }`}
           >
-            <Flame className={`h-4 w-4 ${section === "lust" ? "text-rose-400" : "text-white/40"}`} />
+            {section === "lust" && !query && !mobileSearchOpen && (
+              <motion.span
+                layoutId="mobile-bottom-active-pill"
+                className="absolute inset-0 rounded-xl bg-rose-500/10 border border-rose-500/20"
+                transition={SPRING_SNAPPY}
+                style={{ zIndex: -1 }}
+              />
+            )}
+            <Flame className={`h-4 w-4 transition-colors ${section === "lust" && !query && !mobileSearchOpen ? "text-rose-400" : "text-white/40"}`} />
             <span className="text-[10px]">Lust</span>
           </button>
 
@@ -345,11 +354,19 @@ export function Navbar({
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
-              section === "jax" ? "text-pink-400 font-bold" : "text-white/50 hover:text-white/80"
+            className={`relative flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
+              section === "jax" && !query && !mobileSearchOpen ? "text-pink-400 font-bold" : "text-white/50 hover:text-white/80"
             }`}
           >
-            <Sparkles className={`h-4 w-4 ${section === "jax" ? "text-pink-400" : "text-white/40"}`} />
+            {section === "jax" && !query && !mobileSearchOpen && (
+              <motion.span
+                layoutId="mobile-bottom-active-pill"
+                className="absolute inset-0 rounded-xl bg-pink-500/10 border border-pink-500/20"
+                transition={SPRING_SNAPPY}
+                style={{ zIndex: -1 }}
+              />
+            )}
+            <Sparkles className={`h-4 w-4 transition-colors ${section === "jax" && !query && !mobileSearchOpen ? "text-pink-400" : "text-white/40"}`} />
             <span className="text-[10px]">Jax (JAV)</span>
           </button>
 
@@ -361,22 +378,38 @@ export function Navbar({
               if (query) onQueryChange("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
-              section === "fans" ? "text-amber-400 font-bold" : "text-white/50 hover:text-white/80"
+            className={`relative flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
+              section === "fans" && !query && !mobileSearchOpen ? "text-amber-400 font-bold" : "text-white/50 hover:text-white/80"
             }`}
           >
-            <Star className={`h-4 w-4 ${section === "fans" ? "text-amber-400" : "text-white/40"}`} />
+            {section === "fans" && !query && !mobileSearchOpen && (
+              <motion.span
+                layoutId="mobile-bottom-active-pill"
+                className="absolute inset-0 rounded-xl bg-amber-500/10 border border-amber-500/20"
+                transition={SPRING_SNAPPY}
+                style={{ zIndex: -1 }}
+              />
+            )}
+            <Star className={`h-4 w-4 transition-colors ${section === "fans" && !query && !mobileSearchOpen ? "text-amber-400" : "text-white/40"}`} />
             <span className="text-[10px]">Fans</span>
           </button>
 
           <button
             type="button"
             onClick={openMobileSearch}
-            className={`flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
-              query || mobileSearchOpen ? "text-white font-bold" : "text-white/50 hover:text-white/80"
+            className={`relative flex flex-col items-center gap-1 min-w-[56px] py-1 transition-all active:scale-95 ${
+              query || mobileSearchOpen ? "text-cyan-400 font-bold" : "text-white/50 hover:text-white/80"
             }`}
           >
-            <Search className="h-4 w-4 text-white/70" />
+            {(query || mobileSearchOpen) && (
+              <motion.span
+                layoutId="mobile-bottom-active-pill"
+                className="absolute inset-0 rounded-xl bg-cyan-500/10 border border-cyan-500/20"
+                transition={SPRING_SNAPPY}
+                style={{ zIndex: -1 }}
+              />
+            )}
+            <Search className={`h-4 w-4 transition-colors ${query || mobileSearchOpen ? "text-cyan-400" : "text-white/70"}`} />
             <span className="text-[10px]">Search</span>
           </button>
 
@@ -403,7 +436,7 @@ export function Navbar({
               setMobileSearchOpen(false);
               if (query) onQueryChange("");
             }}
-            className="flex flex-col items-center gap-1 min-w-[50px] py-1 text-white/50 hover:text-white/80 transition-all"
+            className="flex flex-col items-center gap-1 min-w-[50px] py-1 text-white/50 hover:text-white/80 transition-all active:scale-95"
           >
             {user ? (
               <span className="text-sm leading-none">{user.avatar || "👤"}</span>
