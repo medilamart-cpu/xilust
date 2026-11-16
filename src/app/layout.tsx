@@ -30,6 +30,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  referrer: "no-referrer",
   title: `${site.name} — stories, thoughtfully found`,
   description: site.tagline,
   keywords: ["streaming", "films", "series", "anime", "live tv"],
@@ -47,6 +48,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="referrer" content="no-referrer" />
+      </head>
       <body
         className={`${inter.variable} ${outfit.variable} ${geistMono.variable} antialiased bg-[#080a0f] text-[#f4f5f8]`}
       >

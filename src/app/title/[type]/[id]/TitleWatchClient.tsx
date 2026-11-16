@@ -101,7 +101,7 @@ export function isDirectCdnUrl(url?: string): boolean {
     clean.includes("famousinternetgirls.com") ||
     clean.includes("sexy-egirls.com") ||
     clean.includes("javpornvideos.xyz") ||
-    clean.includes("pimpbunny.com") ||
+    (clean.includes(".pimpbunny.com") && (clean.includes(".mp4") || clean.includes("remote_control.php"))) ||
     clean.includes("project1content.com") ||
     clean.includes("naughtycdn.com") ||
     clean.includes("gammacdn.com") ||
@@ -302,19 +302,39 @@ export function TitleWatchClient({
   const targetUrl = activeSource?.url || activeSource?.embed_url || "";
   const isPbSource = targetUrl.includes("pimpbunny.com/videos/");
   const [resolvedPbUrl, setResolvedPbUrl] = useState<string | null>(null);
-  const [isResolvingPb, setIsResolvingPb] = useState(false);
+  const [isResolvingPb, setIsResolvingPb] = useState(isPbSource);
   const [pbQuality, setPbQuality] = useState<string | null>(null);
+
+  // Ensure document referrer is stripped for direct CDN hotlinking
+  useEffect(() => {
+    try {
+      let meta = document.querySelector('meta[name="referrer"]') as HTMLMetaElement | null;
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.name = "referrer";
+        meta.content = "no-referrer";
+        document.head.appendChild(meta);
+      } else {
+        meta.content = "no-referrer";
+      }
+    } catch (_) {}
+  }, []);
 
   useEffect(() => {
     if (isPbSource) {
       setIsResolvingPb(true);
+      setResolvedPbUrl(null);
       setPlayerLoading(true);
+      setPlayerError(false);
       fetch(`/api/resolve/pimpbunny?url=${encodeURIComponent(targetUrl)}`)
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
         .then((data) => {
           if (data.success && data.stream_url) {
             setResolvedPbUrl(data.stream_url);
-            setPbQuality(data.quality || "HD");
+            setPbQuality(data.quality || "2K/HD");
             setPlayerError(false);
           } else {
             console.error("PB resolve error:", data.error);
@@ -332,11 +352,12 @@ export function TitleWatchClient({
     } else {
       setResolvedPbUrl(null);
       setPbQuality(null);
+      setIsResolvingPb(false);
     }
   }, [targetUrl, isPbSource]);
 
-  const activeStreamUrl = resolvedPbUrl || targetUrl;
-  const isDirectCdn = isDirectCdnUrl(activeStreamUrl) || Boolean(resolvedPbUrl);
+  const activeStreamUrl = isPbSource ? resolvedPbUrl : (resolvedPbUrl || targetUrl);
+  const isDirectCdn = Boolean(resolvedPbUrl) || (isDirectCdnUrl(activeStreamUrl || "") && !isPbSource);
 
   // Auto-switch to direct mode if targetUrl is unsupported by CleanStream
   useEffect(() => {
@@ -369,8 +390,11 @@ export function TitleWatchClient({
   }, [cleanstreamUrl, targetUrl, playerMode]);
 
   useEffect(() => {
-    if (!embedUrl) {
-      setPlayerLoading(false);
+    // If it's a direct CDN stream or PimpBunny, do not run the CleanStream iframe timeout
+    if (!embedUrl || isDirectCdn || isPbSource) {
+      if (!isPbSource && !isDirectCdn) {
+        setPlayerLoading(false);
+      }
       return;
     }
 
@@ -393,7 +417,7 @@ export function TitleWatchClient({
         playerTimeoutRef.current = null;
       }
     };
-  }, [embedUrl, key, playerMode]);
+  }, [embedUrl, key, playerMode, isDirectCdn, isPbSource]);
 
   const handleEmbedLoaded = () => {
     if (playerTimeoutRef.current !== null) {
@@ -561,16 +585,16 @@ export function TitleWatchClient({
         className="w-full max-w-full mx-auto relative aspect-video bg-black overflow-hidden rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]"
       >
         {targetUrl ? (
-          isPbSource && isResolvingPb ? (
+          isPbSource && (!resolvedPbUrl || isResolvingPb) ? (
             <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center bg-black/90">
               <div className="relative mb-3 flex h-10 w-10 items-center justify-center">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <Zap className="h-6 w-6 text-emerald-400 relative" />
               </div>
-              <p className="text-sm font-bold text-white">Resolving PimpBunny Dynamic CDN...</p>
-              <p className="text-xs text-white/50 mt-1">Acquiring direct high-speed stream token</p>
+              <p className="text-sm font-bold text-white">Resolving Dynamic Stream...</p>
+              <p className="text-xs text-white/50 mt-1">Connecting to high-speed CDN token</p>
             </div>
-          ) : isDirectCdn ? (
+          ) : isDirectCdn && activeStreamUrl ? (
             <video
               ref={videoRef}
               key={`${key}-direct-video-${activeIdx}-${activeStreamUrl}`}
@@ -581,9 +605,14 @@ export function TitleWatchClient({
               webkit-playsinline="true"
               referrerPolicy="no-referrer"
               autoPlay
-              preload="metadata"
+              preload="auto"
               poster={item.cover_url || item.thumbnail_url}
               onLoadedData={handleEmbedLoaded}
+              onCanPlay={handleEmbedLoaded}
+              onPlay={() => {
+                setPlayerError(false);
+                setPlayerLoading(false);
+              }}
               onEnded={() => {
                 if (activePlaylist && hasNext && autoAdvance) {
                   setAutoAdvanceCountdown(5);
