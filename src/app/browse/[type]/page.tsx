@@ -76,11 +76,11 @@ export default async function TaxonomyIndexPage({
   const featured = items.map((entry) => ({ entry, video: previewBySlug.get(entry.slug) }));
 
   const activePillStyle = (brand: string) => {
-    if (section !== brand) return "border-white/10 bg-white/[0.03] text-white/55 hover:text-white";
-    return "border-white/30 bg-white/15 text-white font-bold ring-1 ring-white/20 shadow-sm";
+    if (section !== brand) return "border-white/10 bg-white/[0.03] text-white/55 hover:text-white active:scale-95";
+    return "border-white/30 bg-white/15 text-white font-bold ring-1 ring-white/20 shadow-sm active:scale-95";
   };
 
-  const cardBorderHover = "hover:border-white/30 hover:bg-[#0e121a] transition-all";
+  const cardBorderHover = "hover:border-white/30 hover:bg-[#0e121a] hover:-translate-y-1 hover:shadow-xl transition-[transform,border-color,background-color,box-shadow] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform active:scale-[0.98]";
 
   return (
     <MyListProvider>

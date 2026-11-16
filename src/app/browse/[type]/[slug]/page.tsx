@@ -195,7 +195,7 @@ export default async function TaxonomyDetailPage({
             <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold overflow-x-auto no-scrollbar touch-scroll">
               <Link
                 href={hrefFor(1, subfilter, "new")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all active:scale-95 ${
                   sort === "new"
                     ? "bg-white text-black shadow-md font-extrabold"
                     : "text-white/60 hover:text-white hover:bg-white/5"
@@ -207,7 +207,7 @@ export default async function TaxonomyDetailPage({
 
               <Link
                 href={hrefFor(1, subfilter, "top")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all active:scale-95 ${
                   sort === "top"
                     ? "bg-white text-black shadow-md font-extrabold"
                     : "text-white/60 hover:text-white hover:bg-white/5"
@@ -219,7 +219,7 @@ export default async function TaxonomyDetailPage({
 
               <Link
                 href={hrefFor(1, subfilter, "random")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all active:scale-95 ${
                   sort === "random"
                     ? "bg-white text-black shadow-md font-extrabold"
                     : "text-white/60 hover:text-white hover:bg-white/5"
@@ -238,7 +238,7 @@ export default async function TaxonomyDetailPage({
                     key={filter}
                     href={hrefFor(1, subfilter === filter ? "" : filter, sort)}
                     aria-current={subfilter === filter ? "true" : undefined}
-                    className={`inline-flex min-h-9 items-center rounded-lg border px-3 text-xs font-semibold capitalize transition ${
+                    className={`inline-flex min-h-9 items-center rounded-lg border px-3 text-xs font-semibold capitalize transition active:scale-95 ${
                       subfilter === filter
                         ? "border-pink-300/50 bg-pink-500/20 text-pink-100"
                         : "border-white/10 bg-white/[0.04] text-white/65 hover:text-white"
