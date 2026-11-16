@@ -3,8 +3,10 @@
 import { Star, Plus, Check, Play, Film, Clock, Sparkles, Eye, Heart, Flame } from "lucide-react";
 import React, { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { GeneratedArt } from "./GeneratedArt";
 import { formatStudioLabel } from "@/lib/studio-label";
+import { SPRING_BOUNCY } from "@/lib/motion";
 
 /* ---------- unified card model ---------- */
 
@@ -315,7 +317,7 @@ export function TileCard({ item }: { item: CardModel }) {
         <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-[#0d1017] shadow-[0_10px_30px_rgba(0,0,0,0.65)] transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:border-white/30 group-hover:shadow-[0_16px_36px_rgba(0,0,0,0.8)]"
+          className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-[#0d1017] shadow-[0_10px_30px_rgba(0,0,0,0.65)] transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform group-hover:-translate-y-1.5 group-hover:border-white/30 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.85)]"
         >
           {art ? (
             <>
@@ -361,8 +363,8 @@ export function TileCard({ item }: { item: CardModel }) {
           )}
 
           {/* Interactive Hover Veil + Play Button with Clean Subtle Scale */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
-            <span className="flex h-12 w-12 sm:h-13 sm:w-13 scale-90 items-center justify-center rounded-full bg-white text-black shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-transform duration-200 ease-out group-hover:scale-100">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
+            <span className="flex h-12 w-12 sm:h-13 sm:w-13 scale-85 items-center justify-center rounded-full bg-white text-black shadow-[0_4px_24px_rgba(0,0,0,0.6)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-100 group-hover:shadow-[0_0_24px_rgba(255,255,255,0.4)]">
               <Play className="ml-0.5 h-5 w-5 fill-black text-black" />
             </span>
           </div>
@@ -430,19 +432,33 @@ export function TileCard({ item }: { item: CardModel }) {
           </p>
         </Link>
 
-        {/* My List bookmark button */}
+        {/* My List bookmark button with tactile spring pop */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             toggle(item);
           }}
           aria-label={saved ? `Remove from my list` : `Add to my list`}
-          className="flex h-8 w-8 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 active:scale-90 text-white/70 hover:text-white transition-all mt-0.5"
+          className="flex h-8 w-8 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 active:scale-90 text-white/70 hover:text-white transition-all mt-0.5 overflow-hidden"
         >
           {saved ? (
-            <Check className="h-3.5 w-3.5 text-cyan-300" />
+            <motion.div
+              key="saved"
+              initial={{ scale: 0.6, rotate: -25 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={SPRING_BOUNCY}
+            >
+              <Check className="h-3.5 w-3.5 text-cyan-300" />
+            </motion.div>
           ) : (
-            <Plus className="h-3.5 w-3.5" />
+            <motion.div
+              key="unsaved"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={SPRING_BOUNCY}
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </motion.div>
           )}
         </button>
       </div>

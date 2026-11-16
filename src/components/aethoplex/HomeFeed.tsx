@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Loader2, Sparkles, Trophy, Shuffle, Filter, Star, Film, Tag, X, Clock, LayoutGrid, Grid2X2, Eye, Heart, Languages, ShieldAlert, SlidersHorizontal } from "lucide-react";
 import { TileCard, type CardModel } from "./PosterCard";
 import { CommunityPlaylistsSection } from "./CommunityPlaylistsSection";
 import type { TaxonomyItem } from "@/lib/catalog-db";
 import { formatStudioLabel } from "@/lib/studio-label";
+import { SPRING_GENTLE } from "@/lib/motion";
 
 const PAGE_SIZE = 20;
 
@@ -584,8 +585,16 @@ export function HomeFeed({
         )}
 
         {/* Collapsible Filter & Taxonomy Drawer */}
-        {section !== "fans" && showFilters && (
-          <div className="flex flex-col gap-4 p-4 rounded-2xl bg-[#0e121a] border border-white/10 animate-in fade-in slide-in-from-top-2 duration-200">
+        <AnimatePresence>
+          {section !== "fans" && showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -8 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -8 }}
+              transition={SPRING_GENTLE}
+              className="overflow-hidden"
+            >
+              <div className="flex flex-col gap-4 p-4 rounded-2xl bg-[#0e121a] border border-white/10">
             {/* Row 1: Mode Switcher & View All */}
             <div className="flex flex-wrap items-center justify-between gap-2.5">
               <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar scrollbar-none touch-scroll max-w-full">
@@ -860,7 +869,9 @@ export function HomeFeed({
               </div>
             )}
           </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {feedError && (

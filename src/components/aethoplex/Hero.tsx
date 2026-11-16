@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Volume2, VolumeX } from "lucide-react";
 import { type CardModel } from "./PosterCard";
 import { extractCleanTitleAndDate } from "@/lib/video-utils";
 import { GeneratedArt } from "./GeneratedArt";
 import { ThemedTitle, ThemedThemeBadge } from "./ThemedTitle";
+import { SPRING_SNAPPY, EASE_DECEL } from "@/lib/motion";
 
 const heroCache = new Map<string, CardModel[]>();
 
@@ -331,17 +333,21 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                 className="absolute inset-0 h-full w-full object-cover blur-3xl opacity-40 scale-110 pointer-events-none"
               />
               {/* Crisp Foreground Master Image with right-weighted positioning */}
-              <img
+              <motion.img
+                key={imgSrc || safeIdx}
                 ref={(img) => {
                   if (img && img.complete && img.naturalWidth > 0 && !imageLoaded) {
                     setImageLoaded(true);
                   }
                 }}
-                src={imgSrc}
+                src={imgSrc || undefined}
                 alt=""
+                initial={{ opacity: 0, scale: 1.02 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: EASE_DECEL }}
                 onLoad={() => setImageLoaded(true)}
                 onError={handleHeroImgError}
-                className="absolute inset-0 h-full w-full rounded-2xl sm:rounded-3xl object-cover object-[center_20%] sm:object-[right_center] transition-[opacity,transform,filter] duration-700 brightness-100 opacity-100"
+                className="absolute inset-0 h-full w-full rounded-2xl sm:rounded-3xl object-cover object-[center_20%] sm:object-[right_center] will-change-transform brightness-100"
               />
 
               {/* Seamless Auto-Playing Background Video Preview (Aethoflix / Netflix style) */}
@@ -393,13 +399,18 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-32 sm:h-48 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent z-[1]"
         />
 
-        {/* Content Box with Emil Kowalski slide arrival transition */}
+        {/* Content Box with 3-Tier Emil Kowalski Wave Choreography */}
         <div
           key={safeIdx}
-          className="pointer-events-none relative z-[2] flex min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16 hero-content-anim"
+          className="pointer-events-none relative z-[2] flex min-h-[360px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] max-w-xl sm:max-w-2xl flex-col justify-end p-4 pb-14 sm:p-8 sm:pb-16 md:p-10 md:pb-16"
         >
-          {/* Minimalist Cinema Metadata Row with Colourful Studio Theme Badge */}
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+          {/* Tier 1: Badges & Metadata (0ms delay) */}
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: EASE_DECEL }}
+            className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3"
+          >
             <span className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-wider text-white backdrop-blur-md uppercase">
               <Sparkles className="h-3 w-3 text-cyan-300" />
               {section === "lust" ? `TRENDING #${safeIdx + 1}` : `FEATURED`}
@@ -426,10 +437,15 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                 Live Preview
               </span>
             )}
-          </div>
+          </motion.div>
 
-          {/* Pure Cinema Headline */}
-          <div className="mb-2 sm:mb-3">
+          {/* Tier 2: Pure Cinema Headline (60ms delay) */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.32, delay: 0.06, ease: EASE_DECEL }}
+            className="mb-2 sm:mb-3"
+          >
             <ThemedTitle
               title={heroHeadline}
               studio={studioName}
@@ -437,14 +453,19 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
               code={cur?.code}
               size="hero"
             />
-          </div>
+          </motion.div>
 
-          {/* Starring Cast Subline */}
+          {/* Tier 3: Starring Cast Subline (120ms delay) */}
           {heroCast && (
-            <p className="line-clamp-1 text-xs sm:text-sm font-medium text-zinc-300 mb-2 sm:mb-3">
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, delay: 0.12, ease: EASE_DECEL }}
+              className="line-clamp-1 text-xs sm:text-sm font-medium text-zinc-300 mb-2 sm:mb-3"
+            >
               <span className="text-zinc-500 text-xs font-normal">Starring: </span>
               {heroCast}
-            </p>
+            </motion.p>
           )}
         </div>
 
@@ -474,7 +495,7 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
           </button>
         )}
 
-        {/* Simple, touch-friendly slide dots; swiping remains available on touch screens. */}
+        {/* Simple, touch-friendly slide dots with spring layout animation */}
         {slides.length > 1 && (
           <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-3">
             <div className="flex items-center" role="group" aria-label="Featured slides">
@@ -487,11 +508,13 @@ export function Hero({ section }: { section: "lust" | "jax" | "fans" }) {
                   aria-current={idx === i ? "true" : undefined}
                   className="group flex h-11 w-8 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                 >
-                  <span
+                  <motion.span
+                    layout
+                    transition={SPRING_SNAPPY}
                     aria-hidden="true"
-                    className={`h-1.5 rounded-full transition-all ${
+                    className={`h-1.5 rounded-full ${
                       idx === i
-                        ? "w-4 bg-gradient-to-r from-cyan-300 to-violet-300 shadow-[0_0_10px_rgba(103,232,249,0.55)]"
+                        ? "w-5 bg-gradient-to-r from-cyan-300 to-violet-300 shadow-[0_0_10px_rgba(103,232,249,0.55)]"
                         : "w-1.5 bg-white/45 group-hover:bg-white/75"
                     }`}
                   />
