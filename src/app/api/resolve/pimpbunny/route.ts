@@ -24,18 +24,24 @@ export async function GET(req: NextRequest) {
       headers: {
         Accept: "application/json",
       },
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(15000),
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      return NextResponse.json(
-        { error: `Resolver error (${res.status}): ${errText}` },
-        { status: res.status }
-      );
+    let data: any = null;
+    try {
+      data = await res.json();
+    } catch {
+      const text = await res.text();
+      data = { error: text || `Resolver returned status ${res.status}` };
     }
 
-    const data = await res.json();
+    if (!res.ok) {
+      return NextResponse.json(data, {
+        status: res.status,
+        headers: { "Cache-Control": "no-cache" }
+      });
+    }
+
     return NextResponse.json(data, {
       headers: {
         "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=1800",

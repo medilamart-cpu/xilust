@@ -304,6 +304,9 @@ export function TitleWatchClient({
   const [resolvedPbUrl, setResolvedPbUrl] = useState<string | null>(null);
   const [isResolvingPb, setIsResolvingPb] = useState(isPbSource);
   const [pbQuality, setPbQuality] = useState<string | null>(null);
+  const [pbError, setPbError] = useState<string | null>(null);
+  const [pbRetryCount, setPbRetryCount] = useState(0);
+  const [pbCountdown, setPbCountdown] = useState<number | null>(null);
 
   // Ensure document referrer is stripped for direct CDN hotlinking
   useEffect(() => {
@@ -326,24 +329,27 @@ export function TitleWatchClient({
       setResolvedPbUrl(null);
       setPlayerLoading(true);
       setPlayerError(false);
+      setPbError(null);
       fetch(`/api/resolve/pimpbunny?url=${encodeURIComponent(targetUrl)}`)
-        .then((r) => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        })
+        .then((r) => r.json())
         .then((data) => {
           if (data.success && data.stream_url) {
             setResolvedPbUrl(data.stream_url);
             setPbQuality(data.quality || "2K/HD");
             setPlayerError(false);
+            setPbError(null);
+            setPbCountdown(null);
           } else {
             console.error("PB resolve error:", data.error);
-            setPlayerError(true);
+            const msg = data.error || "PimpBunny upstream server is temporarily busy or undergoing maintenance.";
+            setPbError(msg);
+            setPbCountdown(8);
           }
         })
         .catch((err) => {
           console.error("PB resolve fetch error:", err);
-          setPlayerError(true);
+          setPbError("PimpBunny upstream origin temporarily unreachable.");
+          setPbCountdown(8);
         })
         .finally(() => {
           setIsResolvingPb(false);
@@ -353,8 +359,24 @@ export function TitleWatchClient({
       setResolvedPbUrl(null);
       setPbQuality(null);
       setIsResolvingPb(false);
+      setPbError(null);
+      setPbCountdown(null);
     }
-  }, [targetUrl, isPbSource]);
+  }, [targetUrl, isPbSource, pbRetryCount]);
+
+  // Automatic retry countdown loop for dynamic CDN
+  useEffect(() => {
+    if (pbCountdown === null) return;
+    if (pbCountdown <= 0) {
+      setPbCountdown(null);
+      setPbRetryCount((c) => c + 1);
+      return;
+    }
+    const t = setTimeout(() => {
+      setPbCountdown((c) => (c !== null && c > 0 ? c - 1 : 0));
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [pbCountdown]);
 
   const activeStreamUrl = isPbSource ? resolvedPbUrl : (resolvedPbUrl || targetUrl);
   const isDirectCdn = Boolean(resolvedPbUrl) || (isDirectCdnUrl(activeStreamUrl || "") && !isPbSource);
@@ -585,14 +607,33 @@ export function TitleWatchClient({
         className="w-full max-w-full mx-auto relative aspect-video bg-black overflow-hidden rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_12px_45px_rgba(0,0,0,0.85)]"
       >
         {targetUrl ? (
-          isPbSource && (!resolvedPbUrl || isResolvingPb) ? (
+          isPbSource && (!resolvedPbUrl || isResolvingPb || pbError) ? (
             <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center bg-black/90">
               <div className="relative mb-3 flex h-10 w-10 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <Zap className="h-6 w-6 text-emerald-400 relative" />
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${pbError ? "bg-amber-400 opacity-75" : "bg-emerald-400 opacity-75"}`}></span>
+                <Zap className={`h-6 w-6 ${pbError ? "text-amber-400" : "text-emerald-400"} relative`} />
               </div>
-              <p className="text-sm font-bold text-white">Resolving Dynamic Stream...</p>
-              <p className="text-xs text-white/50 mt-1">Connecting to high-speed CDN token</p>
+              <p className="text-sm font-bold text-white">
+                {pbError ? "Upstream Origin Server Busy" : "Resolving Dynamic Stream..."}
+              </p>
+              <p className="text-xs text-white/60 mt-1 max-w-md">
+                {pbError
+                  ? `${pbError} (Auto-reconnecting in ${pbCountdown ?? 8}s…)`
+                  : "Connecting to high-speed CDN token"}
+              </p>
+              {pbError && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPbCountdown(null);
+                    setPbRetryCount((c) => c + 1);
+                  }}
+                  className="mt-4 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold text-white border border-white/20 transition-all active:scale-95 flex items-center gap-1.5"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>Retry Now</span>
+                </button>
+              )}
             </div>
           ) : isDirectCdn && activeStreamUrl ? (
             <video
