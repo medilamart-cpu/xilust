@@ -1,7 +1,7 @@
 "use client";
 
 import { Star, Plus, Check, Play, Film, Clock, Sparkles, Eye, Heart, Flame } from "lucide-react";
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, { useState, useEffect, useRef, createContext, useContext } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { GeneratedArt } from "./GeneratedArt";
@@ -191,6 +191,10 @@ export function TileCard({ item }: { item: CardModel }) {
 
   // Video Preview & Timeline scrubber states
   const [isHovered, setIsHovered] = useState(false);
+  const [showVideoPreview, setShowVideoPreview] = useState(false);
+  const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const previewVideo = item.previewVideoUrl || (item as any).preview_url || null;
 
   const [retryCount, setRetryCount] = useState(0);
 
@@ -199,6 +203,9 @@ export function TileCard({ item }: { item: CardModel }) {
     setImgError(false);
     setImageLoaded(false);
     setRetryCount(0);
+    return () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    };
   }, [item.backdropUrl, item.posterUrl, item.fallbackUrl, (item as any).thumbnail_url, (item as any).cover_url]);
 
   const fallbackThumb = item.fallbackUrl || (item as any).cover_url || null;
@@ -253,10 +260,21 @@ export function TileCard({ item }: { item: CardModel }) {
 
   const handleMouseEnter = () => {
     setIsHovered(true);
+    if (previewVideo) {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = setTimeout(() => {
+        setShowVideoPreview(true);
+      }, 350);
+    }
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
+    setShowVideoPreview(false);
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
   };
 
   const sec = item.section || "lust";
@@ -285,6 +303,15 @@ export function TileCard({ item }: { item: CardModel }) {
     item.categories?.some((c) => typeof c === "string" && c.toLowerCase().includes("4k")) ||
     (typeof rawName === "string" && rawName.toLowerCase().includes("4k"))
   );
+
+  const rawViews = (item as any).views ?? item.views_7d ?? item.popularity ?? 0;
+  const formattedViews = rawViews > 0
+    ? rawViews >= 1000000
+      ? `${(rawViews / 1000000).toFixed(1)}M`
+      : rawViews >= 1000
+      ? `${(rawViews / 1000).toFixed(1)}K`
+      : `${rawViews}`
+    : null;
 
   return (
     <div className="group block shrink-0 rounded-xl text-left">
@@ -342,6 +369,19 @@ export function TileCard({ item }: { item: CardModel }) {
               />
               {/* Dual-stop vignette scrim to protect bottom text and badges without hiding the 1080p photo */}
               <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#080a0f]/90 via-[#080a0f]/15 via-35% to-transparent pointer-events-none" />
+
+              {/* Live Video Preview on Hover (Desktop) */}
+              {showVideoPreview && previewVideo && (
+                <video
+                  src={previewVideo}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="auto"
+                  className="absolute inset-0 h-full w-full object-cover z-[1] transition-opacity duration-300 pointer-events-none"
+                />
+              )}
             </>
           ) : (
             <div className="relative h-full w-full">
@@ -363,14 +403,14 @@ export function TileCard({ item }: { item: CardModel }) {
           )}
 
           {/* Interactive Hover Veil + Play Button with Clean Subtle Scale */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100 pointer-events-none z-[2]">
             <span className="flex h-12 w-12 sm:h-13 sm:w-13 scale-85 items-center justify-center rounded-full bg-white text-black shadow-[0_4px_24px_rgba(0,0,0,0.6)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-100 group-hover:shadow-[0_0_24px_rgba(255,255,255,0.4)]">
               <Play className="ml-0.5 h-5 w-5 fill-black text-black" />
             </span>
           </div>
 
           {/* Badge: 4K UHD / 1080p FHD */}
-          <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded-md px-1.5 sm:px-2 py-0.5 text-[8.5px] sm:text-[9.5px] font-black tracking-wider backdrop-blur-md transition-all ${
+          <span className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex items-center gap-1 rounded-md px-1.5 sm:px-2 py-0.5 text-[8.5px] sm:text-[9.5px] font-black tracking-wider backdrop-blur-md transition-all z-10 ${
             is4k
               ? "bg-amber-500/85 text-black border border-amber-300/70 shadow-[0_0_12px_rgba(251,191,36,0.5)] font-black"
               : "bg-gradient-to-r from-cyan-950/80 to-blue-950/80 text-cyan-300 border border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.35)]"
@@ -383,6 +423,14 @@ export function TileCard({ item }: { item: CardModel }) {
             <Clock aria-hidden="true" className="h-2.5 w-2.5 text-cyan-300" />
             <span>{durationLabel}</span>
           </span>
+
+          {/* View Count Badge (Bottom-Left) */}
+          {formattedViews && (
+            <span className="absolute left-2 bottom-2 inline-flex items-center gap-1 rounded bg-black/80 px-1.5 py-0.5 text-[9px] sm:text-[9.5px] font-medium text-white/90 border border-white/10 shadow-md backdrop-blur-md z-10 tabular-nums">
+              <Eye aria-hidden="true" className="h-2.5 w-2.5 text-zinc-400" />
+              <span>{formattedViews}</span>
+            </span>
+          )}
 
           {/* JAX Code Badge (Top-Left) */}
           {isJax && item.code && art && !isHovered && (
